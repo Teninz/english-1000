@@ -1,3 +1,5 @@
 node_modules/
 tools/piper-build/package-lock.json
 .claude/
+apk/
+*.zip
