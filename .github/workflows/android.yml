@@ -1,0 +1,64 @@
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Зависимости и веб-часть
+        run: |
+          npm ci
+          npm run build:web
+          npx cap sync android
+
+      - name: Ключ подписи из секретов
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/signing.keystore
+
+      - name: Сборка APK
+        working-directory: android
+        env:
+          SF_KEYSTORE: ${{ github.workspace }}/android/signing.keystore
+          SF_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SF_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SF_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace
+
+      - name: Переименовать
+        run: |
+          VER=$(grep -oP 'versionName "\K[^"]+' android/app/build.gradle)
+          mkdir -p out
+          cp android/app/build/outputs/apk/release/app-release.apk "out/ShadowFoxEng-$VER.apk"
+          cp android/app/build/outputs/bundle/release/app-release.aab "out/ShadowFoxEng-$VER.aab"
+          echo "VER=$VER" >> $GITHUB_ENV
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ShadowFoxEng-${{ env.VER }}
+          path: out/*
+
+      - name: Релиз (при теге v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/*

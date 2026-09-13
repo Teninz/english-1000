@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="learn" android:enabled="true" android:icon="@drawable/ic_sc_learn" android:shortcutShortLabel="@string/sc_learn">
+        <intent android:action="android.intent.action.VIEW" android:data="shadowfox://open?screen=learn" android:targetPackage="io.github.teninz.shadowfox" android:targetClass="io.github.teninz.shadowfox.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="review" android:enabled="true" android:icon="@drawable/ic_sc_review" android:shortcutShortLabel="@string/sc_review">
+        <intent android:action="android.intent.action.VIEW" android:data="shadowfox://open?screen=review" android:targetPackage="io.github.teninz.shadowfox" android:targetClass="io.github.teninz.shadowfox.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="road" android:enabled="true" android:icon="@drawable/ic_sc_road" android:shortcutShortLabel="@string/sc_road">
+        <intent android:action="android.intent.action.VIEW" android:data="shadowfox://open?screen=road" android:targetPackage="io.github.teninz.shadowfox" android:targetClass="io.github.teninz.shadowfox.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="hard" android:enabled="true" android:icon="@drawable/ic_sc_hard" android:shortcutShortLabel="@string/sc_hard">
+        <intent android:action="android.intent.action.VIEW" android:data="shadowfox://open?screen=hard" android:targetPackage="io.github.teninz.shadowfox" android:targetClass="io.github.teninz.shadowfox.MainActivity" />
+    </shortcut>
+</shortcuts>

@@ -1,0 +1,23 @@
+{
+  "name": "shadowfox-eng",
+  "version": "1.1.0",
+  "private": true,
+  "description": "ShadowFox Eng — 1000 английских слов B1–B2",
+  "scripts": {
+    "build:web": "node tools/build-web.js",
+    "sync": "npm run build:web && npx cap sync android",
+    "open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor-community/keep-awake": "^8.0.1",
+    "@capacitor-community/speech-recognition": "^7.0.1",
+    "@capacitor-community/text-to-speech": "^8.0.2",
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/browser": "^8.0.4",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/local-notifications": "^8.3.1"
+  }
+}

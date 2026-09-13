@@ -3,3 +3,15 @@ tools/piper-build/package-lock.json
 .claude/
 apk/
 *.zip
+dist/
+android/signing.keystore
+android/keystore.properties
+android/app/build/
+android/build/
+android/.gradle/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+.idea/

@@ -489,7 +489,7 @@ const ICONS = {
 
 /* ---------- озвучка ---------- */
 let enVoice = null, ruVoice = null;
-const voicesFor = lang => canSpeak() ? speechSynthesis.getVoices().filter(v => new RegExp("^"+lang, "i").test(v.lang)).sort((a,b)=>a.name.localeCompare(b.name)) : [];
+var voicesFor = lang => canSpeak() ? speechSynthesis.getVoices().filter(v => new RegExp("^"+lang, "i").test(v.lang)).sort((a,b)=>a.name.localeCompare(b.name)) : [];
 // голос по умолчанию: сохранённый выбор → «хороший» системный → любой для языка
 function pickVoices(){
   if(!("speechSynthesis" in window)) return;
@@ -499,14 +499,14 @@ function pickVoices(){
   ruVoice = saved("ruVoice","ru") || vs.find(v=>/^ru/i.test(v.lang) && /Google|Milena|Natural|Svetlana|Dmitry/i.test(v.name)) || vs.find(v=>/^ru/i.test(v.lang)) || null;
 }
 if("speechSynthesis" in window){ speechSynthesis.onvoiceschanged = pickVoices; }
-const canSpeak = () => "speechSynthesis" in window || !!(S && S.set.tts && Object.values(S.set.tts).some(c => c.engine!=="system" && c.voice));
+var canSpeak = () => "speechSynthesis" in window || !!(S && S.set.tts && Object.values(S.set.tts).some(c => c.engine!=="system" && c.voice));
 function speak(text, lang="en-US"){ TTS.speak(text, lang).catch(()=>{}); }
 // озвучка с ожиданием конца — для режима «В дороге»
 function speakAsync(text, lang="en-US"){ return TTS.speak(text, lang); }
 
 /* ---------- распознавание речи ---------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-const canListen = () => !!SR;
+var canListen = () => !!SR;
 let currentRec = null;
 // слушает один раз, возвращает {alts:[...]} или {error}
 function listen(lang, timeout = 8000){
@@ -750,7 +750,7 @@ function nextQ(){
 }
 const flagBtn = (i, cls="") => `<button class="flagb ${isHard(i)?"on":""} ${cls}" data-flag="${i}" aria-label="Сложное слово" title="Пометить как сложное">${isHard(i)?ICONS.flagOn:ICONS.flag}</button>`;
 function wireFlags(root){ (root||document).querySelectorAll("[data-flag]").forEach(b => b.onclick = e => { e.stopPropagation(); const i = +b.dataset.flag; const on = toggleHard(i); b.classList.toggle("on", on); b.innerHTML = on ? ICONS.flagOn : ICONS.flag; toast(on ? "Помечено как сложное" : "Пометка снята"); }); }
-const buzz = ok => { try{ navigator.vibrate && navigator.vibrate(ok ? 12 : [40,40,40]); }catch(e){} };
+var buzz = ok => { try{ navigator.vibrate && navigator.vibrate(ok ? 12 : [40,40,40]); }catch(e){} };
 function record(i, ok, kind){ sess.res.push({i, ok, kind}); grade(i, ok, kind); buzz(ok); }
 function feedback(box, ok, i, extra){
   const w = WORDS[i];
@@ -1071,6 +1071,8 @@ function settingsSheet(){
   sheet(`
     <div class="row between"><h2>Настройки</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
     <div class="set-row"><span>Новых слов в день</span><div class="seg" style="width:200px" id="goalSeg">${[5,10,15,20].map(g=>`<button class="${S.goal===g?"on":""}" data-g="${g}">${g}</button>`).join("")}</div></div>
+    <div class="set-row"><span>Ежедневное напоминание</span><div class="row" style="gap:8px"><input type="time" id="remindTime" value="${S.set.remind||"19:00"}" class="sel" style="width:110px;padding:8px 10px" ${S.set.remind?"":"disabled"}><button class="toggle ${S.set.remind?"on":""}" id="tRemind" aria-label="Напоминание"></button></div></div>
+    ${(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())?"":'<p class="small muted" style="margin-top:-6px">Напоминания работают только в установленном приложении.</p>'}
     <div class="set-row"><span>Озвучивать слово автоматически</span><button class="toggle ${S.set.auto?"on":""}" id="tAuto" aria-label="Автоозвучка"></button></div>
     <div class="set-row" style="flex-direction:column;align-items:stretch;gap:10px"><div class="row between"><span>Фон</span><span class="small muted">осенние сцены</span></div>
       <div class="scene-pick" id="scenePick">${Object.entries(SCENES).map(([k,v])=>`<button class="scene-btn ${(S.set.scene||"town")===k?"on":""}" data-s="${k}"><span class="scene-thumb">${SCENE_SVG[k]?SCENE_SVG[k]():""}</span><span>${v.title}</span></button>`).join("")}</div>
@@ -1086,6 +1088,8 @@ function settingsSheet(){
   `);
   $("#goalSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.goal=+b.dataset.g; save(); settingsSheet(); });
   $("#tAuto").onclick = () => { S.set.auto=!S.set.auto; save(); settingsSheet(); };
+  $("#tRemind").onclick = () => { S.set.remind = S.set.remind ? null : ($("#remindTime").value || "19:00"); save(); if(window.scheduleReminder) scheduleReminder(); settingsSheet(); };
+  $("#remindTime").onchange = e => { S.set.remind = e.target.value; save(); if(window.scheduleReminder) scheduleReminder(); };
   $("#themeSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.set.theme=b.dataset.t; save(); applyTheme(); settingsSheet(); });
   $("#scenePick").querySelectorAll(".scene-btn").forEach(b=>b.onclick=()=>{ S.set.scene=b.dataset.s; save(); applyScene(); settingsSheet(); });
   $("#tMotion").onclick = () => { S.set.motion = S.set.motion===false; save(); applyScene(); settingsSheet(); };
@@ -1137,3 +1141,4 @@ if(qsDemo.get("demo")){ const sc = qsDemo.get("screen"); setTimeout(() => {
 document.addEventListener("visibilitychange", async () => { if(document.visibilityState==="visible" && hf.on && !hf.lock){ try{ hf.lock = await navigator.wakeLock?.request("screen"); }catch(e){} } });
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 </script>
+<script src="native.js"></script>

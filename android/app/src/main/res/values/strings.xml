@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ShadowFox Eng</string>
+    <string name="title_activity_main">ShadowFox Eng</string>
+    <string name="package_name">io.github.teninz.shadowfox</string>
+    <string name="custom_url_scheme">shadowfox</string>
+    <string name="widget_label">Слово дня — ShadowFox Eng</string>
+    <string name="widget_description">Одно слово уровня B1–B2 в день с переводом и примером</string>
+    <string name="sc_learn">Учить новые</string>
+    <string name="sc_review">Повторить</string>
+    <string name="sc_road">В дороге</string>
+    <string name="sc_hard">Сложные слова</string>
+</resources>

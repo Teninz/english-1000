@@ -1,0 +1,16 @@
+{
+  "appId": "io.github.teninz.shadowfox",
+  "appName": "ShadowFox Eng",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#14171C"
+  },
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "LocalNotifications": { "smallIcon": "ic_stat_fox", "iconColor": "#E8853A" },
+    "SplashScreen": { "launchAutoHide": true }
+  }
+}

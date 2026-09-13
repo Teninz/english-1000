@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#E8853A</color>
+    <color name="colorPrimaryDark">#14171C</color>
+    <color name="colorAccent">#E8853A</color>
+    <color name="sf_ground">#14171C</color>
+    <color name="sf_surface">#1F232B</color>
+    <color name="sf_ink">#F1ECE3</color>
+    <color name="sf_muted">#A3A8B3</color>
+    <color name="sf_accent">#E8853A</color>
+    <color name="sf_amber">#EFA537</color>
+</resources>
