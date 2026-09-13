@@ -38,22 +38,27 @@ if (NATIVE) {
       if (perm.speechRecognition !== "granted") { const r = await NATIVE.stt.requestPermissions(); if (r.speechRecognition !== "granted") return { error: "not-allowed" }; }
       const av = await NATIVE.stt.available(); if (!av.available) return { error: "unsupported" };
       recActive = true;
-      const res = await Promise.race([
-        NATIVE.stt.start({ language: lang, maxResults: 5, partialResults: false, popup: false }),
-        new Promise(r => setTimeout(() => r({ matches: [] }), timeout)),
-      ]);
-      recActive = false;
+      // по таймауту не бросаем распознаватель, а останавливаем его: Android тогда отдаёт то, что успел услышать
+      const stopTimer = setTimeout(() => { NATIVE.stt.stop().catch(() => {}); }, timeout);
+      const hardStop = new Promise(r => setTimeout(() => r({ matches: [] }), timeout + 4000));
+      let res;
+      try { res = await Promise.race([NATIVE.stt.start({ language: lang, maxResults: 5, partialResults: false, popup: false }), hardStop]); }
+      finally { clearTimeout(stopTimer); recActive = false; }
       return { alts: (res && res.matches) || [] };
     } catch (e) {
       recActive = false;
       const m = String(e && e.message || e).toLowerCase();
-      if (/permission|denied/.test(m)) return { error: "not-allowed" };
+      if (/permission|denied|not-allowed/.test(m)) return { error: "not-allowed" };
       if (/network/.test(m)) return { error: "network" };
-      if (/no match|no speech|speech timeout|7|6/.test(m)) return { alts: [] };
-      return { alts: [] };
+      return { alts: [] }; // no match / speech timeout / already listening — просто нет ответа
     }
   };
-  window.stopListening = () => { if (recActive) { recActive = false; NATIVE.stt.stop().catch(() => {}); } };
+  window.stopListening = () => { recActive = false; NATIVE.stt.stop().catch(() => {}); };
+
+  // --- цвет значков статус-бара под тему ---
+  const origApplyTheme = window.applyTheme;
+  window.applyTheme = function () { origApplyTheme.apply(this, arguments); const light = (S.set.theme || "dark") === "light"; NATIVE.P.SystemBars && NATIVE.P.SystemBars.setStyle({ style: light ? "LIGHT" : "DARK" }).catch(() => {}); };
+  window.applyTheme();
 
   // --- вибрация, удержание экрана ---
   window.buzz = ok => { try { NATIVE.haptics.impact({ style: ok ? "LIGHT" : "HEAVY" }); } catch (e) {} };

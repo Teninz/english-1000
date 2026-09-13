@@ -10,7 +10,17 @@
     "androidScheme": "https"
   },
   "plugins": {
-    "LocalNotifications": { "smallIcon": "ic_stat_fox", "iconColor": "#E8853A" },
-    "SplashScreen": { "launchAutoHide": true }
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_fox",
+      "iconColor": "#E8853A"
+    },
+    "SplashScreen": {
+      "launchAutoHide": true
+    },
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover",
+      "style": "DARK"
+    }
   }
 }
