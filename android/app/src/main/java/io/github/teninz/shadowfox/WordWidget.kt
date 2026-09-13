@@ -79,7 +79,7 @@ class WordWidget : AppWidgetProvider() {
         views.setTextViewText(R.id.widget_word, w.getString(0))
         views.setTextViewText(R.id.widget_ru, w.getString(1))
         views.setTextViewText(R.id.widget_ex, w.getString(2))
-        views.setTextViewText(R.id.widget_next, "${index + 1}/${words.length()} · далее")
+        views.setTextViewText(R.id.widget_counter, "${index + 1}/${words.length()}")
 
         // тема
         views.setInt(R.id.widget_root, "setBackgroundResource", if (light) R.drawable.widget_bg_light else R.drawable.widget_bg)
@@ -88,7 +88,8 @@ class WordWidget : AppWidgetProvider() {
         views.setTextColor(R.id.widget_ru, Color.parseColor(if (light) "#B8781A" else "#EFA537"))
         views.setTextColor(R.id.widget_ex, Color.parseColor(if (light) "#6A6F7A" else "#A3A8B3"))
         views.setTextColor(R.id.widget_eyebrow, Color.parseColor(if (light) "#6A6F7A" else "#A3A8B3"))
-        views.setTextColor(R.id.widget_next, Color.parseColor(if (light) "#D9722E" else "#E8853A"))
+        views.setTextColor(R.id.widget_counter, Color.parseColor(if (light) "#6A6F7A" else "#A3A8B3"))
+        views.setImageViewResource(R.id.widget_next, if (light) R.drawable.ic_widget_next_light else R.drawable.ic_widget_next)
         views.setImageViewResource(R.id.widget_play, if (light) R.drawable.ic_widget_play_light else R.drawable.ic_widget_play)
 
         // тап по слову — карточка в приложении

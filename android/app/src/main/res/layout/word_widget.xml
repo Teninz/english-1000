@@ -24,10 +24,13 @@
 
     <FrameLayout android:id="@+id/widget_divider" android:layout_width="2dp" android:layout_height="match_parent" android:layout_marginTop="12dp" android:layout_marginBottom="12dp" android:background="#E8853A" />
 
-    <LinearLayout android:layout_width="72dp" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
-        <ImageView android:id="@+id/widget_play" android:layout_width="52dp" android:layout_height="52dp"
-            android:src="@drawable/ic_widget_play" android:contentDescription="Озвучить" android:padding="4dp" />
-        <TextView android:id="@+id/widget_next" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp"
-            android:text="1/12 · далее" android:textColor="#E8853A" android:textSize="10sp" android:fontFamily="sans-serif-medium" android:padding="6dp" android:maxLines="1" />
+    <!-- две крупные кнопки одна над другой: озвучить и следующее слово -->
+    <LinearLayout android:layout_width="84dp" android:layout_height="match_parent" android:orientation="vertical">
+        <ImageView android:id="@+id/widget_play" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+            android:src="@drawable/ic_widget_play" android:contentDescription="Озвучить" android:scaleType="centerInside" android:padding="10dp" />
+        <ImageView android:id="@+id/widget_next" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+            android:src="@drawable/ic_widget_next" android:contentDescription="Следующее слово" android:scaleType="centerInside" android:padding="12dp" />
+        <TextView android:id="@+id/widget_counter" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="1/12" android:gravity="center" android:textColor="#A3A8B3" android:textSize="10sp" android:paddingBottom="8dp" android:maxLines="1" />
     </LinearLayout>
 </LinearLayout>
