@@ -1115,7 +1115,25 @@ function closeSheet(){ $("#overlay").innerHTML = ""; }
 $("#btnSettings").onclick = settingsSheet;
 
 /* ---------- старт ---------- */
-load(); applyTheme(); applyScene(); pickVoices(); go("home");
+load();
+// демо-режим для скриншотов магазина: ?demo=1&screen=… — данные не сохраняются
+const qsDemo = new URLSearchParams(location.search);
+if(qsDemo.get("zoom")) document.documentElement.style.zoom = qsDemo.get("zoom");
+if(qsDemo.get("demo")){ save = () => {}; document.head.appendChild(Object.assign(document.createElement("style"),{textContent:"*{transition:none!important;animation:none!important}"})); S.set.scene = qsDemo.get("scene") || "town"; S.set.theme = qsDemo.get("theme") || "dark"; S.set.motion = false;
+  const d = dayRec(); d.n = 6; d.q = 18; d.ok = 16; S.streak.n = 4; S.streak.last = today();
+  [3,5,2,7,9,4,6,8,5,7,10,6,9,8].forEach((v,k) => { S.days[addDays(today(),k-13)] = {n:v,q:v*2,ok:v*2-1,bad:1}; }); S.days[today()] = d;
+  allIdx().filter(i=>levelOf(i)<3).forEach((i,k) => { S.w[wk(i)] = {box:(k*5)%7,due:today(),ok:2,bad:0}; });
+  allIdx().filter(i=>levelOf(i)===3).slice(0,20).forEach(i => { S.w[wk(i)] = {box:1,due:today(),ok:1,bad:1}; });
+  [4,9,15,22,31].forEach(i => S.hard[wk(i)] = 1); }
+applyTheme(); applyScene(); pickVoices(); go("home");
+if(qsDemo.get("demo")){ const sc = qsDemo.get("screen"); setTimeout(() => {
+  if(sc==="card"){ go("learn"); learnLevel = 13; startLearnBatch(allIdx().filter(i=>levelOf(i)===13).slice(0,5)); setTimeout(()=>$("#flash").classList.add("flipped"), 300); }
+  else if(sc==="quiz"){ go("test"); testScope = "level"; testLevel = 0; launchTest("mc"); }
+  else if(sc==="gap"){ go("test"); testScope = "level"; testLevel = 17; launchTest("gap"); }
+  else if(sc==="road"){ go("road"); }
+  else if(sc==="words"){ go("words"); openLevel = 0; drawWords(); }
+  else if(sc==="settings"){ settingsSheet(); }
+  else if(sc) go(sc); }, 200); }
 document.addEventListener("visibilitychange", async () => { if(document.visibilityState==="visible" && hf.on && !hf.lock){ try{ hf.lock = await navigator.wakeLock?.request("screen"); }catch(e){} } });
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 </script>
