@@ -3,7 +3,7 @@ const fs = require("fs"), path = require("path"), vm = require("vm");
 const root = path.join(__dirname, ".."), dist = path.join(root, "dist");
 fs.rmSync(dist, { recursive: true, force: true }); fs.mkdirSync(dist, { recursive: true });
 
-const files = ["index.html", "words-a.js", "words-b.js", "ex-ru.js", "scenes.js", "tts.js", "ach.js", "native.js", "manifest.json", "privacy.html"];
+const files = ["index.html", "words-a.js", "words-b.js", "ex-ru.js", "scenes.js", "tts.js", "ach.js", "daily.js", "native.js", "manifest.json", "privacy.html"];
 const dirs = ["icons", "art", "lib"];
 for (const f of files) fs.copyFileSync(path.join(root, f), path.join(dist, f));
 for (const d of dirs) fs.cpSync(path.join(root, d), path.join(dist, d), { recursive: true });

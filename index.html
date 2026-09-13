@@ -373,6 +373,13 @@ a.btn{text-decoration:none}
 .pname{display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-align:left;padding:8px 0;font-size:14px}
 .pname[disabled]{color:var(--muted);cursor:default}
 .btn.small{font-size:13px;min-height:34px;padding:6px 10px}
+.dtasks{display:grid;gap:8px;margin-top:10px}
+.dtask{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:var(--surface-2)}
+.dtask.done{opacity:.75}
+.dt-ic{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);color:var(--accent-deep);display:grid;place-items:center;flex:none}
+.dt-ic svg{width:20px;height:20px}
+.dtask.done .dt-ic{background:var(--good-soft);color:var(--good)}
+.dtask b{font-size:14px;display:block}
 .ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ach{background:var(--surface-2);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px;opacity:.55;border:1px solid transparent}
 .ach.on{opacity:1;background:var(--surface);border-color:rgba(var(--accent-rgb),.35);box-shadow:var(--glow)}
@@ -410,6 +417,7 @@ a.btn{text-decoration:none}
 <script src="scenes.js"></script>
 <script src="tts.js"></script>
 <script src="ach.js"></script>
+<script src="daily.js"></script>
 <script>
 /* ---------- данные ---------- */
 const WORDS = [...WORDS_A, ...WORDS_B];
@@ -453,7 +461,7 @@ function grade(i, ok, mode){
 function introduce(i, known){
   if(!W(i)) { S.w[wk(i)] = {box: known?6:0, due: addDays(today(), known?60:0), ok:0, bad:0}; dayRec().n++; touchStreak(); }
   else if(known){ W(i).box = 6; W(i).due = addDays(today(),60); }
-  save(); checkAch("introduce", {i});
+  save(); checkAch("introduce", {i}); if(!known && typeof dailyEvent==="function") dailyEvent("learn");
 }
 const allIdx = () => WORDS.map((_,i)=>i);
 const dueList = () => { const t = today(); return allIdx().filter(i => W(i) && W(i).box < 6 && W(i).due <= t); };
@@ -600,6 +608,7 @@ function renderHome(){
       <button class="btn block" id="hLearn" ${unstartedList().length?"":"disabled"}>Учить новые</button>
       <button class="btn block ${due.length?"":"secondary"}" id="hReview">Повторить${due.length?` · ${due.length}`:""}</button>
     </div>
+    ${dailyCardHtml()}
     <section class="card">
       <div class="row between"><div class="eyebrow">Путь к тысяче</div><span class="small muted num">${learned} / 1000</span></div>
       <div class="bar" style="margin:10px 0 12px"><i style="width:${learned/10}%"></i></div>
@@ -614,7 +623,7 @@ function renderHome(){
     ${due.length===0 && started.length ? `<p class="small muted" style="text-align:center">На повторение сегодня ничего нет — интервалы работают. Учи новые или проверь себя.</p>`:""}
   `;
   { const f = $(".ring .fill"); if(f){ const to = f.getAttribute("stroke-dashoffset"); f.style.transition = "none"; f.setAttribute("stroke-dashoffset", C); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.transition = ""; f.setAttribute("stroke-dashoffset", to); })); } }
-  $("#achCard").onclick = achSheet;
+  $("#achCard").onclick = achSheet; wireDaily();
   $("#hLearn").onclick = () => go("learn");
   $("#hReview").onclick = () => due.length ? startReview() : toast("Пока нечего повторять");
 }
@@ -771,7 +780,7 @@ function nextQ(){
 const flagBtn = (i, cls="") => `<button class="flagb ${isHard(i)?"on":""} ${cls}" data-flag="${i}" aria-label="Сложное слово" title="Пометить как сложное">${isHard(i)?ICONS.flagOn:ICONS.flag}</button>`;
 function wireFlags(root){ (root||document).querySelectorAll("[data-flag]").forEach(b => b.onclick = e => { e.stopPropagation(); const i = +b.dataset.flag; const on = toggleHard(i); b.classList.toggle("on", on); b.innerHTML = on ? ICONS.flagOn : ICONS.flag; toast(on ? "Помечено как сложное" : "Пометка снята"); }); }
 var buzz = ok => { try{ navigator.vibrate && navigator.vibrate(ok ? 12 : [40,40,40]); }catch(e){} };
-function record(i, ok, kind){ sess.res.push({i, ok, kind}); grade(i, ok, kind); buzz(ok); }
+function record(i, ok, kind){ sess.res.push({i, ok, kind}); grade(i, ok, kind); buzz(ok); if(sess.mode==="review") dailyEvent("review"); if(kind==="pron" && ok) dailyEvent("pronOk"); }
 function feedback(box, ok, i, extra){
   const w = WORDS[i];
   const fb = el(`<div class="fb ${ok?"ok":"no"}"><div class="grow"><b>${ok?"Верно":"Неверно"}</b><div class="ans">${esc(w[0])} <small>— ${esc(w[1])}</small></div>${extra?`<div class="small muted">${extra}</div>`:""}${ok?"":`<div class="small" style="margin-top:4px;color:var(--ink);opacity:.85">${hl(w[3], w[0])}<br><span class="muted">${esc(EX_RU[w[0]]||"")}</span></div>`}</div><div style="display:flex;flex-direction:column;gap:6px">${flagBtn(i)}<button class="speak" style="width:40px;height:40px" aria-label="Озвучить">${ICONS.sound.replace("<svg","<svg width=20 height=20")}</button></div></div>`);
@@ -880,7 +889,7 @@ function qPron(box, it){
   };
 }
 function showResults(){
-  inSession = false; checkAch("session", {mode: sess.mode, res: sess.res, ms: Date.now() - (sess.t0||Date.now()), road: sess.after === "road"});
+  inSession = false; checkAch("session", {mode: sess.mode, res: sess.res, ms: Date.now() - (sess.t0||Date.now()), road: sess.after === "road"}); dailyEvent("session", {mode: sess.mode, res: sess.res, road: sess.after === "road"});
   const r = sess.res, ok = r.filter(x=>x.ok).length, pct = r.length ? Math.round(100*ok/r.length) : 0;
   const wrong = r.filter(x=>!x.ok);
   const verdict = pct===100 ? "Безупречно" : pct>=80 ? "Отлично" : pct>=60 ? "Неплохо, но есть над чем поработать" : "Стоит повторить эти слова";
@@ -998,7 +1007,7 @@ async function hfLoop(token){
       await hfSay(w[1], "ru-RU", token); await sleep(400);
       await hfSay(w[3], "en-US", token);
       if(hf.token!==token) return;
-      if(!W(i)) introduce(i, false); checkAch("heard", {i});
+      if(!W(i)) introduce(i, false); checkAch("heard", {i}); dailyEvent("heard");
       // короткое окно для команд, если распознавание доступно
       if(canListen() && !hf.skip && !hf.paused){ hfSet("Слушаю команду","listening"); cue("listen"); await sleep(260); const r = await listen("ru-RU", 4000); const c = r.alts ? findCmd(r.alts,"ru") : null;
         if(c==="stop"){ hfTogglePause(); continue; } if(c==="repeat"){ continue; } }
@@ -1035,7 +1044,7 @@ async function hfLoop(token){
   if(hf.on && hf.token===token) hfFinish();
 }
 async function hfAnswer(i, ok, w, token, note){
-  if(!hf.res.some(x=>x.i===i)){ hf.res.push({i, ok}); grade(i, ok, hfMode==="en" ? "pron" : "voice"); }
+  if(!hf.res.some(x=>x.i===i)){ hf.res.push({i, ok}); grade(i, ok, hfMode==="en" ? "pron" : "voice"); if(ok && hfMode==="en") dailyEvent("pronOk"); }
   hfSet(ok ? "Верно" : (note||"Неверно"), ok ? "ok" : "no", w[0], w[1]); cue(ok ? "ok" : "no");
   if(ok) await speakAsync(hfMode==="ru" ? "Верно" : "Correct", hfMode==="ru" ? "ru-RU" : "en-US");
   else { await speakAsync(w[0], "en-US"); await sleep(300); await speakAsync(w[1], "ru-RU"); }

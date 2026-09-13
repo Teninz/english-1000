@@ -21,7 +21,18 @@ import java.util.Calendar
 class WordWidget : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
-        for (id in ids) render(context, manager, id)
+        for (id in ids) safeRender(context, manager, id)
+    }
+
+    /** Любая ошибка отрисовки не должна ронять приложение: покажем хотя бы заглушку. */
+    private fun safeRender(context: Context, manager: AppWidgetManager, id: Int) {
+        try { render(context, manager, id) } catch (e: Exception) {
+            try {
+                val v = RemoteViews(context.packageName, R.layout.word_widget)
+                v.setTextViewText(R.id.widget_word, "ShadowFox Eng"); v.setTextViewText(R.id.widget_ru, "Открой приложение"); v.setTextViewText(R.id.widget_ex, "")
+                manager.updateAppWidget(id, v)
+            } catch (_: Exception) {}
+        }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -31,7 +42,7 @@ class WordWidget : AppWidgetProvider() {
             if (id != -1) {
                 val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 prefs.edit().putInt("pos_$id", prefs.getInt("pos_$id", 0) + 1).apply()
-                render(context, AppWidgetManager.getInstance(context), id)
+                safeRender(context, AppWidgetManager.getInstance(context), id)
             }
         }
     }
@@ -72,6 +83,7 @@ class WordWidget : AppWidgetProvider() {
 
         // тема
         views.setInt(R.id.widget_root, "setBackgroundResource", if (light) R.drawable.widget_bg_light else R.drawable.widget_bg)
+        views.setInt(R.id.widget_divider, "setBackgroundColor", Color.parseColor(if (light) "#D9722E" else "#E8853A"))
         views.setTextColor(R.id.widget_word, Color.parseColor(if (light) "#1E2229" else "#F1ECE3"))
         views.setTextColor(R.id.widget_ru, Color.parseColor(if (light) "#B8781A" else "#EFA537"))
         views.setTextColor(R.id.widget_ex, Color.parseColor(if (light) "#6A6F7A" else "#A3A8B3"))
@@ -116,7 +128,7 @@ class WordWidget : AppWidgetProvider() {
             val e = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             for (id in ids) e.putInt("pos_$id", 0)
             e.apply()
-            for (id in ids) WordWidget().render(context, manager, id)
+            for (id in ids) WordWidget().safeRender(context, manager, id)
         }
     }
 }

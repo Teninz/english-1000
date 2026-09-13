@@ -12,29 +12,31 @@ const ACH = [
   { id:"streak3",   icon:"🔥", title:"Три дня подряд",      desc:"Заниматься три дня без пропуска" },
   { id:"streak7",   icon:"📅", title:"Неделя",              desc:"Серия из 7 дней" },
   { id:"streak30",  icon:"🗓️", title:"Месяц",               desc:"Серия из 30 дней" },
-  { id:"comeback",  icon:"🦊", title:"Мы скучали",          desc:"Вернуться после перерыва в неделю и пройти сессию" },
-  { id:"owl",       icon:"🦉", title:"Сова",                desc:"Закончить сессию между полуночью и пятью утра" },
-  { id:"lark",      icon:"🐦", title:"Жаворонок",           desc:"Закончить сессию между пятью и семью утра" },
+  { id:"comeback",  icon:"🦊", title:"Мы скучали",          desc:"Вернуться после перерыва в неделю и пройти сессию", hidden:"Лиса умеет ждать" },
+  { id:"owl",       icon:"🦉", title:"Сова",                desc:"Закончить сессию между полуночью и пятью утра", hidden:"Что-то про поздний час" },
+  { id:"lark",      icon:"🐦", title:"Жаворонок",           desc:"Закончить сессию между пятью и семью утра", hidden:"Что-то про ранний час" },
   // мастерство
   { id:"perfect",   icon:"✨", title:"Без единой ошибки",   desc:"Сессия от 10 вопросов на 100%" },
   { id:"exam",      icon:"🎓", title:"Отличник",            desc:"Экзамен 20 из 20" },
-  { id:"sprint",    icon:"⚡", title:"Спринтер",            desc:"Экзамен быстрее 90 секунд с результатом не ниже 80%" },
+  { id:"sprint",    icon:"⚡", title:"Спринтер",            desc:"Экзамен быстрее 90 секунд с результатом не ниже 80%", hidden:"Скорость тоже считается" },
   { id:"allmodes",  icon:"🧩", title:"Всеядный",            desc:"Пройти все восемь видов проверки" },
   { id:"pairs5",    icon:"🤝", title:"Чистые пары",         desc:"Пять раз собрать пары без единой ошибки" },
   { id:"voice10",   icon:"🎙️", title:"Говорун",             desc:"10 верных ответов голосом" },
   { id:"road50",    icon:"🎧", title:"Попутчик",            desc:"50 слов в режиме «В дороге»" },
   { id:"marathon",  icon:"🏔️", title:"Марафон",             desc:"Прослушать все 1000 слов за один день", hard:true },
+  { id:"daily1",    icon:"📋", title:"План на день",        desc:"Выполнить все задания дня" },
+  { id:"daily7",    icon:"🗂️", title:"Неделя по плану",     desc:"Закрыть задания дня семь раз" },
   // сложные слова
   { id:"hard10",    icon:"🚩", title:"Коллекционер проблем", desc:"Пометить 10 сложных слов" },
   { id:"solved",    icon:"🔓", title:"Разобрался",          desc:"Довести 10 сложных слов до «знаю»" },
   // забавные
-  { id:"zero",      icon:"🫠", title:"Полный ноль",         desc:"Все ответы в сессии мимо. Зато теперь точно ясно, что повторять", fun:true },
-  { id:"stubborn",  icon:"🐐", title:"Упрямец",             desc:"Ошибиться в одном и том же слове пять раз. Оно не сдаётся — ты тоже", fun:true },
-  { id:"almost",    icon:"🤏", title:"Почти",               desc:"Пять ответов засчитаны «с одной опечаткой»", fun:true },
-  { id:"tourist",   icon:"🍂", title:"Турист",              desc:"Побывать во всех четырёх осенних сценах" },
-  { id:"daynight",  icon:"🌗", title:"Сутки",               desc:"Переключить и ночь, и день" },
-  { id:"ownvoice",  icon:"📦", title:"Свой голос",          desc:"Скачать встроенный офлайн-голос" },
-  { id:"hundredday",icon:"🏭", title:"Стахановец",          desc:"Начать 100 слов за один день" },
+  { id:"zero",      icon:"🫠", title:"Полный ноль",         desc:"Все ответы в сессии мимо. Зато теперь точно ясно, что повторять", fun:true, hidden:"Откроется само — когда день пойдёт не по плану" },
+  { id:"stubborn",  icon:"🐐", title:"Упрямец",             desc:"Ошибиться в одном и том же слове пять раз. Оно не сдаётся — ты тоже", fun:true, hidden:"Есть слова с характером" },
+  { id:"almost",    icon:"🤏", title:"Почти",               desc:"Пять ответов засчитаны «с одной опечаткой»", fun:true, hidden:"Рука дрогнула" },
+  { id:"tourist",   icon:"🍂", title:"Турист",              desc:"Побывать во всех четырёх осенних сценах", hidden:"Осень бывает разной" },
+  { id:"daynight",  icon:"🌗", title:"Сутки",               desc:"Переключить и ночь, и день", hidden:"Свет и тень" },
+  { id:"ownvoice",  icon:"📦", title:"Свой голос",          desc:"Скачать встроенный офлайн-голос", hidden:"Загляни в настройки голосов" },
+  { id:"hundredday",icon:"🏭", title:"Стахановец",          desc:"Начать 100 слов за один день", hidden:"Один день, много слов" },
 ];
 const ACH_BY = Object.fromEntries(ACH.map(a => [a.id, a]));
 function achStats(){ S.ach = S.ach || {}; S.stats = S.stats || { near:0, pairsClean:0, voiceOk:0, road:0, scenes:{}, themes:{}, lastActive:null, modesDone:{}, heard:{d:null, w:{}} }; return S.stats; }
@@ -81,9 +83,9 @@ function checkAch(ev, p = {}){
 // экран достижений
 function achSheet(){
   achStats(); const got = achCount();
-  const cards = ACH.map(a => { const d = S.ach[a.id]; return `<div class="ach ${d?"on":""} ${a.fun?"fun":""} ${a.hard?"hard":""}"><span class="ach-ic">${d||!a.fun ? a.icon : "❔"}</span><b>${esc(d||!a.fun ? a.title : "Секретное")}</b><span class="small muted">${esc(d||!a.fun ? a.desc : "Откроется само — когда день пойдёт не по плану")}</span>${d?`<span class="small" style="color:var(--good)">открыто ${d}</span>`:""}</div>`; }).join("");
+  const cards = ACH.map(a => { const d = S.ach[a.id]; const secret = a.hidden && !d; return `<div class="ach ${d?"on":""} ${a.fun?"fun":""} ${a.hard?"hard":""}"><span class="ach-ic">${secret ? "❔" : a.icon}</span><b>${esc(secret ? "Секретное" : a.title)}</b><span class="small muted">${esc(secret ? a.hidden : a.desc)}</span>${d?`<span class="small" style="color:var(--good)">открыто ${d}</span>`:""}</div>`; }).join("");
   sheet(`<div class="row between"><h2>Достижения</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
-    <div class="row between"><span class="muted">Открыто ${got} из ${ACH.length}</span><span class="chip warn">🏔️ самое сложное — «Марафон»</span></div>
+    <div class="row between"><span class="muted">Открыто ${got} из ${ACH.length} · скрытых ${ACH.filter(x=>x.hidden&&!S.ach[x.id]).length}</span><span class="chip warn">🏔️ самое сложное — «Марафон»</span></div>
     <div class="bar"><i style="width:${got/ACH.length*100}%"></i></div>
     <div class="ach-grid">${cards}</div>`);
 }
