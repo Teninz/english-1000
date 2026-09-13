@@ -45,6 +45,9 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/word_widget_info" />
         </receiver>
 
+        <!-- озвучка из виджета -->
+        <service android:name=".SpeakService" android:exported="false" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

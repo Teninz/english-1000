@@ -3,29 +3,31 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@drawable/widget_bg"
-    android:padding="14dp">
+    android:orientation="horizontal"
+    android:background="@drawable/widget_bg">
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-        <TextView android:id="@+id/widget_eyebrow" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-            android:text="СЛОВО ДНЯ · УРОВЕНЬ 1" android:textColor="@color/sf_muted" android:textSize="10sp" android:letterSpacing="0.08" android:fontFamily="sans-serif-medium" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ENG"
-            android:background="@drawable/widget_chip" android:paddingLeft="6dp" android:paddingRight="6dp" android:paddingTop="1dp" android:paddingBottom="1dp"
-            android:textColor="#1A1007" android:textSize="9sp" android:fontFamily="sans-serif-black" />
+    <LinearLayout android:id="@+id/widget_text" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent"
+        android:orientation="vertical" android:padding="14dp" android:clickable="true" android:focusable="true">
+
+        <TextView android:id="@+id/widget_eyebrow" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="ПОВТОРИТЬ · 12 СЛОВ" android:textColor="#A3A8B3" android:textSize="10sp" android:letterSpacing="0.08" android:fontFamily="sans-serif-medium" android:maxLines="1" android:ellipsize="end" />
+
+        <TextView android:id="@+id/widget_word" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp"
+            android:text="assume" android:textColor="#F1ECE3" android:textSize="26sp" android:fontFamily="serif" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+
+        <TextView android:id="@+id/widget_ru" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="предполагать, допускать" android:textColor="#EFA537" android:textSize="15sp" android:fontFamily="sans-serif-medium" android:maxLines="1" android:ellipsize="end" />
+
+        <TextView android:id="@+id/widget_ex" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="5dp"
+            android:text="I assume you have read the report." android:textColor="#A3A8B3" android:textSize="12sp" android:maxLines="2" android:ellipsize="end" />
     </LinearLayout>
 
-    <TextView android:id="@+id/widget_word" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp"
-        android:text="assume" android:textColor="@color/sf_ink" android:textSize="26sp" android:fontFamily="serif" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+    <View android:layout_width="2dp" android:layout_height="match_parent" android:layout_marginTop="12dp" android:layout_marginBottom="12dp" android:background="#E8853A" />
 
-    <TextView android:id="@+id/widget_ru" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="предполагать, допускать" android:textColor="@color/sf_amber" android:textSize="15sp" android:fontFamily="sans-serif-medium" android:maxLines="1" android:ellipsize="end" />
-
-    <TextView android:id="@+id/widget_ex" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="6dp"
-        android:text="I assume you have read the report." android:textColor="@color/sf_muted" android:textSize="12sp" android:maxLines="2" android:ellipsize="end" />
-
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical|end">
-        <TextView android:id="@+id/widget_next" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="другое слово" android:textColor="@color/sf_accent" android:textSize="11sp" android:fontFamily="sans-serif-medium" android:padding="4dp" />
+    <LinearLayout android:layout_width="72dp" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
+        <ImageView android:id="@+id/widget_play" android:layout_width="52dp" android:layout_height="52dp"
+            android:src="@drawable/ic_widget_play" android:contentDescription="Озвучить" android:padding="4dp" />
+        <TextView android:id="@+id/widget_next" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp"
+            android:text="1/12 · далее" android:textColor="#E8853A" android:textSize="10sp" android:fontFamily="sans-serif-medium" android:padding="6dp" android:maxLines="1" />
     </LinearLayout>
 </LinearLayout>

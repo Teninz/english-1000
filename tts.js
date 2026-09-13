@@ -66,7 +66,7 @@ const TTS = {
   async piperDownload(id, onProgress){
     const lib = await this.piper(); this.piperBusy[id] = 0;
     await lib.download(id, p => { this.piperBusy[id] = p.total ? p.loaded / p.total : 0; onProgress && onProgress(this.piperBusy[id]); });
-    delete this.piperBusy[id]; await this.piperList();
+    delete this.piperBusy[id]; await this.piperList(); if(typeof checkAch==="function") checkAch("piper");
   },
   async piperRemove(id){ const lib = await this.piper(); await lib.remove(id); delete this.sessions[id]; await this.piperList(); },
   async piperBlob(id, text){

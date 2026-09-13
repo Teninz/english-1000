@@ -92,6 +92,24 @@ if (NATIVE) {
   NATIVE.app.addListener("appUrlOpen", d => handleUrl(d.url));
   NATIVE.app.getLaunchUrl().then(d => { if (d && d.url) handleUrl(d.url); }).catch(() => {});
 
+  // --- виджет «Слово для повторения»: после каждого сохранения отдаём ему очередь слов ---
+  let widgetTimer = null;
+  window.updateWidget = function (now) {
+    clearTimeout(widgetTimer);
+    const run = () => { try {
+      const pack = i => [WORDS[i][0], WORDS[i][1], WORDS[i][3], EX_RU[WORDS[i][0]] || "", levelOf(i) + 1];
+      const due = dueList().sort((a, b) => (W(a).due < W(b).due ? -1 : 1)).slice(0, 30);
+      let list, kind;
+      if (due.length) { list = due; kind = "due"; }
+      else { const un = unstartedList(); const lvl = un.length ? levelOf(un[0]) : 0; list = un.filter(i => levelOf(i) === lvl).slice(0, 10); kind = "new"; }
+      NATIVE.P.Widget.update({ words: JSON.stringify(list.map(pack)), kind, total: dueList().length, theme: S.set.widgetTheme || "dark" }).catch(() => {});
+    } catch (e) {} };
+    if (now) run(); else widgetTimer = setTimeout(run, 1500);
+  };
+  const origSave = window.save;
+  window.save = function () { origSave.apply(this, arguments); updateWidget(false); };
+  updateWidget(true);
+
   // --- ежедневное напоминание (настраивается в настройках через S.set.remind = "HH:MM" | null) ---
   window.scheduleReminder = async function () {
     try {

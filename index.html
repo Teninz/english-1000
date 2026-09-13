@@ -373,6 +373,18 @@ a.btn{text-decoration:none}
 .pname{display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-align:left;padding:8px 0;font-size:14px}
 .pname[disabled]{color:var(--muted);cursor:default}
 .btn.small{font-size:13px;min-height:34px;padding:6px 10px}
+.ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ach{background:var(--surface-2);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px;opacity:.55;border:1px solid transparent}
+.ach.on{opacity:1;background:var(--surface);border-color:rgba(var(--accent-rgb),.35);box-shadow:var(--glow)}
+.ach.hard.on{border-color:var(--amber)}
+.ach .ach-ic{font-size:26px;line-height:1}
+.ach.on .ach-ic{filter:drop-shadow(0 2px 6px rgba(var(--accent-rgb),.5))}
+.ach b{font-size:14px}
+.ach-pop{position:fixed;top:calc(12px + var(--sat));left:50%;transform:translate(-50%,-140%);z-index:40;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid rgba(var(--accent-rgb),.5);box-shadow:var(--glow),var(--shadow);border-radius:16px;padding:10px 18px 10px 12px;transition:transform .45s cubic-bezier(.2,.8,.3,1.2);cursor:pointer;max-width:92vw}
+.ach-pop.show{transform:translate(-50%,0)}
+.ach-pop .ach-ic{font-size:30px}
+.ach-pop small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-deep);font-weight:700}
+.ach-pop b{font-size:16px}
 .scene-pick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .scene-btn{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:var(--muted);text-align:center;line-height:1.15}
 .scene-thumb{width:100%;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--surface-2);border:2px solid transparent;display:block}
@@ -397,6 +409,7 @@ a.btn{text-decoration:none}
 <script src="ex-ru.js"></script>
 <script src="scenes.js"></script>
 <script src="tts.js"></script>
+<script src="ach.js"></script>
 <script>
 /* ---------- данные ---------- */
 const WORDS = [...WORDS_A, ...WORDS_B];
@@ -435,12 +448,12 @@ function grade(i, ok, mode){
   r.due = addDays(today(), INTERVALS[r.box]);
   const d = dayRec(); d.q++; ok ? d.ok++ : d.bad++;
   if(mode){ const m = S.modes[mode] || (S.modes[mode]={ok:0,bad:0}); ok ? m.ok++ : m.bad++; }
-  touchStreak(); save();
+  touchStreak(); save(); checkAch("grade", {i});
 }
 function introduce(i, known){
   if(!W(i)) { S.w[wk(i)] = {box: known?6:0, due: addDays(today(), known?60:0), ok:0, bad:0}; dayRec().n++; touchStreak(); }
   else if(known){ W(i).box = 6; W(i).due = addDays(today(),60); }
-  save();
+  save(); checkAch("introduce", {i});
 }
 const allIdx = () => WORDS.map((_,i)=>i);
 const dueList = () => { const t = today(); return allIdx().filter(i => W(i) && W(i).box < 6 && W(i).due <= t); };
@@ -461,6 +474,10 @@ const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j = M
 const sample = (a,n) => shuffle(a).slice(0,n);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const plural = (n, one, few, many) => { const m10=n%10, m100=n%100; return n+" "+((m10===1&&m100!==11)?one:(m10>=2&&m10<=4&&(m100<12||m100>14))?few:many); };
+// короткий сигнал: «блинь» перед включением микрофона, тихий щелчок при ответе
+function cue(kind){ try{ const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return; const ac = cue.ac || (cue.ac = new AC()); if(ac.state==="suspended") ac.resume(); const t = ac.currentTime;
+  const notes = kind==="listen" ? [[880,0,.09],[1318,.1,.13]] : kind==="ok" ? [[1046,0,.07]] : [[392,0,.16]];
+  notes.forEach(([f,d,l]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = "sine"; o.frequency.value = f; g.gain.setValueAtTime(.0001, t+d); g.gain.exponentialRampToValueAtTime(.3, t+d+.012); g.gain.exponentialRampToValueAtTime(.0001, t+d+l); o.connect(g).connect(ac.destination); o.start(t+d); o.stop(t+d+l+.02); }); }catch(e){} }
 let toastT; function toast(msg){ const old=$(".toast"); if(old) old.remove(); const t = el(`<div class="toast">${esc(msg)}</div>`); document.body.appendChild(t); clearTimeout(toastT); toastT=setTimeout(()=>t.remove(),2200); }
 const norm = s => String(s).toLowerCase().replace(/[’']/g,"'").replace(/ё/g,"е").replace(/[.,!?;:"«»()]/g," ").replace(/\s+/g," ").trim();
 function lev(a,b){ const m=a.length,n=b.length; const d=Array.from({length:m+1},(_,i)=>[i]); for(let j=1;j<=n;j++) d[0][j]=j; for(let i=1;i<=m;i++) for(let j=1;j<=n;j++) d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); return d[m][n]; }
@@ -592,10 +609,12 @@ function renderHome(){
       <div class="row between"><div class="eyebrow">Последние 14 дней</div><span class="small muted">слов в день</span></div>
       <div class="days" style="margin-top:12px">${daysHtml}</div>
     </section>
+    ${achCardHtml()}
     ${accuracyByMode?`<section class="card"><div class="eyebrow" style="margin-bottom:10px">Точность по режимам</div><div class="row" style="flex-wrap:wrap;gap:8px">${accuracyByMode}</div></section>`:""}
     ${due.length===0 && started.length ? `<p class="small muted" style="text-align:center">На повторение сегодня ничего нет — интервалы работают. Учи новые или проверь себя.</p>`:""}
   `;
   { const f = $(".ring .fill"); if(f){ const to = f.getAttribute("stroke-dashoffset"); f.style.transition = "none"; f.setAttribute("stroke-dashoffset", C); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.transition = ""; f.setAttribute("stroke-dashoffset", to); })); } }
+  $("#achCard").onclick = achSheet;
   $("#hLearn").onclick = () => go("learn");
   $("#hReview").onclick = () => due.length ? startReview() : toast("Пока нечего повторять");
 }
@@ -737,7 +756,7 @@ function launchTest(mode){
 /* ---------- движок сессии ---------- */
 let sess = null;
 function startSession({title, items, mode, after}){
-  inSession = true; sess = {title, items, mode, after, k:0, res:[]};
+  inSession = true; sess = {title, items, mode, after, k:0, res:[], t0: Date.now()};
   nextQ();
 }
 function nextQ(){
@@ -802,7 +821,7 @@ function qType(box, it){
     const a = norm(inp.value), t = norm(w[0]); if(!a) return;
     const ok = a===t, near = !ok && t.length>=5 && lev(a,t)===1;
     inp.disabled = true; inp.classList.add(ok||near?"ok":"no"); $("#chk").disabled = true; $("#hintB").disabled = true;
-    record(i, ok||near, "type"); feedback(box, ok||near, i, near ? "Почти — одна опечатка, засчитано" : null);
+    record(i, ok||near, "type"); if(near) checkAch("near"); feedback(box, ok||near, i, near ? "Почти — одна опечатка, засчитано" : null);
   };
   $("#chk").onclick = check; inp.onkeydown = e => { if(e.key==="Enter") check(); };
 }
@@ -833,7 +852,7 @@ function qPairs(box, it){
     if(selL && selR){
       const a=+selL.dataset.i, c=+selR.dataset.i; const L=selL, R=selR; selL=selR=null;
       if(a===c){ L.classList.remove("sel"); R.classList.remove("sel"); L.classList.add("done","ok"); R.classList.add("done","ok"); speak(WORDS[a][0]); record(a, !wrong.has(a), "pairs"); done++;
-        if(done===g.length){ const btn = el(`<button class="btn block" style="margin-top:14px">Дальше</button>`); btn.onclick=()=>{sess.k++;nextQ();}; box.appendChild(btn); setTimeout(()=>{ if(btn.isConnected) btn.click(); },600); } }
+        if(done===g.length){ if(!wrong.size) checkAch("pairsClean"); const btn = el(`<button class="btn block" style="margin-top:14px">Дальше</button>`); btn.onclick=()=>{sess.k++;nextQ();}; box.appendChild(btn); setTimeout(()=>{ if(btn.isConnected) btn.click(); },600); } }
       else { wrong.add(a); wrong.add(c); L.classList.add("no","shake"); R.classList.add("no","shake"); setTimeout(()=>{ L.classList.remove("no","shake","sel"); R.classList.remove("no","shake","sel"); },450); }
     }
   };
@@ -849,7 +868,7 @@ function qPron(box, it){
   $("#mic").onclick = async () => {
     if(busy || answered) return; busy = true; const mic = $("#mic"), heard = $("#heard");
     TTS.stop();
-    mic.classList.add("on"); heard.textContent = "Слушаю…";
+    mic.classList.add("on"); heard.textContent = "Слушаю…"; cue("listen"); await sleep(260);
     const r = await listen("en-US", 7000);
     mic.classList.remove("on"); busy = false;
     if(r.error){ heard.textContent = REC_ERRORS[r.error] || ("Ошибка: "+r.error); return; }
@@ -861,7 +880,7 @@ function qPron(box, it){
   };
 }
 function showResults(){
-  inSession = false;
+  inSession = false; checkAch("session", {mode: sess.mode, res: sess.res, ms: Date.now() - (sess.t0||Date.now()), road: sess.after === "road"});
   const r = sess.res, ok = r.filter(x=>x.ok).length, pct = r.length ? Math.round(100*ok/r.length) : 0;
   const wrong = r.filter(x=>!x.ok);
   const verdict = pct===100 ? "Безупречно" : pct>=80 ? "Отлично" : pct>=60 ? "Неплохо, но есть над чем поработать" : "Стоит повторить эти слова";
@@ -900,7 +919,7 @@ function renderRoad(){
     <section class="card">
       <div class="eyebrow">Без рук</div>
       <h2 style="font-size:20px;margin:4px 0 8px">Учить на ходу</h2>
-      <p class="small muted">Наушники, телефон в кармане. Приложение говорит — ты отвечаешь голосом. Экран должен оставаться включённым: браузер не работает в фоне.</p>
+      <p class="small muted">Наушники с микрофоном, телефон в кармане. Приложение говорит, потом даёт сигнал <b>«блинь»</b> и включает микрофон — в этот момент говоришь ты. Экран остаётся включённым сам.</p>
     </section>
     <div class="modes">${modes.map(([k,t,d])=>`<button class="mode" data-m="${k}" style="${hfMode===k?"outline:2px solid var(--accent)":""}"><span class="ic-zone"><span class="ic">${ICONS[k==="listen"?"sound":"mic"]}</span></span><span class="grow"><b>${t}</b><span>${d}</span></span></button>`).join("")}</div>
     <section class="card">
@@ -912,11 +931,17 @@ function renderRoad(){
     ${!canSpeak() ? `<div class="note">В этом браузере нет озвучки — режим не заработает.</div>` : ""}
     <button class="btn block huge" id="hfStart" ${(!canSpeak() || (needMic && !canListen()))?"disabled":""}>${ICONS.play.replace("<svg","<svg width=26 height=26")} Начать</button>
     <section class="card">
-      <div class="eyebrow" style="margin-bottom:10px">Голосовые команды</div>
+      <div class="eyebrow" style="margin-bottom:10px">Как это работает</div>
+      <ol class="steps" style="margin:0;padding-left:20px;gap:8px">
+        <li><b>Приложение говорит</b> — слово, перевод или пример.</li>
+        <li><b>Сигнал «блинь» и красная точка «Слушаю»</b> — микрофон включён. Говори сразу: в режиме «Слушать» окно 4 секунды, в режимах с ответом — 7.</li>
+        <li><b>Ответ или команда</b> — приложение засчитывает ответ (звук вверх — верно, вниз — нет) и переходит дальше. Промолчал — переспросит один раз.</li>
+      </ol>
+      <p class="small muted" style="margin:10px 0 8px">Вне окна микрофон выключен и команды не слышит. Команды — на языке ответа:</p>
       <div class="cmds">
         <span><b>дальше</b> / next — пропустить</span><span><b>повтори</b> / repeat — ещё раз</span>
         <span><b>пример</b> / example — предложение</span><span><b>перевод</b> / hint — подсказка</span>
-        <span><b>стоп</b> / stop — пауза</span><span>Команды на языке ответа</span>
+        <span><b>стоп</b> / stop — пауза</span><span>продолжить — кнопкой на экране</span>
       </div>
     </section>
   `;
@@ -944,7 +969,7 @@ function hfScreen(){
     <div class="sess-top"><button class="icon-btn" id="sx" aria-label="Выйти">${ICONS.close}</button><div class="bar"><i id="hfBar" style="width:0%"></i></div><span class="small muted num" id="hfCnt"></span></div>
     <div class="hf" id="hfBox"><div class="status" id="hfStatus"><i></i><span>Готово</span></div><div class="word" id="hfWord"></div><div class="ru" id="hfRu"></div><p class="ex" id="hfEx"></p><div class="heard" id="hfHeard"></div></div>
     <div class="grid2"><button class="btn secondary huge" id="hfPause">${ICONS.pause.replace("<svg","<svg width=28 height=28")} Пауза</button><button class="btn huge" id="hfNext">${ICONS.next.replace("<svg","<svg width=28 height=28")} Дальше</button></div>
-    <p class="small muted" style="text-align:center">${hfMode==="listen"?"Скажи «стоп» или «дальше» — если браузер поддерживает распознавание":"Отвечай после сигнала. «Дальше» — пропустить, «повтори» — ещё раз, «стоп» — пауза"}</p>
+    <p class="small muted" style="text-align:center">${hfMode==="listen"?"После примера — сигнал и 4 секунды на «дальше», «повтори» или «стоп»":"Говори после сигнала «блинь». «Дальше» — пропустить, «повтори» — ещё раз, «стоп» — пауза"}</p>
   `;
   $("#sx").onclick = () => { endSession(); go("road"); };
   $("#hfPause").onclick = hfTogglePause;
@@ -973,9 +998,9 @@ async function hfLoop(token){
       await hfSay(w[1], "ru-RU", token); await sleep(400);
       await hfSay(w[3], "en-US", token);
       if(hf.token!==token) return;
-      if(!W(i)) introduce(i, false);
+      if(!W(i)) introduce(i, false); checkAch("heard", {i});
       // короткое окно для команд, если распознавание доступно
-      if(canListen() && !hf.skip && !hf.paused){ hfSet("Слушаю команду","listening"); const r = await listen("ru-RU", 4000); const c = r.alts ? findCmd(r.alts,"ru") : null;
+      if(canListen() && !hf.skip && !hf.paused){ hfSet("Слушаю команду","listening"); cue("listen"); await sleep(260); const r = await listen("ru-RU", 4000); const c = r.alts ? findCmd(r.alts,"ru") : null;
         if(c==="stop"){ hfTogglePause(); continue; } if(c==="repeat"){ continue; } }
       else await sleep(900);
       hf.k++; continue;
@@ -989,7 +1014,7 @@ async function hfLoop(token){
     while(!resolved && hf.token===token){
       await hfWaitIfPaused(token); if(hf.token!==token) return;
       if(hf.skip){ resolved = true; await hfAnswer(i, false, w, token, "пропущено"); break; }
-      hfSet("Слушаю ответ","listening");
+      hfSet("Слушаю ответ","listening"); cue("listen"); await sleep(260);
       const r = await listen(ansLang, 7000);
       if(hf.token!==token) return;
       if(r.error && r.error!=="no-speech" && r.error!=="aborted"){ hfSet("Микрофон недоступен", "no", undefined, undefined, undefined, esc(REC_ERRORS[r.error] || r.error)); await speakAsync("Микрофон недоступен", "ru-RU"); hfTogglePause(); break; }
@@ -1011,7 +1036,7 @@ async function hfLoop(token){
 }
 async function hfAnswer(i, ok, w, token, note){
   if(!hf.res.some(x=>x.i===i)){ hf.res.push({i, ok}); grade(i, ok, hfMode==="en" ? "pron" : "voice"); }
-  hfSet(ok ? "Верно" : (note||"Неверно"), ok ? "ok" : "no", w[0], w[1]);
+  hfSet(ok ? "Верно" : (note||"Неверно"), ok ? "ok" : "no", w[0], w[1]); cue(ok ? "ok" : "no");
   if(ok) await speakAsync(hfMode==="ru" ? "Верно" : "Correct", hfMode==="ru" ? "ru-RU" : "en-US");
   else { await speakAsync(w[0], "en-US"); await sleep(300); await speakAsync(w[1], "ru-RU"); }
   await sleep(600);
@@ -1079,6 +1104,7 @@ function settingsSheet(){
       <div class="scene-pick" id="scenePick">${Object.entries(SCENES).map(([k,v])=>`<button class="scene-btn ${(S.set.scene||"town")===k?"on":""}" data-s="${k}"><span class="scene-thumb">${SCENE_SVG[k]?SCENE_SVG[k]():""}</span><span>${v.title}</span></button>`).join("")}</div>
       <div class="row between"><span>Живые детали (листья, дым, волны)</span><button class="toggle ${S.set.motion!==false?"on":""}" id="tMotion" aria-label="Анимация фона"></button></div>
     </div>
+    <div class="set-row"><span>Виджет на рабочем столе</span><div class="seg" style="width:200px" id="widgetSeg">${[["dark","Тёмный"],["light","Светлый"]].map(([k,l])=>`<button class="${(S.set.widgetTheme||"dark")===k?"on":""}" data-w="${k}">${l}</button>`).join("")}</div></div>
     <div class="set-row"><span>Тема</span><div class="seg" style="width:200px" id="themeSeg">${[["dark","Ночь"],["light","День"]].map(([k,l])=>`<button class="${(S.set.theme||"dark")===k?"on":""}" data-t="${k}">${l}</button>`).join("")}</div></div>
     <div class="set-row" style="flex-direction:column;align-items:stretch;gap:10px" id="voicesPanel">${voicesPanel()}</div>
     <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px"><span>Перенос прогресса на другое устройство</span><textarea class="io" id="io" placeholder="Вставь сюда код с другого устройства"></textarea><div class="grid2"><button class="btn secondary" id="exp">Скопировать код</button><button class="btn secondary" id="imp">Загрузить</button></div></div>
@@ -1092,6 +1118,7 @@ function settingsSheet(){
   $("#tRemind").onclick = () => { S.set.remind = S.set.remind ? null : ($("#remindTime").value || "19:00"); save(); if(window.scheduleReminder) scheduleReminder(); settingsSheet(); };
   $("#remindTime").onchange = e => { S.set.remind = e.target.value; save(); if(window.scheduleReminder) scheduleReminder(); };
   $("#themeSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.set.theme=b.dataset.t; save(); applyTheme(); settingsSheet(); });
+  $("#widgetSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.set.widgetTheme=b.dataset.w; save(); if(window.updateWidget) updateWidget(true); settingsSheet(); });
   $("#scenePick").querySelectorAll(".scene-btn").forEach(b=>b.onclick=()=>{ S.set.scene=b.dataset.s; save(); applyScene(); settingsSheet(); });
   $("#tMotion").onclick = () => { S.set.motion = S.set.motion===false; save(); applyScene(); settingsSheet(); };
   const rerenderVoices = () => { const p = $("#voicesPanel"); if(!p) return; p.innerHTML = voicesPanel(); wireVoicesPanel(rerenderVoices); };
@@ -1108,8 +1135,9 @@ function applyScene(){
   layer.innerHTML = SCENE_SVG[k] ? SCENE_SVG[k]() : "";
   document.body.classList.toggle("scenic", !!SCENE_SVG[k]);
   document.body.classList.toggle("still", S.set.motion===false);
+  if(typeof checkAch==="function" && S.stats) checkAch("scene", {scene:k});
 }
-function applyTheme(){ const t = S.set.theme||"dark"; if(t==="light") document.documentElement.setAttribute("data-theme","light"); else document.documentElement.removeAttribute("data-theme"); document.querySelector('meta[name="theme-color"]').content = t==="light" ? "#F6F1EA" : "#14171C"; }
+function applyTheme(){ const t = S.set.theme||"dark"; if(t==="light") document.documentElement.setAttribute("data-theme","light"); else document.documentElement.removeAttribute("data-theme"); document.querySelector('meta[name="theme-color"]').content = t==="light" ? "#F6F1EA" : "#14171C"; if(typeof checkAch==="function" && S.stats) checkAch("theme", {theme:t}); }
 // окно подтверждения внутри приложения: системный confirm() во встроенных браузерах блокируется
 function confirmSheet(title, text, yes, onYes, danger){
   sheet(`<h2>${esc(title)}</h2><p class="muted">${esc(text)}</p><div class="grid2" style="margin-top:4px"><button class="btn secondary" data-close>Остаться</button><button class="btn" id="cfYes" style="${danger?"background:var(--bad);color:#fff;box-shadow:none":""}">${esc(yes)}</button></div>`);
