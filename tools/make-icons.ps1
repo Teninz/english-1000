@@ -16,8 +16,8 @@ function Make([int]$size, [bool]$mask, [string]$path) {
   $b = New-Object System.Drawing.Bitmap $size,$size
   $g = [System.Drawing.Graphics]::FromImage($b); $g.SmoothingMode="HighQuality"; $g.InterpolationMode="HighQualityBicubic"; $g.PixelOffsetMode="HighQuality"
   $g.Clear([System.Drawing.Color]::Transparent)
-  if ($mask) { $g.Clear($bg) } else { $g.FillPath((New-Object System.Drawing.SolidBrush $bg), (RoundRect 0 0 $size $size ($size*0.22))) }
-  $k = if ($mask) { 0.66 } else { 0.92 }
+  if ($mask) { $g.Clear($bg) }   # обычная иконка — прозрачный фон, только логотип
+  $k = if ($mask) { 0.66 } else { 1.0 }
   $s = $size * $k; $o = ($size - $s) / 2
   $g.DrawImage($logo, (New-Object System.Drawing.RectangleF $o, $o, $s, $s))
   $g.Dispose(); $b.Save($path, [System.Drawing.Imaging.ImageFormat]::Png); $b.Dispose()

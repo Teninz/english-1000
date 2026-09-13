@@ -3,7 +3,7 @@ Add-Type -AssemblyName System.Drawing
 $root = Join-Path $PSScriptRoot ".."
 $res = Join-Path $root "android\app\src\main\res"
 $legacy = [System.Drawing.Image]::FromFile((Join-Path $root "icons\icon-512.png"))
-$mask = [System.Drawing.Image]::FromFile((Join-Path $root "icons\maskable-512.png"))
+$mask = [System.Drawing.Image]::FromFile((Join-Path $root "icons\icon-512.png"))
 function Save([System.Drawing.Image]$img, [int]$size, [string]$path) {
   $b = New-Object System.Drawing.Bitmap $size, $size
   $g = [System.Drawing.Graphics]::FromImage($b); $g.InterpolationMode = "HighQualityBicubic"; $g.SmoothingMode = "HighQuality"
@@ -14,7 +14,8 @@ foreach ($k in $dp.Keys) {
   $dir = Join-Path $res "mipmap-$k"; New-Item -ItemType Directory -Force $dir | Out-Null
   Save $legacy ([int](48 * $dp[$k])) (Join-Path $dir "ic_launcher.png")
   Save $legacy ([int](48 * $dp[$k])) (Join-Path $dir "ic_launcher_round.png")
-  Save $mask ([int](108 * $dp[$k])) (Join-Path $dir "ic_launcher_foreground.png")
+  $fs = [int](108 * $dp[$k]); $fb = New-Object System.Drawing.Bitmap $fs,$fs; $fg = [System.Drawing.Graphics]::FromImage($fb); $fg.InterpolationMode="HighQualityBicubic"; $fg.Clear([System.Drawing.Color]::Transparent)
+  $inner = $fs * 0.72; $off = ($fs - $inner) / 2; $fg.DrawImage($mask, $off, $off, $inner, $inner); $fg.Dispose(); $fb.Save((Join-Path $dir "ic_launcher_foreground.png"), [System.Drawing.Imaging.ImageFormat]::Png); $fb.Dispose()
 }
 # сплэш: угольный фон, логотип по центру
 $logo = [System.Drawing.Image]::FromFile((Join-Path $root "art\logo.png"))
