@@ -110,7 +110,7 @@ class WordWidget : AppWidgetProvider() {
         const val PREFS = "word_widget"
 
         /** Перерисовать все экземпляры (вызывается из приложения после обновления очереди). */
-        fun refreshAll(context: Context) {
+        @JvmStatic fun refreshAll(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(ComponentName(context, WordWidget::class.java))
             val e = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
