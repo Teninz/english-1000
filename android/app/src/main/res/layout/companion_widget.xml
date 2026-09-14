@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fox_root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="12dp" android:background="@drawable/widget_bg">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center_vertical">
+        <ImageView android:id="@+id/fox_image" android:layout_width="96dp" android:layout_height="match_parent" android:src="@drawable/companion_idle" android:contentDescription="Лиса-компаньон" android:scaleType="fitCenter" />
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="8dp">
+            <TextView android:id="@+id/fox_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Твоя лиса" android:textStyle="bold" android:textSize="17sp" android:textColor="#F1ECE3" android:maxLines="2" android:ellipsize="end" />
+            <TextView android:id="@+id/fox_message" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Пять слов вместе?" android:textSize="12sp" android:textColor="#B9BFCA" android:maxLines="4" android:ellipsize="end" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical">
+        <TextView android:id="@+id/fox_feed" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:text="Угостить · 2" android:textSize="13sp" android:textColor="#F4B070" android:background="@drawable/widget_chip" android:maxLines="1" />
+        <TextView android:id="@+id/fox_pet" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:layout_marginStart="6dp" android:gravity="center" android:text="Погладить" android:textSize="13sp" android:textColor="#F4B070" android:background="@drawable/widget_chip" android:maxLines="1" />
+    </LinearLayout>
+    <TextView android:id="@+id/fox_lesson" android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="6dp" android:gravity="center" android:text="Занятие с лисой  ›" android:textStyle="bold" android:textSize="14sp" android:textColor="#F4B070" android:background="@drawable/widget_chip" />
+</LinearLayout>

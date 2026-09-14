@@ -23,10 +23,10 @@ function dailyEnsure(){
   const modeKey = DAILY_MODE_KEYS[h % DAILY_MODE_KEYS.length];
   const tasks = [];
   if(un > 0) tasks.push({ id:"learn", target: Math.min(S.goal, un) });
-  else tasks.push({ id:"hard", target: 1 }); // весь словарь начат — тренировка по сложным
+  else tasks.push({ id:"lesson", target: 1 }); // весь словарь начат — тренировка по сложным
   if(due > 0) tasks.push({ id:"review", target: Math.min(due, 15) });
-  else tasks.push({ id:"level", level: (h >>> 4) % 20, target: 1 });
-  tasks.push({ id:"mode", key: modeKey });
+  else tasks.push({ id:"lesson", target:1 });
+  if(startedList().length >= 10) tasks.push({ id:"mode", key: modeKey });
   S.daily = { d, tasks: tasks.map(t => Object.assign({ swapped:false, done:false }, t)), log:{ learn:0, review:0, heard:0, pronOk:0, roadAnswers:0, sessions:[] } };
   save(); return S.daily;
 }
@@ -36,15 +36,16 @@ function dailyEvent(ev, p = {}){
   if(ev === "review") L.review++;
   if(ev === "heard") L.heard++;
   if(ev === "pronOk") L.pronOk++;
-  if(ev === "session"){ const n = p.res.length, ok = p.res.filter(x=>x.ok).length; L.sessions.push({ mode:p.mode, n, pct: n ? ok/n : 0, road: !!p.road }); if(p.road) L.roadAnswers += n; }
+  if(ev === "session"){ const n = p.res.length, ok = p.res.filter(x=>x.ok).length; L.sessions.push({ mode:p.mode, scope:testScope, level:testLevel, n, pct: n ? ok/n : 0, road: !!p.road }); if(p.road) L.roadAnswers += n; }
   dailyRefresh();
 }
 function dailyProgress(t){
   const L = dailyEnsure().log;
+  if(t.id === "lesson") return [S.companion?.completed[today()]?1:0,1];
   if(t.id === "learn") return [L.learn, t.target];
   if(t.id === "review") return [Math.min(L.review, t.target), t.target];
-  if(t.id === "level") return [L.sessions.some(s => s.mode !== "review" && s.mode !== "learn" && s.n >= 10 && s.pct >= .8) ? 1 : 0, 1];
-  if(t.id === "hard") return [L.sessions.some(s => s.n >= 4 && s.pct >= .8) ? 1 : 0, 1];
+  if(t.id === "level") return [L.sessions.some(s => s.scope === "level" && s.level === t.level && s.mode !== "review" && s.mode !== "learn" && s.n >= 10 && s.pct >= .8) ? 1 : 0, 1];
+  if(t.id === "hard") return [L.sessions.some(s => s.scope === "hard" && s.n >= 4 && s.pct >= .8) ? 1 : 0, 1];
   const m = DAILY_POOL[t.key];
   if(m.count) return [Math.min(L.pronOk, m.count), m.count];
   if(m.heard) return [Math.min(L.heard, m.heard), m.heard];
@@ -59,6 +60,7 @@ function dailyRefresh(){
   if(tab === "home" && $("#dailyCard")) { const c = $("#dailyCard"); c.outerHTML = dailyCardHtml(); wireDaily(); }
 }
 function dailyTitle(t){
+  if(t.id === "lesson") return ["Встреча с лисой", "Короткое занятие и угощение для компаньона", "learn"];
   if(t.id === "learn") return ["Выучить новые слова", `${t.target} ${plural(t.target,"слово","слова","слов").replace(/^\d+ /,"")} из текущего уровня`, "learn"];
   if(t.id === "review") return ["Повторить слова", `${t.target} из очереди на сегодня`, "rev"];
   if(t.id === "level") return ["Проверка по уровню", `${t.level+1}. ${LEVEL_NAMES[t.level]} — любой режим, 10 вопросов на 80%`, "test"];
@@ -66,6 +68,7 @@ function dailyTitle(t){
   const m = DAILY_POOL[t.key]; return [m.title, m.desc, m.icon];
 }
 function dailyStart(t){
+  if(t.id === "lesson"){journeyStart();return;}
   if(t.id === "learn"){ go("learn"); return; }
   if(t.id === "review"){ dueList().length ? startReview() : go("home"); return; }
   if(t.id === "level"){ testScope = "level"; testLevel = t.level; go("test"); return; }
@@ -95,7 +98,7 @@ function dailyCardHtml(){
         <div class="bar" style="height:5px;margin-top:6px"><i style="width:${tg?Math.round(p/tg*100):0}%"></i></div></div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex:none">
         ${t.done ? `<span class="chip good">готово</span>` : `<button class="btn small" data-dstart="${i}">${tg > 1 ? p + "/" + tg : "Начать"}</button>`}
-        ${(!t.done && !t.swapped) ? `<button class="btn ghost small" data-dswap="${i}" title="Заменить задание" style="padding:2px 6px;min-height:26px;font-size:12px">⇄ заменить</button>` : ""}
+        ${(!t.done && !t.swapped && startedList().length>=10) ? `<button class="btn ghost small" data-dswap="${i}" title="Заменить задание" style="padding:2px 6px;min-height:26px;font-size:12px">⇄ заменить</button>` : ""}
       </div></div>`; }).join("");
   return `<section class="card" id="dailyCard"><div class="row between"><div class="eyebrow">Задания дня</div><span class="small muted num">${doneN} / ${D.tasks.length}</span></div>
     <div class="dtasks">${rows}</div>

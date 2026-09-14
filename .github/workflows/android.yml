@@ -27,6 +27,7 @@ jobs:
       - name: Зависимости и веб-часть
         run: |
           npm ci
+          npm test
           npm run build:web
           npx cap sync android
 

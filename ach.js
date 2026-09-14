@@ -83,7 +83,7 @@ function checkAch(ev, p = {}){
 // экран достижений
 function achSheet(){
   achStats(); const got = achCount();
-  const cards = ACH.map(a => { const d = S.ach[a.id]; const secret = a.hidden && !d; return `<div class="ach ${d?"on":""} ${a.fun?"fun":""} ${a.hard?"hard":""}"><span class="ach-ic">${secret ? "❔" : a.icon}</span><b>${esc(secret ? "Секретное" : a.title)}</b><span class="small muted">${esc(secret ? a.hidden : a.desc)}</span>${d?`<span class="small" style="color:var(--good)">открыто ${d}</span>`:""}</div>`; }).join("");
+  const cards = ACH.map(a => { const d = S.ach[a.id]; const secret = a.hidden && !d; return `<div class="ach ${d?"on":""} ${a.fun?"fun":""} ${a.hard?"hard":""}"><span class="ach-ic">${secret ? "❔" : a.icon}</span><b>${esc(secret ? "Секретное" : a.title)}</b><span class="small muted">${esc(secret ? a.hidden : a.desc)}</span>${d?`<span class="small" style="color:var(--good)">открыто ${esc(d)}</span>`:""}</div>`; }).join("");
   sheet(`<div class="row between"><h2>Достижения</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
     <div class="row between"><span class="muted">Открыто ${got} из ${ACH.length} · скрытых ${ACH.filter(x=>x.hidden&&!S.ach[x.id]).length}</span><span class="chip warn">🏔️ самое сложное — «Марафон»</span></div>
     <div class="bar"><i style="width:${got/ACH.length*100}%"></i></div>
@@ -91,7 +91,7 @@ function achSheet(){
 }
 // карточка на главной
 function achCardHtml(){
-  achStats(); const got = achCount(); const last = Object.entries(S.ach).sort((a,b)=>a[1]<b[1]?1:-1).slice(0,4);
+  achStats(); const got = achCount(); const last = Object.entries(S.ach).filter(([id])=>ACH_BY[id]).sort((a,b)=>a[1]<b[1]?1:-1).slice(0,4);
   return `<section class="card" id="achCard" style="cursor:pointer"><div class="row between"><div class="eyebrow">Достижения</div><span class="small muted num">${got} / ${ACH.length}</span></div>
     <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">${last.length ? last.map(([id]) => `<span class="chip accent">${ACH_BY[id].icon} ${esc(ACH_BY[id].title)}</span>`).join("") : `<span class="small muted">Первое откроется, как только начнёшь первое слово</span>`}</div></section>`;
 }

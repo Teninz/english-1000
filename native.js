@@ -91,6 +91,7 @@ if (NATIVE) {
 
   // --- кнопка «назад»: закрыть панель → вернуться на главную → свернуть приложение ---
   NATIVE.app.addListener("backButton", () => {
+    if (companionDrawerOpen()) { closeCompanion(); return; }
     if (document.querySelector(".scrim")) { closeSheet(); return; }
     if (inSession) { endSession(); go(tab); return; }
     if (tab !== "home") { go("home"); return; }
@@ -101,6 +102,8 @@ if (NATIVE) {
   const handleUrl = url => {
     try { const u = new URL(url); const sc = u.searchParams.get("screen"), w = u.searchParams.get("word");
       if (w) { const i = WORDS.findIndex(x => x[0] === w); if (i >= 0) { go("words"); query = w; renderWords(); wordSheet(i); return; } }
+      if (sc === "journey") { endSession(); journeyStart(); return; }
+      if (sc === "companion") { endSession(); go("home"); openCompanion(); return; }
       if (sc === "review") { dueList().length ? startReview() : go("home"); return; }
       if (sc === "hard") { go("words"); wordsFilter = "hard"; renderWords(); return; }
       if (sc && ["home","learn","test","road","words"].includes(sc)) go(sc);
@@ -124,8 +127,27 @@ if (NATIVE) {
     if (now) run(); else widgetTimer = setTimeout(run, 1500);
   };
   const origSave = window.save;
-  window.save = function () { origSave.apply(this, arguments); updateWidget(false); };
+  window.save = function () { const saved=origSave.apply(this, arguments); if(saved!==false)updateWidget(false); return saved; };
   updateWidget(true);
+
+  // В Android действия с лисой выполняет тот же репозиторий, что и виджет.
+  let companionChain=Promise.resolve();
+  const companionQueue=fn=>{const job=companionChain.then(fn);companionChain=job.catch(()=>{});return job;};
+  window.syncCompanion = () => companionQueue(async()=>{
+    journeyState();
+    const r=await NATIVE.P.Widget.companionSync({state:S.companion});
+    S.companion=r.state;
+    for(const day of Object.keys(r.state.completed))S.journey.completed[day]=1;
+    origSave();
+    if(companionDrawerOpen()&&!inSession&&!$(".scrim"))openCompanion();
+    return r.state;
+  }).catch(()=>{toast("Не удалось синхронизировать лису с виджетом");});
+  window.nativeCompanionAction = action => companionQueue(()=>NATIVE.P.Widget.companionAction({action}));
+  window.resetCompanion = () => companionQueue(()=>NATIVE.P.Widget.companionReset()).catch(()=>toast("Не удалось сбросить виджет лисы"));
+  window.shareProgressFile = content => NATIVE.P.Widget.shareProgress({content});
+  window.pinCompanion = async()=>{const r=await NATIVE.P.Widget.companionPin();if(!r.supported)toast("Удерживай рабочий стол → Виджеты → ShadowFox → Лиса-компаньон");};
+  NATIVE.app.addListener("appStateChange",s=>{if(s.isActive)syncCompanion();});
+  syncCompanion();
 
   // --- ежедневное напоминание (настраивается в настройках через S.set.remind = "HH:MM" | null) ---
   window.scheduleReminder = async function () {

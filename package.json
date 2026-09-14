@@ -1,9 +1,11 @@
 {
   "name": "shadowfox-eng",
-  "version": "1.1.0",
+  "version": "1.0.3-3",
   "private": true,
   "description": "ShadowFox Eng — 1000 английских слов B1–B2",
   "scripts": {
+    "test": "node --test tests/*.test.js",
+    "build:companion-apng": "node tools/build-companion-apng.js",
     "build:web": "node tools/build-web.js",
     "sync": "npm run build:web && npx cap sync android",
     "open": "npx cap open android"

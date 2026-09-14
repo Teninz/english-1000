@@ -1,9 +1,11 @@
 node_modules/
 tools/piper-build/package-lock.json
 .claude/
+Free/
 apk/
 *.zip
 dist/
+art/companion-anim-frames/
 android/signing.keystore
 android/keystore.properties
 android/app/build/
