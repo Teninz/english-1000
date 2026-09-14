@@ -1,8 +1,11 @@
 .fox-handle{--fox-warm:#e76524;--fox-light:#657086;position:fixed;right:0;top:132px;z-index:18;width:50px;height:64px;padding:8px 6px 8px 10px;border:1px solid var(--line);border-right:0;border-radius:18px 0 0 18px;background:var(--surface);color:#252b38;box-shadow:0 8px 24px #0004;cursor:pointer}
 .fox-handle svg{width:100%;height:100%;display:block}.fox-handle circle{fill:var(--ink)}
 .fox-drawer-open .fox-handle{visibility:hidden}
+/* во время занятия ручка не нужна: она перекрывала карточку, а «Продолжить занятие» перезапускало урок */
+body:has(.sess-top) .fox-handle{display:none}
+body.fox-drawer-open{overflow:hidden}
 .fox-drawer-scrim{position:fixed;inset:0;z-index:50;background:#070a0db8;display:flex;justify-content:flex-end;animation:fadeIn .2s ease-out}
-.fox-drawer{width:min(430px,94vw);height:100%;overflow:auto;padding:calc(18px + env(safe-area-inset-top)) 18px calc(92px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#202633 0,var(--surface) 32%);box-shadow:-18px 0 50px #0007;animation:foxDrawerIn .28s ease-out}
+.fox-drawer{width:min(430px,94vw);height:100%;overflow:auto;overscroll-behavior:contain;padding:calc(18px + env(safe-area-inset-top)) 18px calc(92px + env(safe-area-inset-bottom));background:linear-gradient(180deg,var(--surface-2) 0,var(--surface) 32%);box-shadow:-18px 0 50px #0007;animation:foxDrawerIn .28s ease-out}
 .fox-drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.fox-drawer-head h2{font-size:24px;margin:2px 0 0}
 .fox-drawer .companion{border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 92%,transparent)}
 .fox-drawer .fox-meeting{flex-direction:column;text-align:center;overflow:hidden}.fox-drawer .fox-pet{width:324px;height:324px;margin:-28px auto -38px}

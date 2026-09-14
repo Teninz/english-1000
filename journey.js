@@ -141,6 +141,8 @@ function journeyRecord(i,ok){
 function journeyStart(){
   closeCompanion(); endSession(); journeyRunning=true; tab="home"; renderTabs();
   const p=journeyPlan();
+  // Запоминаем до старта, было ли занятие сегодня: день отмечается ещё внутри проверки, и в финале это уже не видно.
+  if(p.firstOfDay===undefined){p.firstOfDay=!journeyState().completed[today()];save();}
   if(p.done){ journeyRunning=false; go("home"); toast("Занятие на сегодня завершено. Другие тренировки доступны во вкладках."); return; }
   journeyNext();
 }
@@ -155,7 +157,7 @@ function journeyNext(){
   if(check.length){p.phase="check";save();startSession({title:"Сегодня · новые слова",items:check.map(i=>({i,kind:"mc"})),mode:"learn",after:"home",onComplete:journeyNext});return;}
   const repair=ids(Object.keys(p.errors).filter(w=>!p.repaired[w]));
   if(repair.length){p.phase="repair";save();startSession({title:"Сегодня · ещё одна встреча",items:repair.map(i=>({i,kind:"mc"})),mode:"repair",after:"home",onComplete:journeyNext});return;}
-  p.done=true; journeyRunning=false; inSession=false; const first=lessonComplete();
+  p.done=true; journeyRunning=false; inSession=false; lessonComplete(); const first=p.firstOfDay!==false;
   go("home"); openCompanion({celebrate:true});
   const response=$("#foxResponse");if(response)response.textContent=`Занятие закончено: ${p.review.length} слов в практике, ${p.fresh.length} новых. ${first?"В корзинке появилось угощение.":"Сегодняшняя встреча уже отмечена."}`;
 }
