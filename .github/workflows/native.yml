@@ -1,0 +1,46 @@
+name: Native APK (2.0)
+
+on:
+  push:
+    branches: [main]
+    paths: ["native/**", "tools/build-native-data.js", "words-*.js", "ex-ru.js", ".github/workflows/native.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: android-actions/setup-android@v3
+
+      - name: Словарь для приложения
+        run: node tools/build-native-data.js
+
+      - name: Ключ подписи
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > native/signing.keystore
+
+      - name: Сборка
+        working-directory: native
+        env:
+          SF_KEYSTORE: ${{ github.workspace }}/native/signing.keystore
+          SF_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SF_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SF_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Переименовать
+        run: |
+          VER=$(grep -oP 'versionName = "\K[^"]+' native/app/build.gradle.kts)
+          mkdir -p out && cp native/app/build/outputs/apk/release/app-release.apk "out/ShadowFoxEng-$VER.apk"
+          echo "VER=$VER" >> $GITHUB_ENV
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ShadowFoxEng-native-${{ env.VER }}
+          path: out/*
