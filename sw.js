@@ -1,5 +1,5 @@
 // Сеть в приоритете, кэш — запасной вариант для офлайна.
-const CACHE = "shadowfox-v8";
+const CACHE = "shadowfox-v9";
 const FILES = ["./", "./index.html", "./words-a.js", "./words-b.js", "./ex-ru.js", "./scenes.js", "./tts.js", "./ach.js", "./daily.js", "./about.js", "./native.js", "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png", "./art/logo.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES).catch(()=>{}))); self.skipWaiting(); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))); self.clients.claim(); });
