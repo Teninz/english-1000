@@ -62,9 +62,20 @@ if (NATIVE) {
 
   // --- вибрация, удержание экрана ---
   window.buzz = ok => { try { NATIVE.haptics.impact({ style: ok ? "LIGHT" : "HEAVY" }); } catch (e) {} };
-  const origHfStart = window.hfStart, origHfStop = window.hfStop;
-  window.hfStart = async function () { NATIVE.awake.keepAwake().catch(() => {}); return origHfStart.apply(this, arguments); };
-  window.hfStop = function () { NATIVE.awake.allowSleep().catch(() => {}); return origHfStop.apply(this, arguments); };
+  const origHfStart = window.hfStart, origHfStop = window.hfStop, origHfSet = window.hfSet, origHfToggle = window.hfTogglePause;
+  const Road = NATIVE.P.Road;
+  // фоновый сервис: плеер в шторке и на экране блокировки, процесс живёт при погашенном экране
+  window.hfStart = async function () { NATIVE.awake.keepAwake().catch(() => {}); const r = await origHfStart.apply(this, arguments); if (hf.on && Road) Road.start({ word: "ShadowFox Eng", ru: "Режим «В дороге»" }).catch(() => {}); return r; };
+  window.hfStop = function () { NATIVE.awake.allowSleep().catch(() => {}); if (Road) Road.stop().catch(() => {}); return origHfStop.apply(this, arguments); };
+  let roadLast = "";
+  window.hfSet = function (status, cls, word, ru) { origHfSet.apply(this, arguments); if (!hf.on || !Road) return;
+    const w = word !== undefined ? word : (document.getElementById("hfWord") || {}).textContent || "", r = ru !== undefined ? ru : (document.getElementById("hfRu") || {}).textContent || "";
+    const key = w + "|" + r + "|" + hf.paused; if (key === roadLast) return; roadLast = key; Road.update({ word: w || "ShadowFox Eng", ru: r || status, paused: !!hf.paused }).catch(() => {}); };
+  window.hfTogglePause = function () { origHfToggle.apply(this, arguments); if (hf.on && Road) { roadLast = ""; hfSet(hf.paused ? "Пауза" : "Говорю"); } };
+  if (Road) Road.addListener("command", d => { if (!hf.on) return;
+    if (d.cmd === "pause" && !hf.paused) hfTogglePause(); else if (d.cmd === "resume" && hf.paused) hfTogglePause();
+    else if (d.cmd === "next") { const b = document.getElementById("hfNext"); if (b) b.click(); }
+    else if (d.cmd === "stop") { endSession(); go("road"); } });
 
   // --- внешние ссылки открываем в браузере телефона, а не внутри приложения ---
   document.addEventListener("click", e => {

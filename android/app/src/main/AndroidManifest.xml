@@ -45,6 +45,9 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/word_widget_info" />
         </receiver>
 
+        <!-- фоновый режим «В дороге»: плеер в шторке, кнопки наушников, работа с погашенным экраном -->
+        <service android:name=".RoadService" android:exported="false" android:foregroundServiceType="mediaPlayback|microphone" />
+
         <!-- озвучка из виджета -->
         <service android:name=".SpeakService" android:exported="false" />
 
@@ -67,6 +70,9 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 
     <!-- Android 11+: чтобы приложение видело установленные движки синтеза и распознавания речи -->
     <queries>

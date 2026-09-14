@@ -931,7 +931,7 @@ function renderRoad(){
     <section class="card">
       <div class="eyebrow">Без рук</div>
       <h2 style="font-size:20px;margin:4px 0 8px">Учить на ходу</h2>
-      <p class="small muted">Наушники с микрофоном, телефон в кармане. Приложение говорит, потом даёт сигнал <b>«блинь»</b> и включает микрофон — в этот момент говоришь ты. Экран остаётся включённым сам.</p>
+      <p class="small muted">Наушники с микрофоном, телефон в кармане. Приложение говорит, потом даёт сигнал <b>«блинь»</b> и включает микрофон — в этот момент говоришь ты. В приложении экран можно погасить: режим продолжит работать, а в шторке и на экране блокировки появится плеер с кнопками «пауза», «дальше», «стоп» — они же на наушниках.</p>
     </section>
     <div class="modes">${modes.map(([k,t,d])=>`<button class="mode" data-m="${k}" style="${hfMode===k?"outline:2px solid var(--accent)":""}"><span class="ic-zone"><span class="ic">${ICONS[k==="listen"?"sound":"mic"]}</span></span><span class="grow"><b>${t}</b><span>${d}</span></span></button>`).join("")}</div>
     <section class="card">
