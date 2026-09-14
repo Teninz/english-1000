@@ -65,7 +65,13 @@ if (NATIVE) {
   const origHfStart = window.hfStart, origHfStop = window.hfStop, origHfSet = window.hfSet, origHfToggle = window.hfTogglePause;
   const Road = NATIVE.P.Road;
   // фоновый сервис: плеер в шторке и на экране блокировки, процесс живёт при погашенном экране
-  window.hfStart = async function () { NATIVE.awake.keepAwake().catch(() => {}); const r = await origHfStart.apply(this, arguments); if (hf.on && Road) Road.start({ word: "ShadowFox Eng", ru: "Режим «В дороге»" }).catch(() => {}); return r; };
+  window.hfStart = async function () {
+    NATIVE.awake.keepAwake().catch(() => {});
+    // микрофон спрашиваем до старта: иначе фоновый сервис не получит право на запись в фоне
+    if (hfMode !== "listen") { try { const p = await NATIVE.stt.checkPermissions(); if (p.speechRecognition !== "granted") await NATIVE.stt.requestPermissions(); } catch (e) {} }
+    const r = await origHfStart.apply(this, arguments);
+    if (hf.on && Road) setTimeout(() => { if (hf.on) Road.start({ word: "ShadowFox Eng", ru: "Режим «В дороге»" }).catch(() => {}); }, 300);
+    return r; };
   window.hfStop = function () { NATIVE.awake.allowSleep().catch(() => {}); if (Road) Road.stop().catch(() => {}); return origHfStop.apply(this, arguments); };
   let roadLast = "";
   window.hfSet = function (status, cls, word, ru) { origHfSet.apply(this, arguments); if (!hf.on || !Road) return;

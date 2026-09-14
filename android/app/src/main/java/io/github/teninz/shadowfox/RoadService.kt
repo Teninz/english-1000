@@ -43,7 +43,7 @@ class RoadService : Service() {
             })
             isActive = true
         }
-        wakeLock = getSystemService(PowerManager::class.java).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "shadowfox:road").apply { setReferenceCounted(false); acquire(3 * 60 * 60 * 1000L) }
+        runCatching { wakeLock = getSystemService(PowerManager::class.java).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "shadowfox:road").apply { setReferenceCounted(false); acquire(3 * 60 * 60 * 1000L) } }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -53,8 +53,16 @@ class RoadService : Service() {
             ACTION_STOP -> { emit("stop"); stopSelf(); return START_NOT_STICKY }
             ACTION_UPDATE -> { word = intent.getStringExtra("word") ?: word; ru = intent.getStringExtra("ru") ?: ru; paused = intent.getBooleanExtra("paused", paused) }
         }
-        val type = if (Build.VERSION.SDK_INT >= 30) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE else 0
-        if (Build.VERSION.SDK_INT >= 29) startForeground(NOTIF_ID, build(), type) else startForeground(NOTIF_ID, build())
+        // тип «микрофон» разрешён только при выданном RECORD_AUDIO, иначе Android 14+ убивает приложение
+        val micOk = checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        var type = if (Build.VERSION.SDK_INT >= 30) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK else 0
+        if (Build.VERSION.SDK_INT >= 30 && micOk) type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+        try {
+            if (Build.VERSION.SDK_INT >= 29) startForeground(NOTIF_ID, build(), type) else startForeground(NOTIF_ID, build())
+        } catch (e: Exception) {
+            // не смогли стать foreground-сервисом (ограничение системы) — просто выходим, JS-часть продолжит работать на экране
+            stopSelf(); return START_NOT_STICKY
+        }
         return START_STICKY
     }
 
@@ -92,11 +100,11 @@ class RoadService : Service() {
         const val ACTION_NEXT = "io.github.teninz.shadowfox.ROAD_NEXT"
         const val ACTION_STOP = "io.github.teninz.shadowfox.ROAD_STOP"
 
-        fun start(ctx: Context, word: String, ru: String) {
+        fun start(ctx: Context, word: String, ru: String) = runCatching {
             val i = Intent(ctx, RoadService::class.java).setAction(ACTION_UPDATE).putExtra("word", word).putExtra("ru", ru).putExtra("paused", false)
             if (Build.VERSION.SDK_INT >= 26) ctx.startForegroundService(i) else ctx.startService(i)
-        }
-        fun update(ctx: Context, word: String, ru: String, paused: Boolean) { ctx.startService(Intent(ctx, RoadService::class.java).setAction(ACTION_UPDATE).putExtra("word", word).putExtra("ru", ru).putExtra("paused", paused)) }
-        fun stop(ctx: Context) { ctx.stopService(Intent(ctx, RoadService::class.java)) }
+        }.isSuccess
+        fun update(ctx: Context, word: String, ru: String, paused: Boolean) { runCatching { ctx.startService(Intent(ctx, RoadService::class.java).setAction(ACTION_UPDATE).putExtra("word", word).putExtra("ru", ru).putExtra("paused", paused)) } }
+        fun stop(ctx: Context) { runCatching { ctx.stopService(Intent(ctx, RoadService::class.java)) } }
     }
 }

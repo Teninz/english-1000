@@ -13,7 +13,7 @@ public class RoadPlugin extends Plugin {
 
     @Override public void load() { instance = this; }
 
-    @PluginMethod public void start(PluginCall call) { RoadService.Companion.start(getContext(), call.getString("word", "ShadowFox Eng"), call.getString("ru", "Режим «В дороге»")); call.resolve(); }
+    @PluginMethod public void start(PluginCall call) { boolean ok = RoadService.Companion.start(getContext(), call.getString("word", "ShadowFox Eng"), call.getString("ru", "Режим «В дороге»")); JSObject o = new JSObject(); o.put("ok", ok); call.resolve(o); }
     @PluginMethod public void update(PluginCall call) { RoadService.Companion.update(getContext(), call.getString("word", ""), call.getString("ru", ""), Boolean.TRUE.equals(call.getBoolean("paused", false))); call.resolve(); }
     @PluginMethod public void stop(PluginCall call) { RoadService.Companion.stop(getContext()); call.resolve(); }
 

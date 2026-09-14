@@ -330,6 +330,10 @@ body.scenic .tile.on{background:var(--accent-soft)}
 @keyframes bird{0%{transform:translate(-30px,var(--y))}50%{transform:translate(200px,calc(var(--y) - 30px))}100%{transform:translate(430px,var(--y))}}
 .bird path{transform-box:fill-box;transform-origin:center;animation:flap .6s ease-in-out infinite alternate}
 body.still #scene *{animation:none!important}
+/* без стекла: непрозрачные блоки, без размытия — для слабых телефонов */
+body.noglass.scenic :is(.card,.mode,.opt,.lvl,.flash .face,.q,.hf,.tabs,.type-in,.search,.sheet,select.sel){background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}
+body.noglass.scenic .card.hero{background:radial-gradient(120% 90% at 100% 0%,var(--accent-soft) 0%,var(--surface) 55%)}
+body.noglass #scene svg{filter:none}
 /* ---------- отклик блоков ---------- */
 .card,.mode,.opt,.tile,.lvl-h,.wrow,.btn,.speak,.mic,.tab{transition:transform .16s cubic-bezier(.2,.7,.2,1),box-shadow .2s,background .2s,border-color .15s,opacity .2s}
 .mode:active,.opt:active:not([disabled]),.tile:active,.lvl-h:active,.wrow:active,.speak:active,.tab:active svg{transform:scale(.97)}
@@ -1115,6 +1119,7 @@ function settingsSheet(){
     <div class="set-row" style="flex-direction:column;align-items:stretch;gap:10px"><div class="row between"><span>Фон</span><span class="small muted">осенние сцены</span></div>
       <div class="scene-pick" id="scenePick">${Object.entries(SCENES).map(([k,v])=>`<button class="scene-btn ${(S.set.scene||"town")===k?"on":""}" data-s="${k}"><span class="scene-thumb">${SCENE_SVG[k]?SCENE_SVG[k]():""}</span><span>${v.title}</span></button>`).join("")}</div>
       <div class="row between"><span>Живые детали (листья, дым, волны)</span><button class="toggle ${S.set.motion!==false?"on":""}" id="tMotion" aria-label="Анимация фона"></button></div>
+      <div class="row between"><span>Стеклянные блоки (размытие фона)<br><span class="small muted">Выключи, если анимации подтормаживают</span></span><button class="toggle ${S.set.glass!==false?"on":""}" id="tGlass" aria-label="Стекло"></button></div>
     </div>
     <div class="set-row"><span>Виджет на рабочем столе</span><div class="seg" style="width:200px" id="widgetSeg">${[["dark","Тёмный"],["light","Светлый"]].map(([k,l])=>`<button class="${(S.set.widgetTheme||"dark")===k?"on":""}" data-w="${k}">${l}</button>`).join("")}</div></div>
     <div class="set-row"><span>Тема</span><div class="seg" style="width:200px" id="themeSeg">${[["dark","Ночь"],["light","День"]].map(([k,l])=>`<button class="${(S.set.theme||"dark")===k?"on":""}" data-t="${k}">${l}</button>`).join("")}</div></div>
@@ -1134,6 +1139,7 @@ function settingsSheet(){
   $("#widgetSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.set.widgetTheme=b.dataset.w; save(); if(window.updateWidget) updateWidget(true); settingsSheet(); });
   $("#scenePick").querySelectorAll(".scene-btn").forEach(b=>b.onclick=()=>{ S.set.scene=b.dataset.s; save(); applyScene(); settingsSheet(); });
   $("#tMotion").onclick = () => { S.set.motion = S.set.motion===false; save(); applyScene(); settingsSheet(); };
+  $("#tGlass").onclick = () => { S.set.glass = S.set.glass===false; save(); applyScene(); settingsSheet(); };
   const rerenderVoices = () => { const p = $("#voicesPanel"); if(!p) return; p.innerHTML = voicesPanel(); wireVoicesPanel(rerenderVoices); };
   wireVoicesPanel(rerenderVoices);
   if(Object.values(S.set.tts||{}).some(c=>c.engine==="piper") && !TTS.piperStored) TTS.piperList().then(rerenderVoices).catch(()=>{});
@@ -1149,6 +1155,7 @@ function applyScene(){
   layer.innerHTML = SCENE_SVG[k] ? SCENE_SVG[k]() : "";
   document.body.classList.toggle("scenic", !!SCENE_SVG[k]);
   document.body.classList.toggle("still", S.set.motion===false);
+  document.body.classList.toggle("noglass", S.set.glass===false);
   if(typeof checkAch==="function" && S.stats) checkAch("scene", {scene:k});
 }
 function applyTheme(){ const t = S.set.theme||"dark"; if(t==="light") document.documentElement.setAttribute("data-theme","light"); else document.documentElement.removeAttribute("data-theme"); document.querySelector('meta[name="theme-color"]').content = t==="light" ? "#F6F1EA" : "#14171C"; if(typeof checkAch==="function" && S.stats) checkAch("theme", {theme:t}); }
