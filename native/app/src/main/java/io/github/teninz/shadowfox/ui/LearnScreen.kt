@@ -20,6 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.withStyle
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Close
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.teninz.shadowfox.data.Dictionary
 import io.github.teninz.shadowfox.data.Word
@@ -126,7 +131,7 @@ fun FlagButton(vm: AppModel, w: Word) {
     val on = st.hard.containsKey(w.en)
     Box(Modifier.size(52.dp).clip(androidx.compose.foundation.shape.CircleShape).background(if (on) p.accent else p.surface2).border(1.dp, if (on) p.accent else p.line, androidx.compose.foundation.shape.CircleShape)
         .clickable { val now = vm.store.toggleHard(w); vm.showToast(if (now) "Помечено как сложное" else "Пометка снята") }, contentAlignment = Alignment.Center) {
-        androidx.compose.material3.Icon(if (on) androidx.compose.material.icons.Icons.Filled.Flag else androidx.compose.material.icons.Icons.Outlined.Flag, contentDescription = "Сложное слово", tint = if (on) p.accentInk else p.muted)
+        androidx.compose.material3.Icon(if (on) Icons.Filled.Flag else Icons.Outlined.Flag, contentDescription = "Сложное слово", tint = if (on) p.accentInk else p.muted)
     }
 }
 
@@ -134,7 +139,7 @@ fun FlagButton(vm: AppModel, w: Word) {
 fun SessionTop(vm: AppModel, k: Int, n: Int, onExit: () -> Unit) {
     val p = P
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        androidx.compose.material3.IconButton(onClick = onExit) { androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Close, contentDescription = "Выйти", tint = p.muted) }
+        androidx.compose.material3.IconButton(onClick = onExit) { androidx.compose.material3.Icon(Icons.Outlined.Close, contentDescription = "Выйти", tint = p.muted) }
         Bar(k.toFloat() / n, Modifier.weight(1f))
         Text("${k + 1}/$n", fontSize = 13.sp, color = p.muted)
     }

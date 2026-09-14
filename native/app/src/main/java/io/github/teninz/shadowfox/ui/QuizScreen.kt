@@ -19,6 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.alpha
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Mic
 import io.github.teninz.shadowfox.data.Dictionary
 import io.github.teninz.shadowfox.data.Word
 import io.github.teninz.shadowfox.speech.SttResult
@@ -79,7 +82,7 @@ fun QuizScreen(vm: AppModel, sess: Session) {
                                 when (val r = vm.stt.listen("en-US", 7000)) {
                                     is SttResult.Error -> heard = when (r.code) { "not-allowed" -> "Нет доступа к микрофону — разреши в настройках телефона"; "network" -> "Распознавание требует интернета"; else -> "Распознавание недоступно" }
                                     is SttResult.Text -> if (r.alts.isEmpty()) heard = "Не расслышал. Нажми микрофон и попробуй ещё раз." else { heard = "Услышано: " + r.alts[0]; record(w, matchAny(r.alts, listOf(norm(w.en))), "pron", if (matchAny(r.alts, listOf(norm(w.en)))) null else "Послушай образец и попробуй в следующий раз") }
-                                }; busy = false } }, contentAlignment = Alignment.Center) { androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Mic, contentDescription = "Говорить", tint = p.accentInk, modifier = Modifier.size(44.dp)) } }
+                                }; busy = false } }, contentAlignment = Alignment.Center) { androidx.compose.material3.Icon(Icons.Outlined.Mic, contentDescription = "Говорить", tint = p.accentInk, modifier = Modifier.size(44.dp)) } }
                     Text(heard, fontSize = 15.sp, color = p.muted, textAlign = TextAlign.Center) } }
             "pairs" -> PairsQuestion(vm, sess, q.group) { sess.k++ }
         }
@@ -110,8 +113,6 @@ private fun Options(items: List<String>, correct: Int, answered: Boolean?, mono:
         }
     }
 }
-private fun Modifier.alpha(a: Float) = this.then(Modifier.graphicsLayerAlpha(a))
-private fun Modifier.graphicsLayerAlpha(a: Float) = androidx.compose.ui.draw.alpha(this, a)
 
 @Composable
 fun Feedback(vm: AppModel, w: Word, ok: Boolean, extra: String?, onNext: () -> Unit) {
@@ -124,7 +125,7 @@ fun Feedback(vm: AppModel, w: Word, ok: Boolean, extra: String?, onNext: () -> U
                 if (extra != null) Text(extra, fontSize = 13.sp, color = p.muted)
                 if (!ok) { Spacer(Modifier.height(4.dp)); Example(w); Text(w.exRu, fontSize = 13.sp, color = p.muted) }
             }
-            Column(horizontalArrangement = Arrangement.spacedBy(6.dp).let { Arrangement.Center }, horizontalAlignment = Alignment.CenterHorizontally) { FlagButton(vm, w); Spacer(Modifier.height(6.dp)); SpeakButton({ vm.speak(w.en) }) }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) { FlagButton(vm, w); Spacer(Modifier.height(6.dp)); SpeakButton({ vm.speak(w.en) }) }
         }
     }
     PrimaryButton("Дальше") { onNext() }

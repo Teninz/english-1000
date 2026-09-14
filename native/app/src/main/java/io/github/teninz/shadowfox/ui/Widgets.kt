@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 
 /** Карточка-блок в стиле приложения. */
 @Composable
@@ -85,6 +87,6 @@ fun Dot(status: Int) {
 fun SpeakButton(onClick: () -> Unit, big: Boolean = false) {
     val p = P
     Box(Modifier.size(if (big) 88.dp else 52.dp).clip(CircleShape).background(p.accentSoft).border(1.dp, p.line, CircleShape).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
-        androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Озвучить", tint = p.accentDeep, modifier = Modifier.size(if (big) 40.dp else 26.dp))
+        androidx.compose.material3.Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Озвучить", tint = p.accentDeep, modifier = Modifier.size(if (big) 40.dp else 26.dp))
     }
 }

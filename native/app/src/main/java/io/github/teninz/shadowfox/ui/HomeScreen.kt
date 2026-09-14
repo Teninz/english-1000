@@ -1,6 +1,8 @@
 package io.github.teninz.shadowfox.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -82,7 +84,7 @@ fun HomeScreen(vm: AppModel) {
             Row(Modifier.height(44.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
                 for (k in 0 until 14) { val ds = Srs.addDays(Srs.today(), k - 13); val r = st.days[ds]; val v = if (r != null) r.n + r.q else 0
                     val h = if (v > 0) (14 + minOf(86, v * 4)) else 6
-                    Box(Modifier.weight(1f).height((44 * h / 100).dp).let { m -> androidx.compose.foundation.background(m, if (v > 0) p.accent else p.surface2, androidx.compose.foundation.shape.RoundedCornerShape(3.dp)) }) }
+                    Box(Modifier.weight(1f).height((44 * h / 100).dp).background(if (v > 0) p.accent else p.surface2, RoundedCornerShape(3.dp))) }
             }
         }
     }

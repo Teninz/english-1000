@@ -20,6 +20,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
+import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.teninz.shadowfox.data.Dictionary
 import io.github.teninz.shadowfox.data.Srs
@@ -64,14 +68,11 @@ fun ModeCard(icon: ImageVector, title: String, desc: String, dim: Boolean = fals
     val p = P
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(p.surface).border(if (selected) 2.dp else 1.dp, if (selected) p.accent else p.line.copy(alpha = .6f), RoundedCornerShape(16.dp)).clickable(onClick = onClick).let { if (dim) it.alpha(.5f) else it }, verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.padding(start = 16.dp, end = 14.dp, top = 14.dp, bottom = 14.dp).size(42.dp).clip(RoundedCornerShape(12.dp)).background(p.accentSoft).border(1.dp, p.accent.copy(alpha = .25f), RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) { Icon(icon, contentDescription = null, tint = p.accentDeep) }
-        Column(Modifier.weight(1f).fillMaxHeight().background(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(p.accent.copy(alpha = .18f), p.accent.copy(alpha = .04f)))).border(width = 0.dp, color = androidx.compose.ui.graphics.Color.Transparent).drawDivider(p.accent).padding(start = 14.dp, end = 16.dp, top = 12.dp, bottom = 12.dp)) {
+        Column(Modifier.weight(1f).fillMaxHeight().background(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(p.accent.copy(alpha = .18f), p.accent.copy(alpha = .04f)))).drawBehind { drawRect(p.accent, size = Size(2.dp.toPx(), size.height)) }.padding(start = 14.dp, end = 16.dp, top = 12.dp, bottom = 12.dp)) {
             Text(title, fontWeight = FontWeight.SemiBold, color = p.ink); Text(desc, fontSize = 13.sp, color = p.muted)
         }
     }
 }
-private fun Modifier.drawDivider(c: androidx.compose.ui.graphics.Color) = this.then(Modifier.drawBehindDivider(c))
-private fun Modifier.drawBehindDivider(c: androidx.compose.ui.graphics.Color) = androidx.compose.ui.draw.drawBehind(this) { drawRect(c, size = androidx.compose.ui.geometry.Size(2.dp.toPx(), size.height)) }
-private fun Modifier.alpha(a: Float) = androidx.compose.ui.draw.alpha(this, a)
 
 @Composable
 fun WordsScreen(vm: AppModel) {
