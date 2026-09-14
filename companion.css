@@ -8,15 +8,16 @@ body.fox-drawer-open{overflow:hidden}
 .fox-drawer{width:min(430px,94vw);height:100%;overflow:auto;overscroll-behavior:contain;padding:calc(18px + env(safe-area-inset-top)) 18px calc(92px + env(safe-area-inset-bottom));background:linear-gradient(180deg,var(--surface-2) 0,var(--surface) 32%);box-shadow:-18px 0 50px #0007;animation:foxDrawerIn .28s ease-out}
 .fox-drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.fox-drawer-head h2{font-size:24px;margin:2px 0 0}
 .fox-drawer .companion{border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 92%,transparent)}
-.fox-drawer .fox-meeting{flex-direction:column;text-align:center;overflow:hidden}.fox-drawer .fox-pet{width:324px;height:324px;margin:-28px auto -38px}
+.fox-drawer .fox-meeting{flex-direction:column;text-align:center;overflow:hidden}.fox-drawer .fox-pet{width:272px;height:272px;margin:-12px auto -20px}
 @keyframes foxDrawerIn{from{transform:translateX(100%)}to{transform:none}}
 .companion{border:1px solid var(--line)}
 .fox-meeting{display:flex;align-items:center;gap:12px;margin:4px 0}
 .fox-meeting h2{font-size:20px;margin-bottom:8px}
 .fox-meeting>div{min-width:0}
 .fox-pet{width:124px;height:144px;flex:none;object-fit:contain;filter:drop-shadow(0 8px 10px #0003)}
-.fox-pet{image-rendering:auto}
+.fox-pet{image-rendering:pixelated}
 .fox-response{min-height:42px;margin:8px 0 12px;color:var(--accent-deep)}
+.fox-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.fox-actions .btn{padding-inline:7px;font-size:13px}
 .fox-week{display:flex;align-items:center;gap:6px;margin:16px 0 8px}
 .fox-week span{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--surface-2);color:var(--muted)}
 .fox-week span.done{background:var(--good-soft);color:var(--good)}
@@ -38,5 +39,5 @@ body.scenic .flash .face,body.scenic .q{background:rgba(var(--surface-rgb),.98)}
 .flash .tap,.flash .pos{color:var(--muted)}
 body:has(.sess-top) #scene{opacity:.3}
 body:has(.sess-top) #scene *{animation-play-state:paused!important}
-@media(max-width:370px){.fox-pet{width:94px;height:122px}.fox-drawer .fox-pet{width:210px;height:210px}.fox-week{gap:4px}.fox-week span{width:23px;height:23px}.fox-meeting h2{font-size:18px}.progress-overview{gap:12px}.progress-donut{width:96px}}
+@media(max-width:370px){.fox-pet{width:94px;height:122px}.fox-drawer .fox-pet{width:210px;height:210px}.fox-actions{gap:5px}.fox-actions .btn{padding-inline:4px;font-size:12px}.fox-week{gap:4px}.fox-week span{width:23px;height:23px}.fox-meeting h2{font-size:18px}.progress-overview{gap:12px}.progress-donut{width:96px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}

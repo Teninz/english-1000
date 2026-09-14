@@ -38,24 +38,29 @@ const LearningCore = (() => {
     return r;
   }
   const empty = () => ({v:2,goal:10,streak:{n:0,last:null},days:{},w:{},modes:{},hard:{},set:{auto:true}});
-  const petEmpty = () => ({completed:{},fed:0,pets:0,lastAction:null});
+  const petEmpty = () => ({completed:{},fed:0,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null});
   function petMood(pet, day) {
     const dates = Object.keys(pet.completed).filter(d => d <= day).sort();
     const last = dates.at(-1);
     const missed = last ? Math.max(0, Math.round((Date.parse(day)-Date.parse(last))/86400000)-1) : 0;
     const mood = Math.min(3, missed);
-    return {mood,missed,last:last || null,treats:Math.max(0,2+Object.keys(pet.completed).length-pet.fed)};
+    return {mood,missed,last:last || null,treats:Math.max(0,2+Object.keys(pet.completed).length-(pet.fed||0))};
   }
   function petAction(pet, action, day) {
     const state = JSON.parse(JSON.stringify(pet)), m = petMood(state,day);
+    state.fed = state.fed || 0; state.watered = state.watered || 0; state.pets = state.pets || 0;
+    if(state.lastFed===undefined)state.lastFed=null;
+    if(state.lastWater===undefined)state.lastWater=null;
     if (m.mood === 3) return {state,message:"Лиса свернулась клубком. Короткое занятие поможет ей снова оживиться."};
     if (action === "feed") {
       if (!m.treats) return {state,message:"Угощения закончились. Новое ждёт за первое занятие дня."};
-      state.fed++;
+      state.fed++; state.lastFed=day;
+    } else if (action === "water") {
+      state.watered++; state.lastWater=day;
     } else if (action === "pet") state.pets++;
     else throw Error("Неизвестное действие");
     state.lastAction = {day,kind:action};
-    const message = m.mood === 2 ? "Лиса чуть шевельнула ушами. Она скучает по вашим занятиям." : m.mood === 1 ? "Лиса тихо прижалась к тебе. Может, позанимаемся вместе?" : action === "feed" ? "Хрум! Лиса довольно облизывается." : "Лиса подставила голову и замахала хвостом.";
+    const message = m.mood === 2 ? "Лиса чуть шевельнула ушами. Она скучает по вашим занятиям." : m.mood === 1 ? "Лиса тихо прижалась к тебе. Может, позанимаемся вместе?" : action === "feed" ? "Хрум! Лиса довольно облизывается." : action === "water" ? "Лиса напилась и довольно встряхнула ушами." : "Лиса подставила голову и замахала хвостом.";
     return {state,message};
   }
   function validate(input) {
@@ -103,7 +108,12 @@ const LearningCore = (() => {
     if (o.companion !== undefined) {
       if (!object(o.companion) || !object(o.companion.completed) || !count(o.companion.fed) || !count(o.companion.pets)) fail();
       if (!Object.entries(o.companion.completed).every(([d,v])=>dateOK(d)&&v===1)) fail();
-      if (o.companion.lastAction !== null && o.companion.lastAction !== undefined && (!object(o.companion.lastAction) || !dateOK(o.companion.lastAction.day) || !["feed","pet"].includes(o.companion.lastAction.kind))) fail();
+      if (o.companion.watered !== undefined && !count(o.companion.watered)) fail();
+      for(const k of ["lastFed","lastWater"])if(o.companion[k]!==undefined&&o.companion[k]!==null&&!dateOK(o.companion[k]))fail();
+      if (o.companion.lastAction !== null && o.companion.lastAction !== undefined && (!object(o.companion.lastAction) || !dateOK(o.companion.lastAction.day) || !["feed","water","pet"].includes(o.companion.lastAction.kind))) fail();
+      o.companion.watered=o.companion.watered||0;
+      if(o.companion.lastFed===undefined)o.companion.lastFed=null;
+      if(o.companion.lastWater===undefined)o.companion.lastWater=null;
     }
     if(o.daily!==undefined){
       const d=o.daily;

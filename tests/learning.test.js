@@ -90,8 +90,14 @@ test('смена месяца и года не ломает настроение
 });
 test('замкнувшаяся лиса не расходует угощения и не принимает ласку',()=>{
   const p=core.petEmpty();p.completed['2026-09-14']=1;
-  for(const action of ['feed','pet'])assert.deepEqual(core.petAction(p,action,'2026-09-18').state,p);
+  for(const action of ['feed','water','pet'])assert.deepEqual(core.petAction(p,action,'2026-09-18').state,p);
   p.completed['2026-09-18']=1;assert.equal(core.petMood(p,'2026-09-18').mood,0);assert.equal(core.petAction(p,'feed','2026-09-18').state.fed,1);
+});
+test('вода доступна без расходников, а старое сохранение дополняется полями ухода',()=>{
+  let p=core.petEmpty();p=core.petAction(p,'water','2026-09-14').state;p=core.petAction(p,'water','2026-09-14').state;
+  assert.equal(p.watered,2);assert.equal(p.lastWater,'2026-09-14');assert.equal(p.lastAction.kind,'water');
+  const s=core.empty();s.companion={completed:{},fed:0,pets:0,lastAction:null};
+  const restored=core.validate(s).companion;assert.equal(restored.watered,0);assert.equal(restored.lastFed,null);assert.equal(restored.lastWater,null);
 });
 test('кормление не приносит новые угощения, законченные занятия не дублируются за день',()=>{
   let p=core.petEmpty();p=core.petAction(p,'feed','2026-09-14').state;p=core.petAction(p,'feed','2026-09-14').state;
@@ -111,15 +117,19 @@ test('обязательные ресурсы PWA и APK присутствую�
 test('анимации компаньона являются валидными компактными APNG',()=>{
   const timingBlock=read('journey.js').match(/const FOX_ANIMATION_MS = \{([^}]+)\}/)[1];
   const timers=Object.fromEntries([...timingBlock.matchAll(/(\w+):(\d+)/g)].map(m=>[m[1],+m[2]]));
-  for(const name of ['idle','listen','pet','feed','happy','quiet','sad','withdrawn']){
+  const names=['idle','listen','pet','feed','happy','quiet','sad','withdrawn','stretch','drink','yawn','sleep','hungry','thirsty','offended','lesson'];
+  let totalSize=0;
+  for(const name of names){
     const file=path.join(root,'art','companion-anim',name+'.png'),data=fs.readFileSync(file);
+    totalSize+=data.length;
     assert.deepEqual([...data.subarray(0,8)],[137,80,78,71,13,10,26,10]);
-    assert.equal(data.readUInt32BE(16),256);assert.equal(data.readUInt32BE(20),256);
+    assert.equal(data.readUInt32BE(16),128);assert.equal(data.readUInt32BE(20),128);
     let offset=8,declared=0,frames=0,duration=0;
     while(offset<data.length){const length=data.readUInt32BE(offset),type=data.toString('ascii',offset+4,offset+8);if(type==='acTL')declared=data.readUInt32BE(offset+8);if(type==='fcTL'){frames++;const num=data.readUInt16BE(offset+28),den=data.readUInt16BE(offset+30)||100;duration+=1000*num/den;}offset+=12+length;}
-    assert.ok(frames>=10,name);assert.equal(frames,declared,name);assert.ok(data.length<1_500_000,name);
+    assert.ok(frames>=36,name);assert.equal(frames,declared,name);assert.ok(data.length<500_000,name);
     assert.ok(Math.abs(timers[name]-duration)<2,`${name}: таймер ${timers[name]} мс, APNG ${duration} мс`);
   }
+  assert.ok(totalSize<5_000_000,`общий размер анимаций: ${totalSize}`);
 });
 test('лиса открывается отдельной панелью, инфографика сложена после заданий',()=>{
   const html=read('index.html'),home=html.slice(html.indexOf('function renderHome'),html.indexOf('function kindForBox'));
@@ -133,7 +143,9 @@ test('Android-виджет использует те же четыре сост�
   for(const name of ['idle','sad_1','sad_2','withdrawn']){
     assert.ok(kotlin.includes('R.drawable.companion_'+name),name);
     const file=path.join(root,'android','app','src','main','res','drawable-nodpi','companion_'+name+'.png');
-    assert.ok(fs.existsSync(file),file);assert.ok(fs.statSync(file).size>100_000,file);
+    assert.ok(fs.existsSync(file),file);const data=fs.readFileSync(file);assert.ok(data.length>1_000,file);
+    assert.equal(data.readUInt32BE(16),128);assert.equal(data.readUInt32BE(20),128);
   }
   assert.ok(read('android/app/src/main/res/layout/companion_widget.xml').includes('@drawable/companion_idle'));
+  assert.ok(kotlin.includes('R.id.fox_water'));
 });

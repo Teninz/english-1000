@@ -17,7 +17,8 @@ object CompanionStore {
             f.parse(day)?.time
         }
     } catch (_: Exception) { null }
-    fun empty() = JSONObject().put("completed", JSONObject()).put("fed", 0).put("pets", 0).put("lastAction", JSONObject.NULL)
+    fun empty() = JSONObject().put("completed", JSONObject()).put("fed", 0).put("watered", 0).put("pets", 0)
+        .put("lastFed", JSONObject.NULL).put("lastWater", JSONObject.NULL).put("lastAction", JSONObject.NULL)
     @Synchronized fun read(context: Context): JSONObject {
         val text = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("state", null)
         return if (text == null) empty() else JSONObject(text)
@@ -33,7 +34,14 @@ object CompanionStore {
         for (key in dates.keys()) if (dateEpoch(key) != null && dates.optInt(key) == 1) completed.put(key, 1)
         // Действия приложения и виджета сериализованы; старый снимок не отменяет кормление.
         state.put("fed", maxOf(state.optInt("fed"), incoming.optInt("fed")).coerceAtLeast(0))
+        state.put("watered", maxOf(state.optInt("watered"), incoming.optInt("watered")).coerceAtLeast(0))
         state.put("pets", maxOf(state.optInt("pets"), incoming.optInt("pets")).coerceAtLeast(0))
+        for (key in arrayOf("lastFed", "lastWater")) {
+            val current = state.optString(key, "").takeIf { dateEpoch(it) != null }
+            val candidate = incoming.optString(key, "").takeIf { dateEpoch(it) != null }
+            if (candidate != null && (current == null || candidate > current)) state.put(key, candidate)
+            else if (!state.has(key)) state.put(key, JSONObject.NULL)
+        }
         write(context, state)
         return state
     }
@@ -57,14 +65,20 @@ object CompanionStore {
         if (mood == 3) message = "Лиса пока не реагирует. Короткое занятие поможет ей оживиться."
         else if (action == "feed" && treats(state) == 0) message = "Угощение ждёт за первое занятие дня."
         else {
-            require(action == "feed" || action == "pet")
-            val key = if (action == "feed") "fed" else "pets"
+            require(action == "feed" || action == "water" || action == "pet")
+            val key = when (action) { "feed" -> "fed"; "water" -> "watered"; else -> "pets" }
             state.put(key, state.optInt(key) + 1)
+            if (action == "feed") state.put("lastFed", today())
+            if (action == "water") state.put("lastWater", today())
             state.put("lastAction", JSONObject().put("day", today()).put("kind", action))
             message = when (mood) {
                 2 -> "Лиса чуть шевельнула ушами. Она скучает по вашим занятиям."
                 1 -> "Лиса тихо прижалась к тебе. Может, позанимаемся?"
-                else -> if (action == "feed") "Хрум! Лиса довольно облизывается." else "Лиса подставила голову и замахала хвостом."
+                else -> when (action) {
+                    "feed" -> "Хрум! Лиса довольно облизывается."
+                    "water" -> "Лиса напилась и довольно встряхнула ушами."
+                    else -> "Лиса подставила голову и замахала хвостом."
+                }
             }
             write(context, state)
         }

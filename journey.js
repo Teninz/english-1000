@@ -6,12 +6,19 @@ const FOX_REWARDS = [
   {id:"fourteen",icon:"🫖",name:"Вечерний чай",desc:"Заниматься в четырнадцать разных дней",at:14},
   {id:"thirty",icon:"🏡",name:"Дом для лисы",desc:"Заниматься в тридцать разных дней",at:30}
 ];
-const FOX_ANIMATION_MS = {idle:5000,listen:3000,pet:2667,feed:3167,happy:2334,quiet:5334,sad:6000,withdrawn:6667};
-const FOX_STATIC_ASSET = {idle:"idle",listen:"curious",pet:"pet",feed:"feed",happy:"happy",quiet:"sad-1",sad:"sad-2",withdrawn:"sleep"};
+const FOX_ANIMATION_MS = {idle:5000,listen:3000,pet:3000,feed:4000,happy:3000,quiet:5000,sad:5000,withdrawn:7000,stretch:4000,drink:4000,yawn:4000,sleep:7000,hungry:5000,thirsty:5000,offended:5000,lesson:4000};
 const foxReducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 const foxMoodAnimation = mood => ["idle","quiet","sad","withdrawn"][mood] || "idle";
 function foxAsset(animation){
-  return foxReducedMotion() ? `art/companion/${FOX_STATIC_ASSET[animation]||"idle"}.png` : `art/companion-anim/${animation}.png`;
+  return foxReducedMotion() ? `art/companion/${animation||"idle"}.png` : `art/companion-anim/${animation||"idle"}.png`;
+}
+function foxAmbientAnimation(p){
+  const hour=new Date().getHours();
+  if(hour>=22||hour<6)return "sleep";
+  const seed=Number(today().replaceAll("-",""));
+  if(S.companion.lastWater!==today()&&seed%7===0)return "thirsty";
+  if(p.treats&&S.companion.lastFed!==today()&&seed%7===3)return "hungry";
+  return ["listen","stretch","yawn","lesson","idle"][seed%5];
 }
 let foxAnimationTimer = 0;
 function playFoxAnimation(animation,mood,loop=false){
@@ -54,8 +61,8 @@ function companionCardHtml(){
   return `<section class="card companion" id="companionCard">
     <div class="row between"><div class="eyebrow">Твоя лиса</div><button class="btn ghost small" id="foxCollection">Коллекция · ${Object.keys(j.rewards).length}/${FOX_REWARDS.length}</button></div>
     <div class="fox-meeting"><img class="fox-pet mood-${p.mood}" data-animation="${foxMoodAnimation(p.mood)}" src="${foxAsset(foxMoodAnimation(p.mood))}" alt="Лиса: ${moods[p.mood]}"><div><h2>${moods[p.mood]}</h2><p class="small muted">${texts[p.mood]}</p></div></div>
-    <p class="small fox-response" id="foxResponse" role="status" aria-live="polite">${memoryCount() ? `Сегодня ты вспомнил ${plural(memoryCount(),"слово","слова","слов")} после перерыва.` : "Первое занятие дня приносит одно угощение. Награды остаются с тобой."}</p>
-    <div class="grid2"><button class="btn secondary" id="foxFeed" ${p.mood===3 || !p.treats ? "disabled":""}>Угостить · ${p.treats}</button><button class="btn secondary" id="foxPet" ${p.mood===3?"disabled":""}>Погладить</button></div>
+    <p class="small fox-response" id="foxResponse" role="status" aria-live="polite">${memoryCount() ? `Сегодня ты вспомнил ${plural(memoryCount(),"слово","слова","слов")} после перерыва.` : "Вода всегда доступна. Первое занятие дня приносит одно угощение."}</p>
+    <div class="fox-actions"><button class="btn secondary" id="foxFeed" ${p.mood===3 || !p.treats ? "disabled":""}>Угостить · ${p.treats}</button><button class="btn secondary" id="foxWater" ${p.mood===3?"disabled":""}>Напоить</button><button class="btn secondary" id="foxPet" ${p.mood===3?"disabled":""}>Погладить</button></div>
     <div class="fox-week" aria-label="Занятия за последние семь дней">${week.map(d=>`<span class="${j.completed[d]?"done":""}" title="${d}">${j.completed[d]?"✓":"·"}</span>`).join("")}<b>${weekly}/4 дня</b></div>
     <p class="small muted">${weekly>=4?"Недельная цель выполнена. Можно отдохнуть или продолжить в своём темпе.":"Цель — четыре дня занятий за последние семь. Не обязательно подряд."}</p>
     ${window.pinCompanion?'<button class="btn ghost small" id="foxPin">Добавить лису на рабочий стол</button>':""}
@@ -73,7 +80,7 @@ function openCompanion(options={}){
   wireCompanion(); if($("#hJourney"))$("#hJourney").onclick=journeyStart;
   const mood=LearningCore.petMood(S.companion,today()).mood;
   if(options.celebrate)playFoxAnimation("happy",mood);
-  else if(mood===0)playFoxAnimation("listen",mood);
+  else if(mood===0)playFoxAnimation(foxAmbientAnimation(LearningCore.petMood(S.companion,today())),mood);
   $("#foxDrawerClose").focus();
 }
 function closeCompanion(){
@@ -101,7 +108,7 @@ function companionCollection(){
   sheet(`<div class="row between"><h2>Сокровища лисы</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div><p class="muted">Память о ваших занятиях. Пропуски не отнимают награды.</p><div class="fox-rewards">${FOX_REWARDS.map(r=>`<div class="card ${j.rewards[r.id]?"earned":""}"><span class="reward-icon">${r.icon}</span><b>${r.name}</b><p class="small muted">${r.desc}</p><span class="small">${j.rewards[r.id]?`Получено ${j.rewards[r.id]}`:"Ещё впереди"}</span></div>`).join("")}</div><p class="small muted">После первого полного пропущенного дня лиса притихает, после второго грустит, после третьего не реагирует на еду и ласку. Одно завершённое занятие возвращает её к общению.</p>`);
 }
 async function companionAct(action){
-  const buttons = [$("#foxFeed"),$("#foxPet")]; buttons.forEach(b=>{if(b)b.disabled=true;});
+  const buttons = [$("#foxFeed"),$("#foxWater"),$("#foxPet")]; buttons.forEach(b=>{if(b)b.disabled=true;});
   try {
     journeyState();
     const result = window.nativeCompanionAction ? await window.nativeCompanionAction(action) : LearningCore.petAction(S.companion,action,today());
@@ -109,12 +116,13 @@ async function companionAct(action){
     const mood=LearningCore.petMood(S.companion,today()).mood;
     const response=$("#foxResponse"); if(response)response.textContent=result.message;
     const feed=$("#foxFeed"); if(feed){feed.textContent=`Угостить · ${LearningCore.petMood(S.companion,today()).treats}`;feed.disabled=mood===3||!LearningCore.petMood(S.companion,today()).treats;}
+    const water=$("#foxWater");if(water)water.disabled=mood===3;
     const pet=$("#foxPet");if(pet)pet.disabled=mood===3;
-    playFoxAnimation(action,mood);
+    playFoxAnimation(mood===2?"offended":action==="water"?"drink":action,mood);
   } catch(e) { toast("Не удалось сохранить действие. Попробуй ещё раз."); if(tab==="home"&&!inSession)renderHome(); }
 }
 function wireCompanion(){
-  if($("#foxFeed"))$("#foxFeed").onclick=()=>companionAct("feed"); if($("#foxPet"))$("#foxPet").onclick=()=>companionAct("pet"); if($("#foxCollection"))$("#foxCollection").onclick=companionCollection;
+  if($("#foxFeed"))$("#foxFeed").onclick=()=>companionAct("feed"); if($("#foxWater"))$("#foxWater").onclick=()=>companionAct("water"); if($("#foxPet"))$("#foxPet").onclick=()=>companionAct("pet"); if($("#foxCollection"))$("#foxCollection").onclick=companionCollection;
   if($("#foxPin"))$("#foxPin").onclick=()=>window.pinCompanion().catch(()=>toast("Добавь виджет через меню рабочего стола"));
 }
 let journeyRunning = false;

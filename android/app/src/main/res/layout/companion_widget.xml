@@ -10,8 +10,9 @@
         </LinearLayout>
     </LinearLayout>
     <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical">
-        <TextView android:id="@+id/fox_feed" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:text="Угостить · 2" android:textSize="13sp" android:textColor="#F4B070" android:background="@drawable/widget_chip" android:maxLines="1" />
-        <TextView android:id="@+id/fox_pet" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:layout_marginStart="6dp" android:gravity="center" android:text="Погладить" android:textSize="13sp" android:textColor="#F4B070" android:background="@drawable/widget_chip" android:maxLines="1" />
+        <TextView android:id="@+id/fox_feed" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:text="Еда · 2" android:textSize="12sp" android:textColor="#F4B070" android:background="@drawable/widget_chip" android:maxLines="1" />
+        <TextView android:id="@+id/fox_water" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:layout_marginStart="5dp" android:gravity="center" android:text="Вода" android:textSize="12sp" android:textColor="#F4B070" android:background="@drawable/widget_chip" android:maxLines="1" />
+        <TextView android:id="@+id/fox_pet" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:layout_marginStart="5dp" android:gravity="center" android:text="Ласка" android:textSize="12sp" android:textColor="#F4B070" android:background="@drawable/widget_chip" android:maxLines="1" />
     </LinearLayout>
     <TextView android:id="@+id/fox_lesson" android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="6dp" android:gravity="center" android:text="Занятие с лисой  ›" android:textStyle="bold" android:textSize="14sp" android:textColor="#F4B070" android:background="@drawable/widget_chip" />
 </LinearLayout>

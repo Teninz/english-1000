@@ -43,7 +43,7 @@ function frameControl(sequence,width,height){
   const data=Buffer.alloc(26);
   data.writeUInt32BE(sequence,0); data.writeUInt32BE(width,4); data.writeUInt32BE(height,8);
   data.writeUInt32BE(0,12); data.writeUInt32BE(0,16);
-  data.writeUInt16BE(1,20); data.writeUInt16BE(6,22); // 5 Blender frames at 30 fps.
+  data.writeUInt16BE(1,20); data.writeUInt16BE(12,22); // Pixel timeline: 12 fps.
   data[24]=0; data[25]=0;
   return data;
 }

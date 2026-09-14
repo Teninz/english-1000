@@ -15,9 +15,10 @@ class CompanionWidget : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         when (intent.action) {
-            FEED, PET -> {
+            FEED, WATER, PET -> {
                 try {
-                    val result = CompanionStore.act(context, if (intent.action == FEED) "feed" else "pet")
+                    val action = when (intent.action) { FEED -> "feed"; WATER -> "water"; else -> "pet" }
+                    val result = CompanionStore.act(context, action)
                     refreshAll(context, result.getString("message"))
                 } catch (_: Exception) { refreshAll(context, "Не удалось сохранить действие. Открой приложение.") }
             }
@@ -26,6 +27,7 @@ class CompanionWidget : AppWidgetProvider() {
     }
     companion object {
         const val FEED = "io.github.teninz.shadowfox.FOX_FEED"
+        const val WATER = "io.github.teninz.shadowfox.FOX_WATER"
         const val PET = "io.github.teninz.shadowfox.FOX_PET"
         @JvmStatic @JvmOverloads fun refreshAll(context: Context, response: String? = null) {
             val manager = AppWidgetManager.getInstance(context)
@@ -43,18 +45,21 @@ class CompanionWidget : AppWidgetProvider() {
                     v.setContentDescription(R.id.fox_image, "Лиса: " + CompanionStore.title(mood))
                     v.setTextViewText(R.id.fox_title, CompanionStore.title(mood))
                     v.setTextViewText(R.id.fox_message, response ?: CompanionStore.message(state))
-                    v.setTextViewText(R.id.fox_feed,"Угостить · $treats")
+                    v.setTextViewText(R.id.fox_feed,"Еда · $treats")
                     v.setBoolean(R.id.fox_feed,"setEnabled",mood < 3 && treats > 0)
+                    v.setBoolean(R.id.fox_water,"setEnabled",mood < 3)
                     v.setBoolean(R.id.fox_pet,"setEnabled",mood < 3)
                     v.setTextColor(R.id.fox_feed, Color.parseColor(if(mood == 3 || treats == 0) "#7A7E85" else "#F4B070"))
+                    v.setTextColor(R.id.fox_water, Color.parseColor(if(mood == 3) "#7A7E85" else "#F4B070"))
                     v.setTextColor(R.id.fox_pet, Color.parseColor(if(mood == 3) "#7A7E85" else "#F4B070"))
                     fun action(name: String, code: Int) = PendingIntent.getBroadcast(context,id*10+code,Intent(context,CompanionWidget::class.java).setAction(name),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                     v.setOnClickPendingIntent(R.id.fox_feed,action(FEED,4))
-                    v.setOnClickPendingIntent(R.id.fox_pet,action(PET,5))
+                    v.setOnClickPendingIntent(R.id.fox_water,action(WATER,5))
+                    v.setOnClickPendingIntent(R.id.fox_pet,action(PET,6))
                     val open=Intent(Intent.ACTION_VIEW,Uri.parse("shadowfox://open?screen=journey")).setPackage(context.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    v.setOnClickPendingIntent(R.id.fox_lesson,PendingIntent.getActivity(context,id*10+6,open,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+                    v.setOnClickPendingIntent(R.id.fox_lesson,PendingIntent.getActivity(context,id*10+7,open,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
                     val home=Intent(Intent.ACTION_VIEW,Uri.parse("shadowfox://open?screen=companion")).setPackage(context.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    v.setOnClickPendingIntent(R.id.fox_image,PendingIntent.getActivity(context,id*10+7,home,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+                    v.setOnClickPendingIntent(R.id.fox_image,PendingIntent.getActivity(context,id*10+8,home,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
                     manager.updateAppWidget(id,v)
                 } catch (_: Exception) {
                     val v=RemoteViews(context.packageName,R.layout.companion_widget)
