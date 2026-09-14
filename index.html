@@ -380,6 +380,8 @@ a.btn{text-decoration:none}
 .dt-ic svg{width:20px;height:20px}
 .dtask.done .dt-ic{background:var(--good-soft);color:var(--good)}
 .dtask b{font-size:14px;display:block}
+.about-list{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}
+.about-list li{margin:3px 0}
 .ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ach{background:var(--surface-2);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px;opacity:.55;border:1px solid transparent}
 .ach.on{opacity:1;background:var(--surface);border-color:rgba(var(--accent-rgb),.35);box-shadow:var(--glow)}
@@ -418,6 +420,7 @@ a.btn{text-decoration:none}
 <script src="tts.js"></script>
 <script src="ach.js"></script>
 <script src="daily.js"></script>
+<script src="about.js"></script>
 <script>
 /* ---------- данные ---------- */
 const WORDS = [...WORDS_A, ...WORDS_B];
@@ -1120,6 +1123,7 @@ function settingsSheet(){
     <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px"><div class="row between"><span>Прогресс</span><span class="small muted">начато ${plural(started,"слово","слова","слов")} · сложных ${hardList().length}</span></div>
       <div class="grid2"><button class="btn secondary" id="resetProg">${ICONS.reset.replace("<svg","<svg width=16 height=16")} Сбросить изученное</button><button class="btn secondary" id="resetHard">${ICONS.flag.replace("<svg","<svg width=16 height=16")} Снять все пометки</button></div>
       <p class="small muted">Сброс изученного обнуляет слова, серию дней и статистику, но сохраняет настройки, голоса, ключи и пометки «сложное». Сбросить один уровень можно во вкладке «Слова».</p></div>
+    <div class="set-row"><span>О приложении</span><button class="btn ghost" id="aboutBtn">Версия ${APP_VERSION} ›</button></div>
     <div class="set-row"><span class="small muted">Распознавание речи: ${canListen()?"есть":"нет"}.</span><button class="btn ghost" id="reset" style="color:var(--bad)">Сбросить всё</button></div>
   `);
   $("#goalSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.goal=+b.dataset.g; save(); settingsSheet(); });
@@ -1135,6 +1139,7 @@ function settingsSheet(){
   if(Object.values(S.set.tts||{}).some(c=>c.engine==="piper") && !TTS.piperStored) TTS.piperList().then(rerenderVoices).catch(()=>{});
   $("#exp").onclick = async () => { const code = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); $("#io").value = code; try{ await navigator.clipboard.writeText(code); toast("Код скопирован"); }catch(e){ $("#io").select(); toast("Скопируй код из поля"); } };
   $("#imp").onclick = () => { try{ const o = JSON.parse(decodeURIComponent(escape(atob($("#io").value.trim())))); if(o.v!==2) throw 0; S=o; save(); closeSheet(); go("home"); toast("Прогресс загружен"); }catch(e){ toast("Код не распознан"); } };
+  $("#aboutBtn").onclick = aboutSheet;
   $("#resetProg").onclick = () => confirmSheet("Сбросить изученное?", `${plural(started,"слово","слова","слов")} вернутся в «не начато». Настройки и пометки останутся.`, "Сбросить", () => { resetProgress(); go("home"); toast("Прогресс сброшен"); }, true);
   $("#resetHard").onclick = () => confirmSheet("Снять все пометки «сложное»?", `Сейчас помечено ${plural(hardList().length,"слово","слова","слов")}.`, "Снять", () => { S.hard = {}; save(); settingsSheet(); toast("Пометки сняты"); });
   $("#reset").onclick = () => confirmSheet("Удалить весь прогресс?", "Это нельзя отменить. Ключи и скачанные голоса останутся.", "Удалить", () => { const keep = {tts:S.set.tts, ttsKeys:S.set.ttsKeys}; localStorage.removeItem(KEY); load(); Object.assign(S.set, keep); save(); go("home"); }, true);
