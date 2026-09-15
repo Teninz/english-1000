@@ -168,13 +168,8 @@ def prepare_rig(parts):
         "muzzle": head_parts["muzzle"],
         "leaf": place(parts["leaf"], 33, (167,133)),
     }
-    # Duplicate a narrow strip at joints behind moving pieces. This is a
-    # provisional seam allowance, not a painted reconstruction of hidden fur.
-    head_patch = head_parts["base"].copy()
-    for ear in ("ear-left","ear-right"):
-        region = head_parts[ear].crop((0,71,256,96))
-        head_patch.alpha_composite(region,(0,74))
-    layers["head"] = head_patch
+    # Keep editable partitions exact. At render time reconnect each anatomical
+    # surface BEFORE resampling, so transparent cut edges cannot open seams.
     layer_dir = OUT/"layers"
     layer_dir.mkdir(exist_ok=True)
     metadata=[]
@@ -187,8 +182,9 @@ def prepare_rig(parts):
         metadata.append({"id":name,"file":f"layers/{name}.png","pivot":pivots[name],
                          "parent":"head" if name in head_parts and name!="base" else None})
     dump(OUT/"rig.json",{"canvas":[256,256],"status":"motion-study",
+        "surfaceRendering":"continuous-mesh-before-resampling",
         "layerOrder":list(layers),"layers":metadata,"attachments":{"head":[161,75],"body":[158,156],"gear":[179,144]},
-        "limitations":["Eye sockets and hidden neck fur need painting.",
+        "limitations":["Independent eye animation still needs painted sockets.",
                        "Large muzzle turns need drawn pose replacements.",
                        "Artwork proportions differ from the approved reference.",
                        "Garments are separate; no production wardrobe is implemented."]})
@@ -201,7 +197,57 @@ def transform(layer, pivot, dx=0, dy=0, angle=0, sx=1, sy=1):
     px,py=pivot
     coeff=(c/sx,s/sx,px-(c*(px+dx)+s*(py+dy))/sx,
            -s/sy,c/sy,py-(-s*(px+dx)+c*(py+dy))/sy)
-    return layer.transform((256,256),Image.Transform.AFFINE,coeff,Image.Resampling.BICUBIC)
+    return layer.transform((256,256),Image.Transform.AFFINE,coeff,Image.Resampling.BILINEAR)
+
+
+def combine(layers, names):
+    surface=Image.new("RGBA",(SIZE,SIZE))
+    for name in names:
+        surface.alpha_composite(layers[name])
+    return surface
+
+
+def smooth(value):
+    t=max(0,min(1,value))
+    return t*t*(3-2*t)
+
+
+def mesh_warp(surface, inverse):
+    """Shared vertices form one continuous surface, with no masked cut edges."""
+    mesh=[]
+    for y in range(0,SIZE,4):
+        for x in range(0,SIZE,4):
+            points=[inverse(px,py) for px,py in ((x,y),(x,y+4),(x+4,y+4),(x+4,y))]
+            mesh.append(((x,y,x+4,y+4),tuple(c for point in points for c in point)))
+    return surface.transform((SIZE,SIZE),Image.Transform.MESH,mesh,Image.Resampling.BILINEAR)
+
+
+def body_inverse(p):
+    amplitude=(p["chestScaleY"]-1)*.7
+    def inverse(x,y):
+        # Match the old chest lift at y<=170; smoothly pin every paw at y>=215.
+        influence=1-smooth((y-170)/45)
+        return x,y+(235-y)*amplitude*influence
+    return inverse
+
+
+def head_inverse(p,pivots):
+    angle=math.radians(p["headAngle"]*.65)
+    c,s=math.cos(angle),math.sin(angle)
+    px,py=pivots["head"]
+    def inverse(x,y):
+        dx=x-px-p["headX"]*.55;dy=y-py-p["headY"]*.38
+        hx,hy=px+c*dx+s*dy,py-s*dx+c*dy
+        ox,oy=hx,hy
+        for name,key in (("ear-left","leftEarAngle"),("ear-right","rightEarAngle")):
+            ex,ey=pivots[name]
+            weight=smooth((ey-hy)/28)*(1-smooth((abs(hx-ex)-13)/21))
+            a=math.radians(p[key]*.35)*weight
+            # Rotation fades continuously to zero at the ear root.
+            ox+=ex+math.cos(a)*(hx-ex)+math.sin(a)*(hy-ey)-hx
+            oy+=ey-math.sin(a)*(hx-ex)+math.cos(a)*(hy-ey)-hy
+        return ox,oy
+    return inverse
 
 
 def export_ora(layers):
@@ -226,27 +272,25 @@ def export_ora(layers):
 def render(layers,pivots):
     plan=json.loads((SOURCE_DIR/"reference-chain-v1.motion.json").read_text())
     frames=[]
+    head_surface=combine(layers,("head","ear-left","ear-right","eye-near","eye-far","muzzle"))
+    body_surface=combine(layers,("body","chest","front-legs"))
     for frame in plan["frames"]:
         p=frame["pose"]
         out=Image.new("RGBA",(256,256))
-        head_family=("head","ear-left","ear-right","eye-near","eye-far","muzzle")
         for name,original in layers.items():
             image=original
             if name=="tail":
                 image=transform(image,pivots[name],angle=p["tailLift"]*.65)
-            elif name in ("body","chest"):
-                image=transform(image,pivots["body"],sy=1+(p["chestScaleY"]-1)*.7)
+            elif name=="body":
+                image=mesh_warp(body_surface,body_inverse(p))
+            elif name in ("chest","front-legs","ear-left","ear-right","eye-near","eye-far","muzzle"):
+                continue
             elif name=="scarf":
                 image=transform(image,pivots[name],angle=p["scarfLift"]*.4)
             elif name=="leaf":
                 image=transform(image,pivots[name],angle=p["leafAngle"]*.7)
-            elif name in head_family:
-                if name.startswith("ear-"):
-                    key="leftEarAngle" if name=="ear-left" else "rightEarAngle"
-                    image=transform(image,pivots[name],angle=p[key]*.35)
-                # Eye and muzzle regions already exist as independent layers.
-                # Until sockets are repainted they follow the skull, avoiding holes.
-                image=transform(image,pivots["head"],dx=p["headX"]*.55,dy=p["headY"]*.38,angle=p["headAngle"]*.65)
+            elif name=="head":
+                image=mesh_warp(head_surface,head_inverse(p,pivots))
             out.alpha_composite(image)
         box=out.getbbox()
         assert box and min(box[:2])>=16 and max(box[2:])<=240, (frame["frame"],box)
@@ -312,3 +356,4 @@ def main():
 
 if __name__=="__main__":
     main()
+

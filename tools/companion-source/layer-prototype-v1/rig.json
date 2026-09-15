@@ -4,6 +4,7 @@
     256
   ],
   "status": "motion-study",
+  "surfaceRendering": "continuous-mesh-before-resampling",
   "layerOrder": [
     "tail",
     "body",
@@ -143,7 +144,7 @@
     ]
   },
   "limitations": [
-    "Eye sockets and hidden neck fur need painting.",
+    "Independent eye animation still needs painted sockets.",
     "Large muzzle turns need drawn pose replacements.",
     "Artwork proportions differ from the approved reference.",
     "Garments are separate; no production wardrobe is implemented."

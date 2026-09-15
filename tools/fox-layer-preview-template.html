@@ -15,7 +15,7 @@ button{cursor:pointer}button:disabled{opacity:.5}input{width:100%;accent-color:#
 .note{font-size:14px;border-top:1px solid #363e4b;padding-top:18px}
 </style>
 <main>
-<span class="tag">SHADOWFOX · ПРОБА ДВИЖЕНИЯ V1</span>
+<span class="tag">SHADOWFOX · ПРОБА ДВИЖЕНИЯ V1.1</span>
 <h1>Лисёнок из отдельных слоёв</h1>
 <p>Голова, уши, хвост и шарф движутся независимо. Это проверка сборки и темпа — мимика и скрытые участки шерсти ещё требуют дорисовки.</p>
 <div class="stage"><canvas width="256" height="256" aria-label="Анимированный лисёнок"></canvas></div>
@@ -26,7 +26,7 @@ button{cursor:pointer}button:disabled{opacity:.5}input{width:100%;accent-color:#
 <input id="scrub" type="range" min="0" max="99" value="0" aria-label="Кадр" disabled>
 <output id="status">Подготовка кадров…</output>
 <p class="note">100 кадров · 5 секунд · 256×256. Первый и последний кадры совпадают. Переключение вкладки останавливает просмотр. Эта страница автономна, ничего не отправляет в сеть и не меняет прогресс приложения.</p>
-<p class="note">Известные ограничения: возможны швы на стыках деталей; глаза и морда пока следуют голове без самостоятельной мимики. Плавность на телефоне ещё не проверена.</p>
+<p class="note">Версия 1.1: голова и тело деформируются непрерывно, лапы закреплены на полу. Глаза и морда пока следуют голове без самостоятельной мимики. Плавность на телефоне ещё не проверена.</p>
 </main>
 <script>
 const urls=__ATLAS_DATA__;
