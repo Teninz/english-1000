@@ -23,6 +23,9 @@ jobs:
           java-version: 21
 
       - uses: android-actions/setup-android@v3
+        with:
+          # пакет «tools» удалён из SDK: с cmdline-tools 16 шаг по умолчанию падает
+          packages: platform-tools
 
       - name: Зависимости и веб-часть
         run: |
