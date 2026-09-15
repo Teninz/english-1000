@@ -17,8 +17,20 @@ object CompanionStore {
             f.parse(day)?.time
         }
     } catch (_: Exception) { null }
+    private fun identityEmpty() = JSONObject().put("sex", "female").put("name", "").put("decline", true)
+        .put("forms", JSONObject().put("nom", "").put("gen", "").put("dat", "").put("acc", "").put("ins", "").put("prep", ""))
+    private fun cleanText(value: String) = value.trim().replace(Regex("\\s+"), " ").take(32)
+    private fun cleanIdentity(value: JSONObject?): JSONObject {
+        if (value == null) return identityEmpty()
+        val result = identityEmpty().put("sex", if (value.optString("sex") == "male") "male" else "female")
+            .put("name", cleanText(value.optString("name"))).put("decline", value.optBoolean("decline", true))
+        val source = value.optJSONObject("forms") ?: JSONObject()
+        val forms = result.getJSONObject("forms")
+        for (key in arrayOf("nom", "gen", "dat", "acc", "ins", "prep")) forms.put(key, cleanText(source.optString(key)))
+        return result
+    }
     fun empty() = JSONObject().put("completed", JSONObject()).put("fed", 0).put("watered", 0).put("pets", 0)
-        .put("lastFed", JSONObject.NULL).put("lastWater", JSONObject.NULL).put("lastAction", JSONObject.NULL)
+        .put("lastFed", JSONObject.NULL).put("lastWater", JSONObject.NULL).put("lastAction", JSONObject.NULL).put("identity", identityEmpty())
     @Synchronized fun read(context: Context): JSONObject {
         val text = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("state", null)
         return if (text == null) empty() else JSONObject(text)
@@ -36,6 +48,8 @@ object CompanionStore {
         state.put("fed", maxOf(state.optInt("fed"), incoming.optInt("fed")).coerceAtLeast(0))
         state.put("watered", maxOf(state.optInt("watered"), incoming.optInt("watered")).coerceAtLeast(0))
         state.put("pets", maxOf(state.optInt("pets"), incoming.optInt("pets")).coerceAtLeast(0))
+        if (incoming.has("identity")) state.put("identity", cleanIdentity(incoming.optJSONObject("identity")))
+        else if (!state.has("identity")) state.put("identity", identityEmpty())
         for (key in arrayOf("lastFed", "lastWater")) {
             val current = state.optString(key, "").takeIf { dateEpoch(it) != null }
             val candidate = incoming.optString(key, "").takeIf { dateEpoch(it) != null }
@@ -51,18 +65,31 @@ object CompanionStore {
         return (diff - 1).coerceIn(0, 3)
     }
     fun treats(state: JSONObject): Int = (2 + state.getJSONObject("completed").length() - state.optInt("fed")).coerceAtLeast(0)
-    fun title(mood: Int) = arrayOf("Рада тебя видеть", "Притихла", "Скучает по тебе", "Свернулась клубком")[mood]
+    private fun male(state: JSONObject) = state.optJSONObject("identity")?.optString("sex") == "male"
+    private fun who(state: JSONObject): String {
+        val name = cleanText(state.optJSONObject("identity")?.optString("name") ?: "")
+        return name.ifEmpty { if (male(state)) "Лис" else "Лиса" }
+    }
+    fun title(state: JSONObject, mood: Int): String {
+        val male = male(state)
+        return when (mood) {
+            0 -> "${who(state)} ${if (male) "рад" else "рада"} тебя видеть"
+            1 -> "${who(state)} ${if (male) "притих" else "притихла"}"
+            2 -> "${who(state)} скучает по тебе"
+            else -> "${who(state)} ${if (male) "свернулся" else "свернулась"} клубком"
+        }
+    }
     fun message(state: JSONObject): String = when (mood(state)) {
-        1 -> "Один день без урока. Лиса ждёт вашей встречи."
-        2 -> "Два дня без урока. Лиса едва шевелит ушами."
-        3 -> "Три дня без урока. Начните занятие, чтобы лиса оживилась."
-        else -> if (state.getJSONObject("completed").has(today())) "Сегодня вы уже позанимались. Лиса довольна!" else "Пять слов вместе? За занятие получишь угощение."
+        1 -> "Один день без урока. ${who(state)} ждёт вашей встречи."
+        2 -> "Два дня без урока. ${who(state)} едва шевелит ушами."
+        3 -> "Три дня без урока. Начните занятие, чтобы ${who(state)} ожил${if (male(state)) "" else "а"}."
+        else -> if (state.getJSONObject("completed").has(today())) "Сегодня вы уже позанимались. ${who(state)} довол${if (male(state)) "ен" else "ьна"}!" else "Пять слов вместе? За занятие получишь угощение."
     }
     @Synchronized fun act(context: Context, action: String): JSONObject {
         val state = read(context)
         val mood = mood(state)
         var message: String
-        if (mood == 3) message = "Лиса пока не реагирует. Короткое занятие поможет ей оживиться."
+        if (mood == 3) message = "${who(state)} пока не реагирует. Короткое занятие поможет снова оживиться."
         else if (action == "feed" && treats(state) == 0) message = "Угощение ждёт за первое занятие дня."
         else {
             require(action == "feed" || action == "water" || action == "pet")
@@ -72,12 +99,12 @@ object CompanionStore {
             if (action == "water") state.put("lastWater", today())
             state.put("lastAction", JSONObject().put("day", today()).put("kind", action))
             message = when (mood) {
-                2 -> "Лиса чуть шевельнула ушами. Она скучает по вашим занятиям."
-                1 -> "Лиса тихо прижалась к тебе. Может, позанимаемся?"
+                2 -> "${who(state)} чуть шевельнул${if (male(state)) "" else "а"} ушами. ${if (male(state)) "Он" else "Она"} скучает по вашим занятиям."
+                1 -> "${who(state)} тихо прижал${if (male(state)) "ся" else "ась"} к тебе. Может, позанимаемся?"
                 else -> when (action) {
-                    "feed" -> "Хрум! Лиса довольно облизывается."
-                    "water" -> "Лиса напилась и довольно встряхнула ушами."
-                    else -> "Лиса подставила голову и замахала хвостом."
+                    "feed" -> "Хрум! ${who(state)} довольно облизывается."
+                    "water" -> "${who(state)} напил${if (male(state)) "ся" else "ась"} и довольно встряхнул${if (male(state)) "" else "а"} ушами."
+                    else -> "${who(state)} подставил${if (male(state)) "" else "а"} голову и замахал${if (male(state)) "" else "а"} хвостом."
                 }
             }
             write(context, state)

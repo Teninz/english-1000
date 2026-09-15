@@ -34,8 +34,14 @@ function playFoxAnimation(animation,mood,loop=false){
 function journeyState(){
   S.journey = S.journey || {completed:{},rewards:{}};
   S.companion = S.companion || LearningCore.petEmpty();
+  S.companion.identity = LearningCore.petIdentity(S.companion.identity);
   return S.journey;
 }
+const foxIdentity = () => LearningCore.petIdentity(S.companion?.identity);
+const foxMale = () => foxIdentity().sex === "male";
+const foxWho = (form="nom") => LearningCore.petTerm(S.companion,form);
+const foxWhoCap = (form="nom") => {const value=foxWho(form);return value?value[0].toLocaleUpperCase("ru-RU")+value.slice(1):value;};
+const foxPronoun = () => foxMale()?"он":"она";
 function lessonComplete(){
   const j = journeyState(), day = today(), first = !S.companion.completed[day];
   j.completed[day] = 1; S.companion.completed[day] = 1;
@@ -53,14 +59,15 @@ function activityCount(){ return Object.keys(dayRec().words || {}).length; }
 function memoryCount(){ return Object.keys(dayRec().remembered || {}).length; }
 function companionCardHtml(){
   const j = journeyState(), p = LearningCore.petMood(S.companion,today());
-  const moods = ["Рада тебя видеть", "Притихла", "Скучает по тебе", "Свернулась клубком"];
-  const texts = [p.last === today() ? "Сегодня мы уже позанимались. Спасибо, что заглянул!" : p.last ? "У нас есть несколько слов для короткого занятия." : "Я твоя лиса. Давай начнём с пяти слов?", "Один день без занятия. Лиса ждёт вашей следующей встречи.", "Два дня без занятия. На ласку отвечает лишь движением ушек.", "Три дня или больше без занятия. Еда и ласка пока не помогают — начните урок вместе."];
+  const male=foxMale(), who=foxWhoCap(), pronoun=foxPronoun();
+  const moods = [male?"Рад тебя видеть":"Рада тебя видеть", male?"Притих":"Притихла", "Скучает по тебе", male?"Свернулся клубком":"Свернулась клубком"];
+  const texts = [p.last === today() ? `Сегодня мы уже позанимались. ${who} рад${male?"":"а"}, что ты заглянул!` : p.last ? "У нас есть несколько слов для короткого занятия." : `${who} теперь твой компаньон. Давай начнём с пяти слов?`, `Один день без занятия. ${who} ждёт вашей следующей встречи.`, `Два дня без занятия. На ласку ${pronoun} отвечает лишь движением ушек.`, "Три дня или больше без занятия. Еда и ласка пока не помогают — начните урок вместе."];
   const total = Object.keys(j.completed).length, next = FOX_REWARDS.find(r=>!j.rewards[r.id]);
   const week = Array.from({length:7},(_,i)=>addDays(today(),i-6));
   const weekly = week.filter(d=>j.completed[d]).length;
   return `<section class="card companion" id="companionCard">
-    <div class="row between"><div class="eyebrow">Твоя лиса</div><button class="btn ghost small" id="foxCollection">Коллекция · ${Object.keys(j.rewards).length}/${FOX_REWARDS.length}</button></div>
-    <div class="fox-meeting"><img class="fox-pet mood-${p.mood}" data-animation="${foxMoodAnimation(p.mood)}" src="${foxAsset(foxMoodAnimation(p.mood))}" alt="Лиса: ${moods[p.mood]}"><div><h2>${moods[p.mood]}</h2><p class="small muted">${texts[p.mood]}</p></div></div>
+    <div class="row between fox-card-head"><div class="eyebrow">${male?"Твой":"Твоя"} ${esc(foxWho())}</div><div class="fox-card-tools"><button class="btn ghost small" id="foxIdentity">Имя и образ</button><button class="btn ghost small" id="foxCollection">Коллекция · ${Object.keys(j.rewards).length}/${FOX_REWARDS.length}</button></div></div>
+    <div class="fox-meeting"><img class="fox-pet mood-${p.mood}" data-animation="${foxMoodAnimation(p.mood)}" src="${foxAsset(foxMoodAnimation(p.mood))}" alt="${esc(who)}: ${moods[p.mood]}"><div><h2>${moods[p.mood]}</h2><p class="small muted">${esc(texts[p.mood])}</p></div></div>
     <p class="small fox-response" id="foxResponse" role="status" aria-live="polite">${memoryCount() ? `Сегодня ты вспомнил ${plural(memoryCount(),"слово","слова","слов")} после перерыва.` : "Вода всегда доступна. Первое занятие дня приносит одно угощение."}</p>
     <div class="fox-actions"><button class="btn secondary" id="foxFeed" ${p.mood===3 || !p.treats ? "disabled":""}>Угостить · ${p.treats}</button><button class="btn secondary" id="foxWater" ${p.mood===3?"disabled":""}>Напоить</button><button class="btn secondary" id="foxPet" ${p.mood===3?"disabled":""}>Погладить</button></div>
     <div class="fox-week" aria-label="Занятия за последние семь дней">${week.map(d=>`<span class="${j.completed[d]?"done":""}" title="${d}">${j.completed[d]?"✓":"·"}</span>`).join("")}<b>${weekly}/4 дня</b></div>
@@ -73,7 +80,7 @@ function foxFaceIcon(){return `<svg viewBox="0 0 48 48" aria-hidden="true"><path
 function openCompanion(options={}){
   journeyState();
   const host=$("#foxDrawerHost"); if(!host)return;
-  host.innerHTML=`<div class="fox-drawer-scrim"><aside class="fox-drawer" role="dialog" aria-modal="true" aria-labelledby="foxDrawerTitle"><div class="fox-drawer-head"><div><div class="eyebrow">Компаньон</div><h2 id="foxDrawerTitle">Домик лисы</h2></div><button class="icon-btn" id="foxDrawerClose" aria-label="Закрыть">${ICONS.close}</button></div>${journeyHeroHtml()}${companionCardHtml()}</aside></div>`;
+  host.innerHTML=`<div class="fox-drawer-scrim"><aside class="fox-drawer" role="dialog" aria-modal="true" aria-labelledby="foxDrawerTitle"><div class="fox-drawer-head"><div><div class="eyebrow">Компаньон</div><h2 id="foxDrawerTitle">Домик ${esc(foxWho("gen"))}</h2></div><button class="icon-btn" id="foxDrawerClose" aria-label="Закрыть">${ICONS.close}</button></div>${journeyHeroHtml()}${companionCardHtml()}</aside></div>`;
   document.body.classList.add("fox-drawer-open");
   $("#foxDrawerClose").onclick=closeCompanion;
   $(".fox-drawer-scrim").onclick=e=>{if(e.target===e.currentTarget)closeCompanion();};
@@ -105,7 +112,39 @@ function progressAccordionHtml(){
 }
 function companionCollection(){
   const j = journeyState();
-  sheet(`<div class="row between"><h2>Сокровища лисы</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div><p class="muted">Память о ваших занятиях. Пропуски не отнимают награды.</p><div class="fox-rewards">${FOX_REWARDS.map(r=>`<div class="card ${j.rewards[r.id]?"earned":""}"><span class="reward-icon">${r.icon}</span><b>${r.name}</b><p class="small muted">${r.desc}</p><span class="small">${j.rewards[r.id]?`Получено ${j.rewards[r.id]}`:"Ещё впереди"}</span></div>`).join("")}</div><p class="small muted">После первого полного пропущенного дня лиса притихает, после второго грустит, после третьего не реагирует на еду и ласку. Одно завершённое занятие возвращает её к общению.</p>`);
+  const male=foxMale(), who=foxWhoCap();
+  sheet(`<div class="row between"><h2>Сокровища ${esc(foxWho("gen"))}</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div><p class="muted">Память о ваших занятиях. Пропуски не отнимают награды.</p><div class="fox-rewards">${FOX_REWARDS.map(r=>`<div class="card ${j.rewards[r.id]?"earned":""}"><span class="reward-icon">${r.icon}</span><b>${r.name}</b><p class="small muted">${r.desc}</p><span class="small">${j.rewards[r.id]?`Получено ${j.rewards[r.id]}`:"Ещё впереди"}</span></div>`).join("")}</div><p class="small muted">После первого полного пропущенного дня ${esc(who)} притихает, после второго грустит, после третьего не реагирует на еду и ласку. Одно завершённое занятие возвращает ${male?"его":"её"} к общению.</p>`);
+}
+function companionIdentitySheet(draft){
+  journeyState();
+  const identity=LearningCore.petIdentity(draft||foxIdentity()), suggested=LearningCore.petNameForms(identity.name,identity.sex,identity.decline);
+  const labels={gen:"Кого?",dat:"Кому?",acc:"Кого?",ins:"Кем?",prep:"О ком?"};
+  sheet(`<div class="row between"><div><div class="eyebrow">Компаньон</div><h2>Имя и образ</h2></div><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
+    <p class="muted">Выбери лису или лиса и дай компаньону имя. Оно сохранится вместе с прогрессом и появится в репликах и виджете.</p>
+    <div class="fox-identity-form">
+      <label><span>Кто твой компаньон</span><div class="seg" id="foxSex"><button class="${identity.sex==="female"?"on":""}" data-sex="female">Лиса</button><button class="${identity.sex==="male"?"on":""}" data-sex="male">Лис</button></div></label>
+      <label><span>Имя</span><input class="fox-name-input" id="foxName" maxlength="32" autocomplete="off" value="${esc(identity.name)}" placeholder="Например, Луна или Фокс"></label>
+      <label class="fox-decline"><input type="checkbox" id="foxDecline" ${identity.decline?"checked":""}><span>Склонять имя в русских фразах</span></label>
+      <div class="row between"><span class="small muted">Предложенные формы можно исправить вручную.</span><button class="btn ghost small" id="foxSuggest">Предложить формы</button></div>
+      <div class="fox-name-forms">${Object.entries(labels).map(([key,label])=>`<label><span>${label}</span><input class="fox-name-input" data-fox-form="${key}" maxlength="32" value="${esc(identity.forms[key]||suggested[key])}" placeholder="${esc(suggested[key])}"></label>`).join("")}</div>
+      <button class="btn block" id="foxIdentitySave">Сохранить</button>
+    </div>`);
+  $("#foxSex").querySelectorAll("button").forEach(button=>button.onclick=()=>{
+    const name=$("#foxName").value, decline=$("#foxDecline").checked;
+    companionIdentitySheet({sex:button.dataset.sex,name,decline,forms:LearningCore.petNameForms(name,button.dataset.sex,decline)});
+  });
+  $("#foxSuggest").onclick=()=>{
+    const forms=LearningCore.petNameForms($("#foxName").value,identity.sex,$("#foxDecline").checked);
+    document.querySelectorAll("[data-fox-form]").forEach(input=>input.value=forms[input.dataset.foxForm]);
+  };
+  $("#foxName").oninput=()=>$("#foxSuggest").click();
+  $("#foxDecline").onchange=()=>$("#foxSuggest").click();
+  $("#foxIdentitySave").onclick=()=>{
+    const name=$("#foxName").value, decline=$("#foxDecline").checked;
+    const forms=Object.fromEntries([...document.querySelectorAll("[data-fox-form]")].map(input=>[input.dataset.foxForm,input.value]));
+    S.companion.identity=LearningCore.petIdentity({sex:identity.sex,name,decline,forms:decline?forms:LearningCore.petNameForms(name,identity.sex,false)});
+    save(); if(window.syncCompanion)window.syncCompanion(); closeSheet(); closeCompanion(); openCompanion();
+  };
 }
 async function companionAct(action){
   const buttons = [$("#foxFeed"),$("#foxWater"),$("#foxPet")]; buttons.forEach(b=>{if(b)b.disabled=true;});
@@ -123,6 +162,7 @@ async function companionAct(action){
 }
 function wireCompanion(){
   if($("#foxFeed"))$("#foxFeed").onclick=()=>companionAct("feed"); if($("#foxWater"))$("#foxWater").onclick=()=>companionAct("water"); if($("#foxPet"))$("#foxPet").onclick=()=>companionAct("pet"); if($("#foxCollection"))$("#foxCollection").onclick=companionCollection;
+  if($("#foxIdentity"))$("#foxIdentity").onclick=companionIdentitySheet;
   if($("#foxPin"))$("#foxPin").onclick=()=>window.pinCompanion().catch(()=>toast("Добавь виджет через меню рабочего стола"));
 }
 let journeyRunning = false;

@@ -38,7 +38,34 @@ const LearningCore = (() => {
     return r;
   }
   const empty = () => ({v:2,goal:10,streak:{n:0,last:null},days:{},w:{},modes:{},hard:{},set:{auto:true},thematic:thematicEmpty()});
-  const petEmpty = () => ({completed:{},fed:0,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null});
+  const petFormKeys = ["nom","gen","dat","acc","ins","prep"];
+  const petIdentityEmpty = () => ({sex:"female",name:"",decline:true,forms:{nom:"",gen:"",dat:"",acc:"",ins:"",prep:""}});
+  function petNameForms(value, sex="female", decline=true) {
+    const name=String(value||"").normalize("NFKC").replace(/\s+/g," ").trim().slice(0,32);
+    const same=()=>Object.fromEntries(petFormKeys.map(k=>[k,name]));
+    if(!name||!decline||!/^[А-ЯЁа-яё-]+$/.test(name))return same();
+    const lower=name.toLocaleLowerCase("ru-RU"), last=lower.at(-1), stem=name.slice(0,-1), before=lower.at(-2)||"";
+    if(last==="а")return {nom:name,gen:stem+("гкхжчшщц".includes(before)?"и":"ы"),dat:stem+"е",acc:stem+"у",ins:stem+"ой",prep:stem+"е"};
+    if(last==="я")return {nom:name,gen:stem+"и",dat:stem+"е",acc:stem+"ю",ins:stem+"ей",prep:stem+"е"};
+    if(last==="й")return {nom:name,gen:stem+"я",dat:stem+"ю",acc:stem+"я",ins:stem+"ем",prep:stem+"е"};
+    if(last==="ь")return sex==="male"?{nom:name,gen:stem+"я",dat:stem+"ю",acc:stem+"я",ins:stem+"ем",prep:stem+"е"}:{nom:name,gen:stem+"и",dat:stem+"и",acc:name,ins:stem+"ью",prep:stem+"и"};
+    if(sex==="male"&&/[бвгджзклмнпрстфхцчшщ]$/.test(lower))return {nom:name,gen:name+"а",dat:name+"у",acc:name+"а",ins:name+"ом",prep:name+"е"};
+    return same();
+  }
+  function petIdentity(value={}) {
+    const sex=value?.sex==="male"?"male":"female", name=String(value?.name||"").normalize("NFKC").replace(/\s+/g," ").trim().slice(0,32), decline=value?.decline!==false;
+    const suggested=petNameForms(name,sex,decline), incoming=object(value?.forms)?value.forms:{};
+    return {sex,name,decline,forms:Object.fromEntries(petFormKeys.map(k=>[k,typeof incoming[k]==="string"&&incoming[k].trim()?incoming[k].normalize("NFKC").replace(/\s+/g," ").trim().slice(0,32):suggested[k]]))};
+  }
+  const petEmpty = () => ({completed:{},fed:0,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null,identity:petIdentityEmpty()});
+  const petSex = pet => petIdentity(pet?.identity).sex;
+  function petTerm(pet, form="nom") {
+    const identity=petIdentity(pet?.identity), key=petFormKeys.includes(form)?form:"nom";
+    if(identity.name)return identity.forms[key]||identity.name;
+    const nouns=identity.sex==="male"?{nom:"лис",gen:"лиса",dat:"лису",acc:"лиса",ins:"лисом",prep:"лисе"}:{nom:"лиса",gen:"лисы",dat:"лисе",acc:"лису",ins:"лисой",prep:"лисе"};
+    return nouns[key];
+  }
+  const petCap = text => text ? text[0].toLocaleUpperCase("ru-RU")+text.slice(1) : text;
   function petMood(pet, day) {
     const dates = Object.keys(pet.completed).filter(d => d <= day).sort();
     const last = dates.at(-1);
@@ -48,10 +75,12 @@ const LearningCore = (() => {
   }
   function petAction(pet, action, day) {
     const state = JSON.parse(JSON.stringify(pet)), m = petMood(state,day);
+    state.identity=petIdentity(state.identity);
+    const male=petSex(state)==="male", who=petCap(petTerm(state));
     state.fed = state.fed || 0; state.watered = state.watered || 0; state.pets = state.pets || 0;
     if(state.lastFed===undefined)state.lastFed=null;
     if(state.lastWater===undefined)state.lastWater=null;
-    if (m.mood === 3) return {state,message:"Лиса свернулась клубком. Короткое занятие поможет ей снова оживиться."};
+    if (m.mood === 3) return {state,message:`${who} ${male?"свернулся":"свернулась"} клубком. Короткое занятие поможет снова оживиться.`};
     if (action === "feed") {
       if (!m.treats) return {state,message:"Угощения закончились. Новое ждёт за первое занятие дня."};
       state.fed++; state.lastFed=day;
@@ -60,7 +89,7 @@ const LearningCore = (() => {
     } else if (action === "pet") state.pets++;
     else throw Error("Неизвестное действие");
     state.lastAction = {day,kind:action};
-    const message = m.mood === 2 ? "Лиса чуть шевельнула ушами. Она скучает по вашим занятиям." : m.mood === 1 ? "Лиса тихо прижалась к тебе. Может, позанимаемся вместе?" : action === "feed" ? "Хрум! Лиса довольно облизывается." : action === "water" ? "Лиса напилась и довольно встряхнула ушами." : "Лиса подставила голову и замахала хвостом.";
+    const message = m.mood === 2 ? `${who} чуть шевельнул${male?"":"а"} ушами. ${male?"Он":"Она"} скучает по вашим занятиям.` : m.mood === 1 ? `${who} тихо прижал${male?"ся":"ась"} к тебе. Может, позанимаемся вместе?` : action === "feed" ? `Хрум! ${who} довольно облизывается.` : action === "water" ? `${who} напил${male?"ся":"ась"} и довольно встряхнул${male?"":"а"} ушами.` : `${who} подставил${male?"":"а"} голову и замахал${male?"":"а"} хвостом.`;
     return {state,message};
   }
   const thematicIds = ["forest","village","travel","city","beach","space","science","rescue","shops","home"];
@@ -193,6 +222,12 @@ const LearningCore = (() => {
       o.companion.watered=o.companion.watered||0;
       if(o.companion.lastFed===undefined)o.companion.lastFed=null;
       if(o.companion.lastWater===undefined)o.companion.lastWater=null;
+      const identity=o.companion.identity;
+      if(identity!==undefined){
+        if(!object(identity)||!["female","male"].includes(identity.sex)||typeof identity.name!=="string"||identity.name.length>32||typeof identity.decline!=="boolean"||!object(identity.forms))fail();
+        if(!petFormKeys.every(k=>identity.forms[k]===undefined||(typeof identity.forms[k]==="string"&&identity.forms[k].length<=32)))fail();
+      }
+      o.companion.identity=petIdentity(identity);
     }
     o.thematic=o.thematic||thematicEmpty();
     if(!object(o.thematic)||!object(o.thematic.settings)||!object(o.thematic.topics)||!object(o.thematic.equipmentRewards))fail();
@@ -244,6 +279,6 @@ const LearningCore = (() => {
     o.set = JSON.parse(JSON.stringify(current.set || {auto:true}));
     return o;
   }
-  return {intervals,dateOK,norm,englishForms,englishMatch,schedule,empty,validate,portable,prepareImport,petEmpty,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
+  return {intervals,dateOK,norm,englishForms,englishMatch,schedule,empty,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
 })();
 if (typeof module !== "undefined") module.exports = LearningCore;

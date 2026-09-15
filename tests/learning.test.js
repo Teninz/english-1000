@@ -171,6 +171,16 @@ test('вода доступна без расходников, а старое �
   assert.equal(p.watered,2);assert.equal(p.lastWater,'2026-09-14');assert.equal(p.lastAction.kind,'water');
   const s=core.empty();s.companion={completed:{},fed:0,pets:0,lastAction:null};
   const restored=core.validate(s).companion;assert.equal(restored.watered,0);assert.equal(restored.lastFed,null);assert.equal(restored.lastWater,null);
+  assert.deepEqual(restored.identity,core.petIdentityEmpty());
+});
+test('пол, имя и склонения компаньона сохраняются и используются в репликах',()=>{
+  assert.deepEqual(core.petNameForms('Фокс','male',true),{nom:'Фокс',gen:'Фокса',dat:'Фоксу',acc:'Фокса',ins:'Фоксом',prep:'Фоксе'});
+  assert.deepEqual(core.petNameForms('Луна','female',true),{nom:'Луна',gen:'Луны',dat:'Луне',acc:'Луну',ins:'Луной',prep:'Луне'});
+  assert.equal(core.petNameForms('Лаки','male',true).gen,'Лаки');
+  const s=core.empty();s.companion=core.petEmpty();s.companion.identity=core.petIdentity({sex:'male',name:'Фокс',decline:true,forms:{gen:'Фокса'}});
+  const restored=core.prepareImport(core.portable(s),core.empty()).companion;
+  assert.equal(restored.identity.sex,'male');assert.equal(restored.identity.forms.gen,'Фокса');assert.equal(core.petTerm(restored,'dat'),'Фоксу');
+  assert.match(core.petAction(restored,'water','2026-09-14').message,/Фокс напился/);
 });
 test('кормление не приносит новые угощения, законченные занятия не дублируются за день',()=>{
   let p=core.petEmpty();p=core.petAction(p,'feed','2026-09-14').state;p=core.petAction(p,'feed','2026-09-14').state;
@@ -212,6 +222,8 @@ test('лиса открывается отдельной панелью, инф�
   assert.ok(home.indexOf('${dailyCardHtml()}')<home.indexOf('${thematicHomeCardHtml()}'));
   assert.ok(home.indexOf('${thematicHomeCardHtml()}')<home.indexOf('${progressAccordionHtml()}'));
   assert.ok(read('journey.js').includes('<details class="card progress-accordion">'));
+  assert.ok(read('journey.js').includes('id="foxIdentity"'));
+  assert.ok(read('journey.js').includes('LearningCore.petNameForms'));
 });
 test('Android-виджет использует те же четыре состояния модели, что и приложение',()=>{
   const kotlin=read('android/app/src/main/java/io/github/teninz/shadowfox/CompanionWidget.kt');
@@ -223,6 +235,9 @@ test('Android-виджет использует те же четыре сост�
   }
   assert.ok(read('android/app/src/main/res/layout/companion_widget.xml').includes('@drawable/companion_idle'));
   assert.ok(kotlin.includes('R.id.fox_water'));
+  const store=read('android/app/src/main/java/io/github/teninz/shadowfox/CompanionStore.kt');
+  assert.ok(store.includes('.put("identity", identityEmpty())'));
+  assert.ok(kotlin.includes('CompanionStore.title(state, mood)'));
 });
 test('APK использует монотонные часы Android и подтверждает выход из блица',()=>{
   const activity=read('android/app/src/main/java/io/github/teninz/shadowfox/MainActivity.java'),clock=read('android/app/src/main/java/io/github/teninz/shadowfox/ClockPlugin.java'),native=read('native.js');
