@@ -59,6 +59,68 @@ test('старые копии совместимы, чужие ключи не �
   const old=core.empty();old.set.ttsKeys={google:'source-key'};old.w.assume={box:3,due:'2026-09-14',ok:3,bad:1};
   const local=core.empty();local.set.ttsKeys={google:'destination-key'};
   const imported=core.prepareImport(old,local);assert.equal(imported.w.assume.box,3);assert.equal(imported.set.ttsKeys.google,'destination-key');
+  assert.deepEqual(imported.thematic,core.thematicEmpty());
+});
+function readyThematicTopic(){
+  const state=core.empty(),topic=core.thematicTopic(state,'forest');
+  const words=Array.from({length:100},(_,i)=>`forest-${i+1}`);
+  words.forEach(word=>core.thematicIntroduce(topic,word,'2026-09-15'));
+  return {state,topic,words};
+}
+test('тематический маршрут хранит отдельный прогресс и открывает блиц после знакомства со 100 словами',()=>{
+  const {state,topic,words}=readyThematicTopic();
+  assert.equal(core.thematicExamReady(topic),true);
+  assert.equal(Object.values(topic.words).every(r=>r.box===0),true);
+  assert.deepEqual(state.w,{});
+  const copy=core.portable(state);
+  assert.equal(Object.keys(copy.thematic.topics.forest.introduced).length,100);
+  assert.deepEqual(copy.w,{});
+  assert.equal(words.length,100);
+});
+test('блиц перемешивает все 100 слов без повторений',()=>{
+  const {topic,words}=readyThematicTopic();
+  const active=core.thematicExamStart(topic,words,1800000000000,50000,()=>0);
+  assert.equal(active.order.length,100);
+  assert.equal(new Set(active.order).size,100);
+  assert.deepEqual([...active.order].sort(),[...words].sort());
+  assert.notDeepEqual(active.order,words);
+});
+test('пять ошибок проваливают блиц и включают блокировку на 30 минут',()=>{
+  const {topic,words}=readyThematicTopic(),start=1800000000000;
+  core.thematicExamStart(topic,words,start,50000,()=>0.5);
+  for(let i=0;i<4;i++)assert.equal(core.thematicExamAnswer(topic,false,start+i+1,50001+i).status,'active');
+  const failed=core.thematicExamAnswer(topic,false,start+5,50005);
+  assert.equal(failed.status,'failed');assert.equal(failed.errors,5);
+  assert.equal(failed.lockedUntil,start+5+core.THEMATIC_COOLDOWN_MS);
+  assert.equal(core.thematicExamCooldown(topic,start+5),core.THEMATIC_COOLDOWN_MS);
+  assert.throws(()=>core.thematicExamStart(topic,words,start+1000,51000));
+  assert.doesNotThrow(()=>core.thematicExamStart(topic,words,failed.lockedUntil,60000));
+});
+test('время идёт в фоне: пять пропущенных ответов сразу завершают блиц',()=>{
+  const {topic,words}=readyThematicTopic(),start=1800000000000;
+  core.thematicExamStart(topic,words,start,10000);
+  const result=core.thematicExamTick(topic,start+30000,40000);
+  assert.equal(result.status,'failed');assert.equal(result.missed,5);assert.equal(result.reason,'errors');
+  assert.equal(topic.exam.lockedUntil,start+30000+core.THEMATIC_COOLDOWN_MS);
+});
+test('ответ после истечения шести секунд не засчитывается поверх пропуска',()=>{
+  const {topic,words}=readyThematicTopic(),start=1800000000000;
+  core.thematicExamStart(topic,words,start,10000);
+  const result=core.thematicExamAnswer(topic,true,start+6000,16000);
+  assert.equal(result.status,'active');assert.equal(result.missed,1);
+  assert.equal(topic.exam.active.index,1);assert.equal(topic.exam.active.correct,0);assert.equal(topic.exam.active.errors,1);
+});
+test('полный блиц с четырьмя ошибками засчитывается, прерывание считается провалом',()=>{
+  const first=readyThematicTopic(),start=1800000000000;
+  core.thematicExamStart(first.topic,first.words,start,10000);
+  let result;
+  for(let i=0;i<100;i++)result=core.thematicExamAnswer(first.topic,i>=4,start+i+1,10001+i);
+  assert.equal(result.status,'passed');assert.equal(result.errors,4);
+  assert.equal(first.topic.exam.passedAt,start+100);assert.equal(first.topic.exam.lockedUntil,null);
+  const second=readyThematicTopic();core.thematicExamStart(second.topic,second.words,start,10000);
+  const aborted=core.thematicExamAbort(second.topic,start+1000);
+  assert.equal(aborted.status,'failed');assert.equal(aborted.reason,'aborted');
+  assert.equal(aborted.lockedUntil,start+1000+core.THEMATIC_COOLDOWN_MS);
 });
 test('повреждённые данные отклоняются до записи',()=>{
   assert.throws(()=>core.validate({v:2}));

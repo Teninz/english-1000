@@ -37,7 +37,7 @@ const LearningCore = (() => {
     r.lastAttempt = day;
     return r;
   }
-  const empty = () => ({v:2,goal:10,streak:{n:0,last:null},days:{},w:{},modes:{},hard:{},set:{auto:true}});
+  const empty = () => ({v:2,goal:10,streak:{n:0,last:null},days:{},w:{},modes:{},hard:{},set:{auto:true},thematic:thematicEmpty()});
   const petEmpty = () => ({completed:{},fed:0,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null});
   function petMood(pet, day) {
     const dates = Object.keys(pet.completed).filter(d => d <= day).sort();
@@ -62,6 +62,85 @@ const LearningCore = (() => {
     state.lastAction = {day,kind:action};
     const message = m.mood === 2 ? "Лиса чуть шевельнула ушами. Она скучает по вашим занятиям." : m.mood === 1 ? "Лиса тихо прижалась к тебе. Может, позанимаемся вместе?" : action === "feed" ? "Хрум! Лиса довольно облизывается." : action === "water" ? "Лиса напилась и довольно встряхнула ушами." : "Лиса подставила голову и замахала хвостом.";
     return {state,message};
+  }
+  const thematicIds = ["forest","village","travel","city","beach","space","science","rescue","shops","home"];
+  const thematicEmpty = () => ({settings:{batchSize:5,reviewSize:15,autoSpeak:true},topics:{},equipmentRewards:{}});
+  const thematicTopicEmpty = () => ({words:{},introduced:{},days:{},stats:{ok:0,bad:0},exam:{passedAt:null,attempts:0,lockedUntil:null,active:null,lastResult:null}});
+  function thematicEnsure(state) {
+    state.thematic = state.thematic || thematicEmpty();
+    return state.thematic;
+  }
+  function thematicTopic(state, id) {
+    if(!thematicIds.includes(id))throw Error("Неизвестный тематический маршрут");
+    const root=thematicEnsure(state);
+    return root.topics[id] || (root.topics[id]=thematicTopicEmpty());
+  }
+  function thematicIntroduce(topic, word, day, known=false) {
+    if(typeof word!=="string"||!word||word.length>120||!dateOK(day))throw Error("Некорректное тематическое слово");
+    if(!topic.words[word])topic.words[word]={box:known?6:0,due:day,ok:0,bad:0};
+    else if(known){topic.words[word].box=6;topic.words[word].due=day;}
+    topic.introduced[word]=1;
+    return topic.words[word];
+  }
+  function thematicGrade(topic, word, ok, day, addDays, assisted=false) {
+    if(!topic.introduced[word])throw Error("Слово ещё не изучено");
+    topic.words[word]=schedule(topic.words[word],ok,day,addDays,assisted);
+    ok?topic.stats.ok++:topic.stats.bad++;
+    return topic.words[word];
+  }
+  const thematicExamReady = (topic,total=100) => Object.keys(topic.introduced).length===total;
+  const THEMATIC_QUESTION_MS=6000, THEMATIC_COOLDOWN_MS=30*60*1000, THEMATIC_ERROR_LIMIT=5;
+  function numberTime(value){return typeof value==="number"&&Number.isFinite(value)&&value>=0;}
+  function shuffled(values,rng){const out=values.slice();for(let i=out.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[out[i],out[j]]=[out[j],out[i]];}return out;}
+  function thematicExamCooldown(topic,nowWall){return Math.max(0,(topic.exam.lockedUntil||0)-nowWall);}
+  function thematicExamFinish(topic,passed,nowWall,reason){
+    const active=topic.exam.active;
+    topic.exam.lastResult={passed,at:nowWall,reason,errors:active?.errors||0};
+    if(passed){topic.exam.passedAt=topic.exam.passedAt||nowWall;topic.exam.lockedUntil=null;}
+    else topic.exam.lockedUntil=nowWall+THEMATIC_COOLDOWN_MS;
+    topic.exam.active=null;
+    return {status:passed?"passed":"failed",reason,errors:topic.exam.lastResult.errors,lockedUntil:topic.exam.lockedUntil};
+  }
+  function thematicExamStart(topic,wordKeys,nowWall,nowMono,rng=Math.random){
+    if(!thematicExamReady(topic,wordKeys.length)||wordKeys.length!==100||new Set(wordKeys).size!==100)throw Error("Сначала изучи все 100 слов маршрута");
+    if(!numberTime(nowWall)||!numberTime(nowMono))throw Error("Некорректное время экзамена");
+    if(thematicExamCooldown(topic,nowWall))throw Error("Блиц временно заблокирован");
+    topic.exam.attempts++;
+    topic.exam.active={attemptId:`${nowWall}-${topic.exam.attempts}`,order:shuffled(wordKeys,rng),index:0,errors:0,correct:0,startedWall:nowWall,questionWall:nowWall,questionMono:nowMono};
+    return topic.exam.active;
+  }
+  function thematicExamTick(topic,nowWall,nowMono){
+    const active=topic.exam.active;
+    if(!active)return {status:"inactive",missed:0};
+    if(!numberTime(nowWall)||!numberTime(nowMono))return thematicExamFinish(topic,false,Math.max(0,nowWall||0),"clock");
+    const wallElapsed=nowWall-active.questionWall;
+    if(wallElapsed < -1000)return thematicExamFinish(topic,false,nowWall,"clock");
+    const monoElapsed=nowMono>=active.questionMono?nowMono-active.questionMono:0;
+    const elapsed=Math.max(0,wallElapsed,monoElapsed);
+    const missed=Math.min(Math.floor(elapsed/THEMATIC_QUESTION_MS),active.order.length-active.index);
+    if(!missed)return {status:"active",missed:0,remaining:THEMATIC_QUESTION_MS-elapsed};
+    const applied=Math.min(missed,THEMATIC_ERROR_LIMIT-active.errors);
+    active.index+=applied;active.errors+=applied;
+    if(active.errors>=THEMATIC_ERROR_LIMIT)return {...thematicExamFinish(topic,false,nowWall,"errors"),missed:applied};
+    if(active.index>=active.order.length)return {...thematicExamFinish(topic,true,nowWall,"complete"),missed:applied};
+    active.questionWall+=applied*THEMATIC_QUESTION_MS;
+    active.questionMono+=applied*THEMATIC_QUESTION_MS;
+    return {status:"active",missed:applied,remaining:Math.max(0,THEMATIC_QUESTION_MS-(elapsed-applied*THEMATIC_QUESTION_MS))};
+  }
+  function thematicExamAnswer(topic,correct,nowWall,nowMono){
+    const tick=thematicExamTick(topic,nowWall,nowMono);
+    if(tick.status!=="active"||tick.missed)return tick;
+    const active=topic.exam.active;
+    if(correct)active.correct++;else active.errors++;
+    active.index++;
+    if(active.errors>=THEMATIC_ERROR_LIMIT)return thematicExamFinish(topic,false,nowWall,"errors");
+    if(active.index>=active.order.length)return thematicExamFinish(topic,true,nowWall,"complete");
+    active.questionWall=nowWall;active.questionMono=nowMono;
+    return {status:"active",correct:!!correct,index:active.index,errors:active.errors,remaining:THEMATIC_QUESTION_MS};
+  }
+  function thematicExamAbort(topic,nowWall){
+    if(!topic.exam.active)return {status:"inactive"};
+    return thematicExamFinish(topic,false,nowWall,"aborted");
   }
   function validate(input) {
     // Ограничиваем размер и запрещаем ключи, опасные для последующего объединения объектов.
@@ -115,6 +194,27 @@ const LearningCore = (() => {
       if(o.companion.lastFed===undefined)o.companion.lastFed=null;
       if(o.companion.lastWater===undefined)o.companion.lastWater=null;
     }
+    o.thematic=o.thematic||thematicEmpty();
+    if(!object(o.thematic)||!object(o.thematic.settings)||!object(o.thematic.topics)||!object(o.thematic.equipmentRewards))fail();
+    if(![5,10].includes(o.thematic.settings.batchSize)||![10,15,20].includes(o.thematic.settings.reviewSize)||typeof o.thematic.settings.autoSpeak!=="boolean")fail();
+    if(!Object.values(o.thematic.equipmentRewards).every(dateOK))fail();
+    for(const [id,t] of Object.entries(o.thematic.topics)){
+      if(!thematicIds.includes(id)||!object(t)||!object(t.words)||!object(t.introduced)||!object(t.days)||!object(t.stats)||!object(t.exam))fail();
+      for(const [word,r] of Object.entries(t.words)){
+        if(!word||word.length>120||!object(r)||!count(r.box)||r.box>6||!dateOK(r.due)||!count(r.ok)||!count(r.bad))fail();
+        for(const k of ["lastAttempt","lastScheduled","lastLapse"])if(r[k]!==undefined&&!dateOK(r[k]))fail();
+      }
+      if(!Object.entries(t.introduced).every(([word,v])=>word&&word.length<=120&&v===1&&object(t.words[word])))fail();
+      if(!count(t.stats.ok)||!count(t.stats.bad)||!count(t.exam.attempts))fail();
+      if(t.exam.passedAt!==null&&!numberTime(t.exam.passedAt))fail();
+      if(t.exam.lockedUntil!==null&&!numberTime(t.exam.lockedUntil))fail();
+      if(t.exam.lastResult!==null){const r=t.exam.lastResult;if(!object(r)||typeof r.passed!=="boolean"||!numberTime(r.at)||!["complete","errors","aborted","clock"].includes(r.reason)||!count(r.errors)||r.errors>5)fail();}
+      if(t.exam.active!==null){
+        const a=t.exam.active;
+        if(!object(a)||typeof a.attemptId!=="string"||!Array.isArray(a.order)||a.order.length!==100||new Set(a.order).size!==100||!a.order.every(w=>typeof w==="string"&&t.introduced[w]===1))fail();
+        if(!count(a.index)||a.index>=100||!count(a.errors)||a.errors>=5||!count(a.correct)||!numberTime(a.startedWall)||!numberTime(a.questionWall)||!numberTime(a.questionMono))fail();
+      }
+    }
     if(o.daily!==undefined){
       const d=o.daily;
       if(!object(d)||!dateOK(d.d)||!Array.isArray(d.tasks)||d.tasks.length>5||!object(d.log))fail();
@@ -131,7 +231,7 @@ const LearningCore = (() => {
   }
   function portable(state) {
     const o = validate(state), result = {format:"shadowfox-progress",exportedAt:new Date().toISOString()};
-    for (const k of ["v","goal","streak","days","w","modes","hard","ach","stats","journey","companion"]) if (o[k] !== undefined) result[k] = o[k];
+    for (const k of ["v","goal","streak","days","w","modes","hard","ach","stats","journey","companion","thematic"]) if (o[k] !== undefined) result[k] = o[k];
     if(result.journey)delete result.journey.plan;
     return result;
   }
@@ -143,6 +243,6 @@ const LearningCore = (() => {
     o.set = JSON.parse(JSON.stringify(current.set || {auto:true}));
     return o;
   }
-  return {intervals,dateOK,norm,englishForms,englishMatch,schedule,empty,validate,portable,prepareImport,petEmpty,petMood,petAction};
+  return {intervals,dateOK,norm,englishForms,englishMatch,schedule,empty,validate,portable,prepareImport,petEmpty,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
 })();
 if (typeof module !== "undefined") module.exports = LearningCore;
