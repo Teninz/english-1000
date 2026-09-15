@@ -7,6 +7,8 @@ const NATIVE = (() => {
 })();
 
 if (NATIVE) {
+  // Монотонные часы Android: не зависят от ручной смены даты и продолжают идти в фоне.
+  window.nativeExamClock = () => NATIVE.P.Clock.now().then(r => Number(r.elapsedRealtime));
   // --- системные голоса Android ---
   let nativeVoices = [];
   const refreshVoices = () => NATIVE.tts.getSupportedVoices().then(r => { nativeVoices = (r.voices || []).map((v, i) => Object.assign({ index: i }, v)); pickVoices(); }).catch(() => {});
@@ -93,7 +95,9 @@ if (NATIVE) {
   NATIVE.app.addListener("backButton", () => {
     if (companionDrawerOpen()) { closeCompanion(); return; }
     if (document.querySelector(".scrim")) { closeSheet(); return; }
+    if (typeof thematicExamRunning === "function" && thematicExamRunning()) { thematicRequestExamExit("thematic"); return; }
     if (inSession) { endSession(); go(tab); return; }
+    if (tab === "thematic" && thematicCurrent) { renderThematicCatalog(); return; }
     if (tab !== "home") { go("home"); return; }
     NATIVE.app.minimizeApp();
   });
@@ -106,7 +110,7 @@ if (NATIVE) {
       if (sc === "companion") { endSession(); go("home"); openCompanion(); return; }
       if (sc === "review") { dueList().length ? startReview() : go("home"); return; }
       if (sc === "hard") { go("words"); wordsFilter = "hard"; renderWords(); return; }
-      if (sc && ["home","learn","test","road","words"].includes(sc)) go(sc);
+      if (sc && ["home","learn","test","road","words","thematic"].includes(sc)) go(sc);
     } catch (e) {}
   };
   NATIVE.app.addListener("appUrlOpen", d => handleUrl(d.url));

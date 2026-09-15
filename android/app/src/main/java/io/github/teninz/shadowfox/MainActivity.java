@@ -11,6 +11,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(WidgetPlugin.class);
         registerPlugin(RoadPlugin.class);
+        registerPlugin(ClockPlugin.class);
         super.onCreate(savedInstanceState);
         requestHighRefreshRate();
     }

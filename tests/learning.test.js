@@ -9,7 +9,7 @@ function app(){
   const store=new Map();
   const ctx={console,Date,URLSearchParams,setTimeout:()=>0,clearTimeout(){},window:{},navigator:{},TTS:{stop(){}},document:{querySelector:()=>({}),querySelectorAll:()=>[],getElementById:()=>null,addEventListener(){}},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},checkAch(){},dailyEvent(){}};
   vm.createContext(ctx);
-  for(const f of ['learning-core.js','word-forms.js','progress-storage.js','journey.js','words-a.js','words-b.js','ex-ru.js'])vm.runInContext(read(f),ctx,{filename:f});
+  for(const f of ['learning-core.js','word-forms.js','progress-storage.js','journey.js','words-a.js','words-b.js','ex-ru.js','thematic-data.js'])vm.runInContext(read(f),ctx,{filename:f});
   const script=read('index.html').match(/<script>([\s\S]*?)<\/script>/)[1];
   vm.runInContext(script.slice(0,script.indexOf('/* ---------- старт')),ctx);
   vm.runInContext('S=LearningCore.empty();save=()=>true;checkAch=()=>{};dailyEvent=()=>{};buzz=()=>{};',ctx);
@@ -49,6 +49,17 @@ test('1000 уникальных слов, все примеры переводя
   assert.equal(run('WORDS.filter(w=>!EX_RU[w[0]]).length'),0);
   assert.equal(run('JSON.stringify(WORDS.filter(w=>!wordRegex(w[0]).test(w[3])).map(w=>w[0]))'),'[]');
   assert.equal(run('Object.entries(WORD_CONTEXT).filter(([w,c])=>!WORDS.some(x=>x[0]===w)||!c.ru||!wordRegex(w).test(c.example)).length'),0);
+});
+test('в каждом тематическом маршруте ровно 100 заполненных слов от A1 до C1',()=>{
+  const ctx={};vm.createContext(ctx);
+  vm.runInContext(read('words-a.js')+read('words-b.js')+read('ex-ru.js')+read('thematic-data.js')+';this.data={meta:THEMATIC_META,words:THEMATIC_WORDS}',ctx);
+  assert.equal(ctx.data.meta.length,10);
+  for(const meta of ctx.data.meta){
+    const words=ctx.data.words[meta.id];
+    assert.equal(words.length,100,meta.id);assert.equal(new Set(words.map(w=>w[0])).size,100,meta.id);
+    assert.equal(words.every(w=>w.length===6&&w.slice(0,5).every(Boolean)),true,meta.id);
+    assert.deepEqual([...new Set(words.map(w=>w[5]))],["A1","A2","B1","B2","C1"],meta.id);
+  }
 });
 test('копия не включает ключи или настройки голосов и не меняет оригинал',()=>{
   const s=core.empty();s.set.ttsKeys={google:'test-secret'};s.set.tts={en:{engine:'google'}};
@@ -174,7 +185,7 @@ test('награды сохраняются после перерыва и пе�
 test('обязательные ресурсы PWA и APK присутствуют',()=>{
   const ctx={self:{addEventListener(){}},location:{}};vm.createContext(ctx);vm.runInContext(read('sw.js')+';this.files=FILES',ctx);
   for(const file of ctx.files)assert.ok(fs.existsSync(path.join(root,file)),file);
-  for(const file of ['learning-core.js','journey.js','word-forms.js','progress-storage.js','companion.css'])assert.ok(read('tools/build-web.js').includes('"'+file+'"'),file);
+  for(const file of ['learning-core.js','journey.js','word-forms.js','progress-storage.js','companion.css','thematic.css','thematic.js','thematic-data.js'])assert.ok(read('tools/build-web.js').includes('"'+file+'"'),file);
 });
 test('анимации компаньона являются валидными компактными APNG',()=>{
   const timingBlock=read('journey.js').match(/const FOX_ANIMATION_MS = \{([^}]+)\}/)[1];
@@ -198,6 +209,8 @@ test('лиса открывается отдельной панелью, инф�
   assert.ok(html.includes('id="foxHandle"'));assert.ok(html.includes('id="foxDrawerHost"'));
   assert.equal(home.includes('${companionCardHtml()}'),false);assert.equal(home.includes('${journeyHeroHtml()}'),false);
   assert.ok(home.indexOf('${dailyCardHtml()}')<home.indexOf('${progressAccordionHtml()}'));
+  assert.ok(home.indexOf('${dailyCardHtml()}')<home.indexOf('${thematicHomeCardHtml()}'));
+  assert.ok(home.indexOf('${thematicHomeCardHtml()}')<home.indexOf('${progressAccordionHtml()}'));
   assert.ok(read('journey.js').includes('<details class="card progress-accordion">'));
 });
 test('Android-виджет использует те же четыре состояния модели, что и приложение',()=>{
@@ -210,4 +223,11 @@ test('Android-виджет использует те же четыре сост�
   }
   assert.ok(read('android/app/src/main/res/layout/companion_widget.xml').includes('@drawable/companion_idle'));
   assert.ok(kotlin.includes('R.id.fox_water'));
+});
+test('APK использует монотонные часы Android и подтверждает выход из блица',()=>{
+  const activity=read('android/app/src/main/java/io/github/teninz/shadowfox/MainActivity.java'),clock=read('android/app/src/main/java/io/github/teninz/shadowfox/ClockPlugin.java'),native=read('native.js');
+  assert.ok(activity.includes('registerPlugin(ClockPlugin.class)'));
+  assert.ok(clock.includes('SystemClock.elapsedRealtime()'));
+  assert.ok(native.includes('window.nativeExamClock'));
+  assert.ok(native.includes('thematicRequestExamExit("thematic")'));
 });

@@ -420,6 +420,7 @@ a.btn{text-decoration:none}
 <div id="foxDrawerHost"></div>
 
 <link rel="stylesheet" href="companion.css">
+<link rel="stylesheet" href="thematic.css">
 <script src="learning-core.js"></script>
 <script src="word-forms.js"></script>
 <script src="progress-storage.js"></script>
@@ -427,11 +428,13 @@ a.btn{text-decoration:none}
 <script src="words-a.js"></script>
 <script src="words-b.js"></script>
 <script src="ex-ru.js"></script>
+<script src="thematic-data.js"></script>
 <script src="scenes.js"></script>
 <script src="tts.js"></script>
 <script src="ach.js"></script>
 <script src="daily.js"></script>
 <script src="about.js"></script>
+<script src="thematic.js"></script>
 <script>
 /* ---------- данные ---------- */
 const WORDS = [...WORDS_A, ...WORDS_B];
@@ -587,10 +590,10 @@ const TABS = [["home","Сегодня","home"],["learn","Учить","learn"],["
 let tab = "home", inSession = false;
 function renderTabs(){
   $("#tabs").innerHTML = TABS.map(([k,l,ic]) => `<button class="tab ${tab===k?"active":""}" data-tab="${k}">${ICONS[ic]}<span>${l}</span></button>`).join("");
-  $("#tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => { const leave = () => { endSession(); go(b.dataset.tab); }; if(inSession && b.dataset.tab !== tab) confirmSheet("Прервать сессию?", "Ответы, которые ты уже дал, сохранены.", "Прервать", leave); else leave(); });
+  $("#tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => { const leave = () => { endSession(); go(b.dataset.tab); }; if(typeof thematicExamRunning==="function"&&thematicExamRunning()&&b.dataset.tab!==tab)thematicRequestExamExit(b.dataset.tab);else if(inSession && b.dataset.tab !== tab) confirmSheet("Прервать сессию?", "Ответы, которые ты уже дал, сохранены.", "Прервать", leave); else leave(); });
 }
 function endSession(){ journeyRunning = false; if(optionKeys){document.removeEventListener("keydown",optionKeys);optionKeys=null;} inSession = false; hfStop(); stopListening(); TTS.stop(); }
-function go(t){ tab = t; renderTabs(); window.scrollTo(0,0); ({home:renderHome, learn:renderLearn, test:renderTest, road:renderRoad, words:renderWords})[t](); }
+function go(t){ tab = t; renderTabs(); window.scrollTo(0,0); ({home:renderHome, learn:renderLearn, test:renderTest, road:renderRoad, words:renderWords, thematic:renderThematicCatalog})[t](); }
 const view = () => $("#view");
 
 /* ---------- Сегодня ---------- */
@@ -617,12 +620,13 @@ function renderHome(){
       <button class="btn block ${due.length?"":"secondary"}" id="hReview">Повторить${due.length?` · ${due.length}`:""}</button>
     </div>
     ${dailyCardHtml()}
+    ${thematicHomeCardHtml()}
     ${progressAccordionHtml()}
     ${achCardHtml()}
     ${due.length===0 && started.length ? `<p class="small muted" style="text-align:center">На повторение сегодня ничего нет — интервалы работают. Учи новые или проверь себя.</p>`:""}
   `;
   { const f = $(".ring .fill"); if(f){ const to = f.getAttribute("stroke-dashoffset"); f.style.transition = "none"; f.setAttribute("stroke-dashoffset", C); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.transition = ""; f.setAttribute("stroke-dashoffset", to); })); } }
-  $("#achCard").onclick = achSheet; wireDaily();
+  $("#achCard").onclick = achSheet; wireDaily(); wireThematicHomeCard();
   $("#hLearn").onclick = () => go("learn");
   $("#hReview").onclick = () => due.length ? startReview() : toast("Пока нечего повторять");
 }
@@ -1201,6 +1205,7 @@ if(qsDemo.get("demo")){ const sc = qsDemo.get("screen"); setTimeout(() => {
   else if(sc==="settings"){ settingsSheet(); }
   else if(sc) go(sc); }, 200); }
 document.addEventListener("visibilitychange", () => {if(document.visibilityState==="visible" && !inSession && tab==="home")go("home");});
+document.addEventListener("visibilitychange", thematicOnVisible);
 document.addEventListener("visibilitychange", async () => { if(document.visibilityState==="visible" && hf.on && !hf.lock){ try{ hf.lock = await navigator.wakeLock?.request("screen"); }catch(e){} } });
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 </script>

@@ -205,6 +205,7 @@ const LearningCore = (() => {
         for(const k of ["lastAttempt","lastScheduled","lastLapse"])if(r[k]!==undefined&&!dateOK(r[k]))fail();
       }
       if(!Object.entries(t.introduced).every(([word,v])=>word&&word.length<=120&&v===1&&object(t.words[word])))fail();
+      for(const [d,r] of Object.entries(t.days))if(!dateOK(d)||!object(r)||!["n","q","ok","bad"].every(k=>count(r[k])))fail();
       if(!count(t.stats.ok)||!count(t.stats.bad)||!count(t.exam.attempts))fail();
       if(t.exam.passedAt!==null&&!numberTime(t.exam.passedAt))fail();
       if(t.exam.lockedUntil!==null&&!numberTime(t.exam.lockedUntil))fail();

@@ -37,6 +37,7 @@ const ACH = [
   { id:"daynight",  icon:"🌗", title:"Сутки",               desc:"Переключить и ночь, и день", hidden:"Свет и тень" },
   { id:"ownvoice",  icon:"📦", title:"Свой голос",          desc:"Скачать встроенный офлайн-голос", hidden:"Загляни в настройки голосов" },
   { id:"hundredday",icon:"🏭", title:"Стахановец",          desc:"Начать 100 слов за один день", hidden:"Один день, много слов" },
+  ...THEMATIC_META.map(t=>({id:"topic_"+t.id,icon:t.icon,title:"Маршрут: "+t.title,desc:"Пройти блиц-экзамен «"+t.title+"» и получить "+t.reward})),
 ];
 const ACH_BY = Object.fromEntries(ACH.map(a => [a.id, a]));
 function achStats(){ S.ach = S.ach || {}; S.stats = S.stats || { near:0, pairsClean:0, voiceOk:0, road:0, scenes:{}, themes:{}, lastActive:null, modesDone:{}, heard:{d:null, w:{}} }; return S.stats; }
