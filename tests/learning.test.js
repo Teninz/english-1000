@@ -225,6 +225,14 @@ test('эталонная цепочка имеет ровную абсолютн
   clock.play(4);next(0);next(50);next(200);
   assert.deepEqual(shown,[[0,0],[1,0],[3,1]]);assert.equal(ended.duration,200);assert.equal(ended.dropped,1);assert.equal(ended.maxGapMs,150);
 });
+test('эталонные ключевые кадры имеют общий холст и безопасные границы',()=>{
+  const names=['idle','notice','focus','happy','happy-hold','settle','idle-return'];
+  for(const name of names){
+    const file=path.join(root,'tools','companion-source','reference-keyframes',`${name}.png`);
+    assert.ok(fs.existsSync(file),name);
+    const data=fs.readFileSync(file);assert.equal(data.readUInt32BE(16),256,name);assert.equal(data.readUInt32BE(20),256,name);
+  }
+});
 test('лиса открывается отдельной панелью, инфографика сложена после заданий',()=>{
   const html=read('index.html'),home=html.slice(html.indexOf('function renderHome'),html.indexOf('function kindForBox'));
   assert.ok(html.includes('id="foxHandle"'));assert.ok(html.includes('id="foxDrawerHost"'));
