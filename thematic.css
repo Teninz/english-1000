@@ -2,7 +2,7 @@
 .theme-entry .theme-icon{font-size:34px;width:48px;text-align:center;filter:drop-shadow(0 4px 8px rgba(0,0,0,.25))}
 .theme-grid{display:grid;gap:12px}
 .theme-card{width:100%;padding:16px;text-align:left;display:grid;grid-template-columns:50px 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
-.theme-card .theme-icon{font-size:30px;text-align:center}.theme-card b{display:block;font-size:17px}.theme-card .bar{height:5px;margin-top:8px}.theme-count{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+.theme-card .theme-icon{font-size:30px;text-align:center}.theme-card b{display:block;font-size:17px}.theme-card .bar{display:block;height:5px;margin-top:8px}.theme-count{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
 .theme-head{display:flex;align-items:flex-start;gap:12px}.theme-head .theme-icon{font-size:38px}.theme-head h2{margin:1px 0 4px}
 .theme-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.theme-stat{padding:10px 8px;border-radius:12px;background:var(--surface-2);text-align:center}.theme-stat b{display:block;font-size:19px;font-variant-numeric:tabular-nums}.theme-stat span{font-size:11px;color:var(--muted)}
 .theme-actions{display:grid;gap:10px}.theme-reward{border:1px solid rgba(var(--accent-rgb),.35);background:var(--accent-soft);border-radius:14px;padding:12px}.theme-reward.got{border-color:var(--good);background:var(--good-soft)}
