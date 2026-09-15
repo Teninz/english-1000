@@ -6,6 +6,8 @@ apk/
 *.zip
 dist/
 art/companion-anim-frames/
+tools/companion-source/layer-prototype-v1/frames/
+tools/companion-source/layer-prototype-v1/preview.html
 android/signing.keystore
 android/keystore.properties
 android/app/build/

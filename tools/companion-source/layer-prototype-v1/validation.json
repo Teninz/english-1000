@@ -1,0 +1,19 @@
+{
+  "frames": 100,
+  "distinctFrames": 99,
+  "safeMargin": 16,
+  "loopPixelsMatch": true,
+  "layerCount": 12,
+  "sourcePartitionsReconstruct": true,
+  "decodedApngMatchesFrames": true,
+  "decodedAtlasMatchesFrames": true,
+  "decodedDurationMs": 5000.0,
+  "atlasBytes": 3104268,
+  "deviceTested": false,
+  "notValidated": [
+    "anatomical realism",
+    "final expression animation",
+    "runtime performance",
+    "wardrobe deformation"
+  ]
+}
