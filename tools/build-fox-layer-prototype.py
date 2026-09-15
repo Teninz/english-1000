@@ -17,7 +17,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from io import BytesIO
 
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE_DIR = ROOT / "tools/companion-source"
@@ -85,7 +85,8 @@ def prepare_parts():
     atlas = Image.new("RGBA", (2048, 2048))
     review = Image.new("RGBA", (1024, 1024), "#1c202a")
     for i, (name, b) in enumerate(zip(NAMES, bounds)):
-        # Keep 2 pixels of the soft contour around the opaque component.
+        # Keep a small contour margin; the actual overlap is introduced only
+        # at anatomical joints below, never by moving complete objects.
         b = (max(0, b[0]-2), max(0, b[1]-2), min(sheet.width, b[2]+2), min(sheet.height, b[3]+2))
         part = sheet.crop(b)
         parts[name] = part
@@ -222,6 +223,42 @@ def mesh_warp(surface, inverse):
     return surface.transform((SIZE,SIZE),Image.Transform.MESH,mesh,Image.Resampling.BILINEAR)
 
 
+def close_surface(surface, radius=1):
+    """Close one-pixel resampling cracks inside the already joined surface."""
+    closed=surface.copy()
+    closed.putalpha(surface.getchannel("A").filter(ImageFilter.MaxFilter(radius*2+1)))
+    return closed
+
+
+def facial_surface(head, pose):
+    """Paint small expression changes on the intact head before it is warped."""
+    face=head.copy()
+    draw=ImageDraw.Draw(face,"RGBA")
+    focus=pose["eyeX"]
+    # Fresh pupils sit inside the existing amber irises. Their early movement
+    # makes the fox notice the user before the skull starts to turn.
+    draw.ellipse((155+focus,102+pose["eyeY"]*.25,161+focus,113+pose["eyeY"]*.25),fill=(30,25,34,245))
+    draw.ellipse((191+focus*.55,94+pose["eyeY"]*.18,195+focus*.55,103+pose["eyeY"]*.18),fill=(30,25,34,245))
+    # Two highlights keep the gaze readable at the final 128 CSS px size.
+    draw.rectangle((156+focus,103+pose["eyeY"]*.25,157+focus,105+pose["eyeY"]*.25),fill=(255,239,190,245))
+    draw.point((192+focus*.55,95+pose["eyeY"]*.18),fill=(255,239,190,245))
+    blink=pose["eyelid"]
+    if blink>0:
+        # Eyelids are fur-coloured overlays on a complete head, so no socket is
+        # ever exposed even on the fully closed frame.
+        near_bottom=round(99+18*blink)
+        far_bottom=round(92+14*blink)
+        draw.polygon([(143,96),(174,93),(177,near_bottom),(145,near_bottom+2)],fill=(91,94,123,255))
+        draw.line([(145,near_bottom+1),(175,near_bottom-1)],fill=(32,30,42,255),width=2)
+        draw.polygon([(183,89),(203,86),(204,far_bottom),(184,far_bottom+1)],fill=(79,82,109,255))
+        draw.line([(184,far_bottom),(203,far_bottom-1)],fill=(32,30,42,255),width=1)
+    smile=pose["smile"]
+    if smile>.08:
+        y=round(139-smile*2)
+        draw.arc((184,y-2,204,y+7),start=10,end=150,fill=(42,30,38,230),width=1)
+    return face
+
+
 def body_inverse(p):
     amplitude=(p["chestScaleY"]-1)*.7
     def inverse(x,y):
@@ -282,7 +319,7 @@ def render(layers,pivots):
             if name=="tail":
                 image=transform(image,pivots[name],angle=p["tailLift"]*.65)
             elif name=="body":
-                image=mesh_warp(body_surface,body_inverse(p))
+                image=close_surface(mesh_warp(body_surface,body_inverse(p)))
             elif name in ("chest","front-legs","ear-left","ear-right","eye-near","eye-far","muzzle"):
                 continue
             elif name=="scarf":
@@ -290,7 +327,7 @@ def render(layers,pivots):
             elif name=="leaf":
                 image=transform(image,pivots[name],angle=p["leafAngle"]*.7)
             elif name=="head":
-                image=mesh_warp(head_surface,head_inverse(p,pivots))
+                image=close_surface(mesh_warp(facial_surface(head_surface,p),head_inverse(p,pivots)))
             out.alpha_composite(image)
         box=out.getbbox()
         assert box and min(box[:2])>=16 and max(box[2:])<=240, (frame["frame"],box)
@@ -335,6 +372,7 @@ def render(layers,pivots):
     dump(OUT/"validation.json",{"frames":100,"distinctFrames":unique,"safeMargin":16,
         "loopPixelsMatch":True,"layerCount":len(layers),"sourcePartitionsReconstruct":True,
         "decodedApngMatchesFrames":True,"decodedAtlasMatchesFrames":True,"decodedDurationMs":total_ms,
+        "continuousHeadSurface":True,"continuousBodySurface":True,"facialAnimation":True,
         "atlasBytes":sum((OUT/p).stat().st_size for p in pages),"deviceTested":False,
         "notValidated":["anatomical realism","final expression animation","runtime performance","wardrobe deformation"]})
     print(f"{len(layers)} layers; {len(frames)} frames ({unique} distinct); safe border and loop OK")

@@ -41,6 +41,15 @@ class SurfaceTests(unittest.TestCase):
                 holes=ImageChops.multiply(region,actual.point(lambda p:255 if p<250 else 0))
                 self.assertIsNone(holes.getbbox(),f["frame"])
 
+    def test_expression_changes_without_changing_canvas(self):
+        neutral=fox.facial_surface(self.head,self.poses[0]["pose"])
+        blink=fox.facial_surface(self.head,self.poses[20]["pose"])
+        happy=fox.facial_surface(self.head,self.poses[60]["pose"])
+        self.assertNotEqual(neutral.tobytes(),blink.tobytes())
+        self.assertNotEqual(neutral.tobytes(),happy.tobytes())
+        self.assertEqual(neutral.size,blink.size)
+        self.assertEqual(neutral.size,happy.size)
+
 
 if __name__=="__main__":
     unittest.main()
