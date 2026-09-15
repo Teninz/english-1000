@@ -2,6 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const core=require('../learning-core');
+const foxMotion=require('../fox-motion');
 const root=path.join(__dirname,'..');
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const add=(d,n)=>new Date(Date.parse(d)+n*86400000).toISOString().slice(0,10);
@@ -195,7 +196,7 @@ test('награды сохраняются после перерыва и пе�
 test('обязательные ресурсы PWA и APK присутствуют',()=>{
   const ctx={self:{addEventListener(){}},location:{}};vm.createContext(ctx);vm.runInContext(read('sw.js')+';this.files=FILES',ctx);
   for(const file of ctx.files)assert.ok(fs.existsSync(path.join(root,file)),file);
-  for(const file of ['learning-core.js','journey.js','word-forms.js','progress-storage.js','companion.css','thematic.css','thematic.js','thematic-data.js'])assert.ok(read('tools/build-web.js').includes('"'+file+'"'),file);
+  for(const file of ['learning-core.js','fox-motion.js','journey.js','word-forms.js','progress-storage.js','companion.css','thematic.css','thematic.js','thematic-data.js'])assert.ok(read('tools/build-web.js').includes('"'+file+'"'),file);
 });
 test('анимации компаньона являются валидными компактными APNG',()=>{
   const timingBlock=read('journey.js').match(/const FOX_ANIMATION_MS = \{([^}]+)\}/)[1];
@@ -213,6 +214,16 @@ test('анимации компаньона являются валидными 
     assert.ok(Math.abs(timers[name]-duration)<2,`${name}: таймер ${timers[name]} мс, APNG ${duration} мс`);
   }
   assert.ok(totalSize<5_000_000,`общий размер анимаций: ${totalSize}`);
+});
+test('эталонная цепочка имеет ровную абсолютную шкалу 20 FPS',()=>{
+  const plan=JSON.parse(read('tools/companion-source/reference-chain-v1.motion.json'));
+  assert.equal(plan.fps,20);assert.equal(plan.frameCount,100);assert.equal(plan.durationMs,5000);assert.equal(plan.frames.length,100);
+  assert.deepEqual(plan.frames[0].pose,plan.frames.at(-1).pose);
+  assert.equal(foxMotion.frameAt(0,100),0);assert.equal(foxMotion.frameAt(49.999,100),0);assert.equal(foxMotion.frameAt(50,100),1);assert.equal(foxMotion.frameAt(4999,100),99);assert.equal(foxMotion.frameAt(5000,100,20,true),0);
+  let now=0,next,ended,shown=[];
+  const clock=new foxMotion.Clock({now:()=>now,raf:callback=>{next=callback;return 1;},caf(){},onFrame:(frame,stats)=>shown.push([frame,stats.dropped]),onEnd:stats=>ended=stats});
+  clock.play(4);next(0);next(50);next(200);
+  assert.deepEqual(shown,[[0,0],[1,0],[3,1]]);assert.equal(ended.duration,200);assert.equal(ended.dropped,1);assert.equal(ended.maxGapMs,150);
 });
 test('лиса открывается отдельной панелью, инфографика сложена после заданий',()=>{
   const html=read('index.html'),home=html.slice(html.indexOf('function renderHome'),html.indexOf('function kindForBox'));

@@ -7,6 +7,7 @@
     "test": "node --test tests/*.test.js",
     "build:companion-frames": "python tools/build-pixel-companion.py",
     "build:companion-apng": "node tools/build-companion-apng.js",
+    "build:fox-motion-plan": "node tools/build-fox-motion-plan.js",
     "build:web": "node tools/build-web.js",
     "sync": "npm run build:web && npx cap sync android",
     "open": "npx cap open android"
