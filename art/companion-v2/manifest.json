@@ -1,0 +1,119 @@
+{
+  "fps": 24,
+  "foxes": {
+    "01-boy-calm": {
+      "sex": "male",
+      "states": {
+        "idle": {
+          "frames": 139,
+          "ms": 5792,
+          "kb": 1311
+        }
+      }
+    },
+    "02-girl-warm": {
+      "sex": "female",
+      "states": {
+        "idle": {
+          "frames": 119,
+          "ms": 4958,
+          "kb": 1604
+        }
+      }
+    },
+    "03-girl-gentle": {
+      "sex": "female",
+      "states": {
+        "idle": {
+          "frames": 92,
+          "ms": 3833,
+          "kb": 968
+        },
+        "look": {
+          "frames": 82,
+          "ms": 3417,
+          "kb": 500
+        },
+        "notice": {
+          "frames": 126,
+          "ms": 5250,
+          "kb": 917
+        },
+        "blink": {
+          "frames": 74,
+          "ms": 3083,
+          "kb": 567
+        }
+      },
+      "toneShift": {
+        "look": [
+          -1.2,
+          -0.0,
+          -0.3
+        ],
+        "notice": [
+          -2.3,
+          0.4,
+          -0.6
+        ],
+        "blink": [
+          -0.3,
+          -0.2,
+          0.2
+        ]
+      }
+    },
+    "04-boy-bold": {
+      "sex": "male",
+      "states": {
+        "idle": {
+          "frames": 141,
+          "ms": 5875,
+          "kb": 1385
+        },
+        "look": {
+          "frames": 91,
+          "ms": 3792,
+          "kb": 745
+        },
+        "notice": {
+          "frames": 76,
+          "ms": 3167,
+          "kb": 662
+        },
+        "blink": {
+          "frames": 85,
+          "ms": 3542,
+          "kb": 682
+        }
+      },
+      "toneShift": {
+        "look": [
+          -0.4,
+          -0.4,
+          0.1
+        ],
+        "notice": [
+          -0.0,
+          0.4,
+          0.2
+        ],
+        "blink": [
+          -0.1,
+          0.1,
+          -0.1
+        ]
+      }
+    }
+  },
+  "scene": {
+    "file": "forest",
+    "frames": 121,
+    "ms": 5042,
+    "size": [
+      852,
+      480
+    ],
+    "kb": 127
+  }
+}

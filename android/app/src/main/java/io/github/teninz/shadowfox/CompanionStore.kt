@@ -50,6 +50,11 @@ object CompanionStore {
         state.put("pets", maxOf(state.optInt("pets"), incoming.optInt("pets")).coerceAtLeast(0))
         if (incoming.has("identity")) state.put("identity", cleanIdentity(incoming.optJSONObject("identity")))
         else if (!state.has("identity")) state.put("identity", identityEmpty())
+        // Выбранная лиса v2 и дата встречи: хранилище их не трактует, но не должно терять.
+        for (key in arrayOf("fox", "adopted")) {
+            val value = (incoming.opt(key) as? String)?.takeIf { it.isNotEmpty() && it.length <= 32 }
+            if (value != null) state.put(key, value) else if (!state.has(key)) state.put(key, JSONObject.NULL)
+        }
         for (key in arrayOf("lastFed", "lastWater")) {
             val current = state.optString(key, "").takeIf { dateEpoch(it) != null }
             val candidate = incoming.optString(key, "").takeIf { dateEpoch(it) != null }

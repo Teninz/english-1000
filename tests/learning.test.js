@@ -198,22 +198,48 @@ test('обязательные ресурсы PWA и APK присутствую�
   for(const file of ctx.files)assert.ok(fs.existsSync(path.join(root,file)),file);
   for(const file of ['learning-core.js','fox-motion.js','journey.js','word-forms.js','progress-storage.js','companion.css','thematic.css','thematic.js','thematic-data.js'])assert.ok(read('tools/build-web.js').includes('"'+file+'"'),file);
 });
-test('анимации компаньона являются валидными компактными APNG',()=>{
-  const timingBlock=read('journey.js').match(/const FOX_ANIMATION_MS = \{([^}]+)\}/)[1];
-  const timers=Object.fromEntries([...timingBlock.matchAll(/(\w+):(\d+)/g)].map(m=>[m[1],+m[2]]));
-  const names=['idle','listen','pet','feed','happy','quiet','sad','withdrawn','stretch','drink','yawn','sleep','hungry','thirsty','offended','lesson'];
-  let totalSize=0;
-  for(const name of names){
-    const file=path.join(root,'art','companion-anim',name+'.png'),data=fs.readFileSync(file);
-    totalSize+=data.length;
-    assert.deepEqual([...data.subarray(0,8)],[137,80,78,71,13,10,26,10]);
-    assert.equal(data.readUInt32BE(16),128);assert.equal(data.readUInt32BE(20),128);
-    let offset=8,declared=0,frames=0,duration=0;
-    while(offset<data.length){const length=data.readUInt32BE(offset),type=data.toString('ascii',offset+4,offset+8);if(type==='acTL')declared=data.readUInt32BE(offset+8);if(type==='fcTL'){frames++;const num=data.readUInt16BE(offset+28),den=data.readUInt16BE(offset+30)||100;duration+=1000*num/den;}offset+=12+length;}
-    assert.ok(frames>=36,name);assert.equal(frames,declared,name);assert.ok(data.length<500_000,name);
-    assert.ok(Math.abs(timers[name]-duration)<2,`${name}: таймер ${timers[name]} мс, APNG ${duration} мс`);
+test('лисы v2: каждая объявленная лиса имеет WebM-петли, постер и сцену',()=>{
+  const manifest=JSON.parse(read('art/companion-v2/manifest.json'));
+  const webm=file=>{const data=fs.readFileSync(file);assert.deepEqual([...data.subarray(0,4)],[0x1a,0x45,0xdf,0xa3],file);assert.ok(data.length>10_000&&data.length<2_500_000,file);return data.length;};
+  let total=0;
+  for(const fox of core.petFoxes){
+    assert.ok(manifest.foxes[fox.id],fox.id);assert.equal(manifest.foxes[fox.id].sex,fox.sex);
+    for(const state of fox.states){
+      total+=webm(path.join(root,'art','companion-v2',fox.id,state+'.webm'));
+      assert.ok(manifest.foxes[fox.id].states[state].frames>=60,`${fox.id}/${state}`);
+    }
+    const poster=fs.readFileSync(path.join(root,'art','companion-v2',fox.id,'poster.webp'));assert.equal(poster.toString('ascii',0,4),'RIFF');
   }
-  assert.ok(totalSize<5_000_000,`общий размер анимаций: ${totalSize}`);
+  total+=webm(path.join(root,'art','companion-v2','scene','forest.webm'));
+  assert.ok(fs.existsSync(path.join(root,'art','companion-v2','scene','forest.webp')));
+  const handle=fs.readFileSync(path.join(root,'art','companion-v2','handle.png'));assert.deepEqual([...handle.subarray(0,8)],[137,80,78,71,13,10,26,10]);assert.equal(handle.readUInt32BE(16),192);
+  assert.ok(total<12_000_000,`общий размер петель: ${total}`);
+  const available=core.petFoxes.filter(f=>f.available).map(f=>f.id);
+  assert.deepEqual(available,['03-girl-gentle','04-boy-bold']);
+  for(const id of ['01-boy-calm','02-girl-warm'])assert.equal(core.petFox(id).available,false);
+  const sw=read('sw.js');for(const id of core.petFoxes.map(f=>f.id))assert.ok(sw.includes(id),id);
+  assert.ok(read('tools/build-web.js').includes('"companion-references"'));
+});
+test('выбор лисы и постоянное имя переживают сохранение, импорт и родную синхронизацию',()=>{
+  const s=core.empty();s.companion=core.petEmpty();
+  assert.equal(s.companion.fox,null);
+  s.companion.fox='04-boy-bold';s.companion.adopted='2026-09-16';s.companion.identity=core.petIdentity({sex:'male',name:'Фокс'});
+  const imported=core.prepareImport(core.portable(s),core.empty());
+  assert.equal(imported.companion.fox,'04-boy-bold');assert.equal(imported.companion.adopted,'2026-09-16');assert.equal(imported.companion.identity.forms.gen,'Фокса');
+  assert.throws(()=>core.prepareImport({...core.portable(s),companion:{...s.companion,fox:'05-unknown'}},core.empty()));
+  const legacy=core.prepareImport({...core.portable(s),companion:{completed:{},fed:0,pets:0}},core.empty());
+  assert.equal(legacy.companion.fox,null);assert.equal(legacy.companion.adopted,null);
+  const native={completed:{},fed:1,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null,identity:core.petIdentity({sex:'male',name:'Фокс'})};
+  const kept=core.petKeepChoice(native,s.companion);assert.equal(kept.fox,'04-boy-bold');assert.equal(kept.adopted,'2026-09-16');
+  assert.equal(core.petAction(s.companion,'pet','2026-09-16').state.fox,'04-boy-bold');
+  const run=app();
+  assert.equal(run('S.companion=LearningCore.petEmpty();foxReady()'),false);
+  assert.equal(run('S.companion.fox="03-girl-gentle";S.companion.identity=LearningCore.petIdentity({sex:"female",name:"Луна"});foxReady()'),true);
+  assert.equal(run('foxAsset(foxCurrent(),"blink")'),'art/companion-v2/03-girl-gentle/blink.webm');
+  assert.ok(run('companionChooserHtml()').includes('Будет добавлено позднее'));
+  assert.ok(run('companionChooserHtml()').includes('fox-sex male'));
+  assert.ok(run('companionCardHtml()').includes('Бета-версия компаньона'));
+  for(const old of ['feed','pet','happy','drink','listen','offended','quiet','sad','withdrawn','sleep','hungry','thirsty','lesson','stretch','yawn'])assert.ok(['idle','look','notice','blink'].includes(run(`FOX_V2_STATE["${old}"]`)),old);
 });
 test('эталонная цепочка имеет ровную абсолютную шкалу 20 FPS',()=>{
   const plan=JSON.parse(read('tools/companion-source/reference-chain-v1.motion.json'));

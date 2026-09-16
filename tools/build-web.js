@@ -9,7 +9,8 @@ for (const f of files) fs.copyFileSync(path.join(root, f), path.join(dist, f));
 for (const d of dirs) fs.cpSync(path.join(root, d), path.join(dist, d), {
   recursive: true,
   // Исходные PNG-кадры нужны только для пересборки APNG и не должны попадать в APK.
-  filter: src => path.basename(src) !== "companion-anim-frames",
+  // Референсы, исходные клипы и пробы фона живут в art/, но в APK не нужны.
+  filter: src => !["companion-anim-frames", "companion", "companion-anim", "companion-references", "Visual"].includes(path.basename(src)) && !/^Фон.*\.png$/u.test(path.basename(src)),
 });
 
 // внутри APK service worker не нужен: файлы и так локальные

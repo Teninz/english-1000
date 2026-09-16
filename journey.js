@@ -6,30 +6,82 @@ const FOX_REWARDS = [
   {id:"fourteen",icon:"🫖",name:"Вечерний чай",desc:"Заниматься в четырнадцать разных дней",at:14},
   {id:"thirty",icon:"🏡",name:"Дом для лисы",desc:"Заниматься в тридцать разных дней",at:30}
 ];
-const FOX_ANIMATION_MS = {idle:5000,listen:3000,pet:3000,feed:4000,happy:3000,quiet:5000,sad:5000,withdrawn:7000,stretch:4000,drink:4000,yawn:4000,sleep:7000,hungry:5000,thirsty:5000,offended:5000,lesson:4000};
+// Лиса v2: видеопетли VP9 с альфа-каналом (art/companion-v2), четыре реакции у доступных лис.
+// Прежние названия анимаций из действий и настроений сводятся к этим четырём состояниям.
+const FOX_V2_DIR = "art/companion-v2";
+const FOX_V2_STATE = {idle:"idle",quiet:"idle",sad:"idle",withdrawn:"idle",sleep:"idle",hungry:"idle",thirsty:"idle",lesson:"idle",stretch:"idle",yawn:"idle",listen:"look",offended:"look",pet:"blink",feed:"blink",happy:"blink",drink:"notice",notice:"notice",look:"look",blink:"blink"};
+const FOX_AMBIENT_MS = [[5000,9000],[9000,15000]]; // паузы между реакциями: настроение 0 и 1; при 2–3 реакций нет
 const foxReducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+const foxStill = () => foxReducedMotion() || S.set?.motion===false;
 const foxMoodAnimation = mood => ["idle","quiet","sad","withdrawn"][mood] || "idle";
-function foxAsset(animation){
-  return foxReducedMotion() ? `art/companion/${animation||"idle"}.png` : `art/companion-anim/${animation||"idle"}.png`;
+const foxCurrent = () => LearningCore.petFox(S.companion?.fox);
+const foxReady = () => !!(foxCurrent() && foxIdentity().name);
+const foxAsset = (fox,state) => `${FOX_V2_DIR}/${fox.id}/${state}.webm`;
+const foxPoster = fox => `${FOX_V2_DIR}/${fox.id}/poster.webp`;
+function foxSceneHtml(){
+  return foxStill() ? `<img class="fox-scene" src="${FOX_V2_DIR}/scene/forest.webp" alt="">` : `<video class="fox-scene" src="${FOX_V2_DIR}/scene/forest.webm" poster="${FOX_V2_DIR}/scene/forest.webp" autoplay muted loop playsinline disablepictureinpicture></video>`;
 }
-function foxAmbientAnimation(p){
-  const hour=new Date().getHours();
-  if(hour>=22||hour<6)return "sleep";
-  const seed=Number(today().replaceAll("-",""));
-  if(S.companion.lastWater!==today()&&seed%7===0)return "thirsty";
-  if(p.treats&&S.companion.lastFed!==today()&&seed%7===3)return "hungry";
-  return ["listen","stretch","yawn","lesson","idle"][seed%5];
+function foxActorHtml(fox,alt){
+  if(foxStill())return `<img class="fox-clip on" src="${foxPoster(fox)}" alt="${esc(alt)}">`;
+  return fox.states.map(state=>`<video class="fox-clip ${state==="idle"?"on":""}" data-state="${state}" src="${foxAsset(fox,state)}" ${state==="idle"?"autoplay loop":"hidden"} muted playsinline preload="auto" disablepictureinpicture aria-label="${esc(alt)}"></video>`).join("");
+}
+function foxStageHtml(fox,mood,alt){
+  return `<div class="fox-stage mood-${mood}" id="foxStage" data-mood="${mood}">${foxSceneHtml()}<div class="fox-actor">${foxActorHtml(fox,alt)}</div></div>`;
 }
 let foxAnimationTimer = 0;
-function playFoxAnimation(animation,mood,loop=false){
-  const fox=$(".fox-pet"); if(!fox)return;
-  clearTimeout(foxAnimationTimer);
-  fox.src=foxAsset(animation)+(foxReducedMotion()?"":`?play=${Date.now()}`);
-  fox.dataset.animation=animation;
-  if(!loop&&!foxReducedMotion())foxAnimationTimer=setTimeout(()=>{
-    if(!fox.isConnected)return;
-    const next=foxMoodAnimation(mood); fox.src=foxAsset(next); fox.dataset.animation=next;
-  },FOX_ANIMATION_MS[animation]||2400);
+function foxClips(){return [...document.querySelectorAll("#foxStage .fox-clip[data-state]")];}
+const FOX_FADE_MS = 0; // кроссфейд отключён: наложение двух полупрозрачных краёв даёт ореол вокруг лисы
+let foxFadeTimer = 0;
+// Переключение клипов: новый запускается с кадра покоя поверх старого и проявляется за 160 мс,
+// старый останавливается после кроссфейда — так гасится разница поз между дублями.
+function foxShow(state){
+  const clips=foxClips(); if(!clips.length)return null;
+  const clip=clips.find(c=>c.dataset.state===state)||clips.find(c=>c.dataset.state==="idle");
+  const current=clips.find(c=>c.classList.contains("on")&&c!==clip);
+  clearTimeout(foxFadeTimer);
+  try{clip.currentTime=0;}catch(e){}
+  clip.hidden=false; clip.style.zIndex="2"; clip.play?.().catch?.(()=>{});
+  const drop=c=>{c.classList.remove("on");c.hidden=true;c.pause();c.style.zIndex="";};
+  requestAnimationFrame(()=>{clip.classList.add("on");if(current&&!FOX_FADE_MS)drop(current);});
+  for(const c of clips)if(c!==clip&&c!==current)drop(c);
+  if(current){current.style.zIndex="1";if(FOX_FADE_MS)foxFadeTimer=setTimeout(()=>drop(current),FOX_FADE_MS+20);}
+  return clip;
+}
+// Реакция должна начаться на границе петли покоя, иначе поза «прыгает» посреди вдоха.
+function foxAtLoopStart(clip,callback,limitMs=7000){
+  const started=performance.now();
+  const tick=()=>{
+    if(!clip.isConnected)return;
+    const t=clip.currentTime, d=clip.duration||0;
+    if(clip.paused||!d||t<0.09||t>d-0.06||performance.now()-started>limitMs)callback();
+    else requestAnimationFrame(tick);
+  };
+  tick();
+}
+function foxAmbientSchedule(){
+  clearTimeout(foxAnimationTimer); foxAnimationTimer=0;
+  const stage=$("#foxStage"); if(!stage||foxStill())return;
+  const mood=Number(stage.dataset.mood)||0, range=FOX_AMBIENT_MS[mood]; if(!range)return;
+  const states=foxCurrent()?.states.filter(s=>s!=="idle")||[]; if(!states.length)return;
+  foxAnimationTimer=setTimeout(()=>{
+    if(!stage.isConnected||document.hidden){foxAmbientSchedule();return;}
+    playFoxAnimation(states[Math.floor(Math.random()*states.length)],mood);
+  },range[0]+Math.random()*(range[1]-range[0]));
+}
+function playFoxAnimation(animation,mood){
+  clearTimeout(foxAnimationTimer); foxAnimationTimer=0;
+  const state=FOX_V2_STATE[animation]||"idle";
+  const clips=foxClips(); if(!clips.length)return;
+  if(state==="idle"){foxShow("idle");foxAmbientSchedule();return;}
+  const idle=clips.find(c=>c.dataset.state==="idle"&&c.classList.contains("on")&&!c.paused);
+  const busy=clips.find(c=>c.dataset.state!=="idle"&&c.classList.contains("on")&&!c.paused&&!c.ended);
+  const start=()=>{
+    const clip=foxShow(state); if(!clip)return;
+    clip.onended=()=>{clip.onended=null; if(!clip.isConnected)return; const next=clip.dataset.next; delete clip.dataset.next; if(next)playFoxAnimation(next,mood); else {foxShow("idle"); foxAmbientSchedule();}};
+  };
+  // Реакция не прерывает другую посреди движения: она встанет в очередь и начнётся с кадра покоя.
+  if(busy){busy.dataset.next=state;return;}
+  if(idle)foxAtLoopStart(idle,start); else start();
 }
 function journeyState(){
   S.journey = S.journey || {completed:{},rewards:{}};
@@ -67,7 +119,8 @@ function companionCardHtml(){
   const weekly = week.filter(d=>j.completed[d]).length;
   return `<section class="card companion" id="companionCard">
     <div class="row between fox-card-head"><div class="eyebrow">${male?"Твой":"Твоя"} ${esc(foxWho())}</div><div class="fox-card-tools"><button class="btn ghost small" id="foxIdentity">Имя и образ</button><button class="btn ghost small" id="foxCollection">Коллекция · ${Object.keys(j.rewards).length}/${FOX_REWARDS.length}</button></div></div>
-    <div class="fox-meeting"><img class="fox-pet mood-${p.mood}" data-animation="${foxMoodAnimation(p.mood)}" src="${foxAsset(foxMoodAnimation(p.mood))}" alt="${esc(who)}: ${moods[p.mood]}"><div><h2>${moods[p.mood]}</h2><p class="small muted">${esc(texts[p.mood])}</p></div></div>
+    <div class="fox-meeting">${foxStageHtml(foxCurrent(),p.mood,`${who}: ${moods[p.mood]}`)}<div><h2>${moods[p.mood]}</h2><p class="small muted">${esc(texts[p.mood])}</p></div></div>
+    <p class="small muted fox-beta">Бета-версия компаньона: пока четыре базовые реакции. Позже будут открываться новые взаимодействия, предметы и домики.</p>
     <p class="small fox-response" id="foxResponse" role="status" aria-live="polite">${memoryCount() ? `Сегодня ты вспомнил ${plural(memoryCount(),"слово","слова","слов")} после перерыва.` : "Вода всегда доступна. Первое занятие дня приносит одно угощение."}</p>
     <div class="fox-actions"><button class="btn secondary" id="foxFeed" ${p.mood===3 || !p.treats ? "disabled":""}>Угостить · ${p.treats}</button><button class="btn secondary" id="foxWater" ${p.mood===3?"disabled":""}>Напоить</button><button class="btn secondary" id="foxPet" ${p.mood===3?"disabled":""}>Погладить</button></div>
     <div class="fox-week" aria-label="Занятия за последние семь дней">${week.map(d=>`<span class="${j.completed[d]?"done":""}" title="${d}">${j.completed[d]?"✓":"·"}</span>`).join("")}<b>${weekly}/4 дня</b></div>
@@ -76,23 +129,65 @@ function companionCardHtml(){
     ${next?`<p class="small" style="margin-top:8px">${next.icon} До награды «${next.name}» — ${plural(Math.max(0,next.at-total),"день занятий","дня занятий","дней занятий")}.</p>`:`<p class="small">Вся коллекция собрана. Лиса остаётся рядом!</p>`}
   </section>`;
 }
-function foxFaceIcon(){return `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 8l12 7h8L40 8l-3 24-13 9-13-9z" fill="currentColor"/><path d="M14 14l7 5-8 5zm20 0l-7 5 8 5z" fill="var(--fox-warm)"/><path d="M16 27l8 10 8-10-8 4z" fill="var(--fox-light)"/><circle cx="18" cy="25" r="2"/><circle cx="30" cy="25" r="2"/><path d="M21 32h6l-3 3z" fill="var(--fox-warm)"/></svg>`;}
+function foxFaceIcon(){return `<img src="${FOX_V2_DIR}/handle.png" alt="" draggable="false">`;}
+const foxSexBadge = sex => sex==="male" ? `<span class="fox-sex male" title="Лис">♂ Лис</span>` : `<span class="fox-sex female" title="Лиса">♀ Лиса</span>`;
+// Выбор спутника: доступные лисы показывают петлю покоя, остальные — приглушённую карточку. Имя задаётся один раз.
+function companionChooserHtml(){
+  const identity=foxIdentity(), adopted=!!S.companion.adopted&&!!identity.name, selected=foxCurrent()?.id||"";
+  return `<section class="card companion fox-choose" id="companionChooser">
+    <div class="eyebrow">Компаньон · бета</div><h2>${adopted?"Другая лиса":"Выбери спутника"}</h2>
+    <p class="small muted">Бета-версия компаньона: пока у лис четыре базовые реакции. Позже будут открываться новые взаимодействия, предметы и домики.</p>
+    <div class="fox-grid" role="radiogroup" aria-label="Лисы">${LearningCore.petFoxes.map(fox=>`<button type="button" class="fox-option ${fox.id===selected?"on":""} ${fox.available?"":"locked"}" data-fox="${fox.id}" role="radio" aria-checked="${fox.id===selected}" ${fox.available?"":"disabled"}>
+      <span class="fox-option-art">${fox.available&&!foxStill()?`<video src="${foxAsset(fox,"idle")}" poster="${foxPoster(fox)}" autoplay muted loop playsinline disablepictureinpicture></video>`:`<img src="${foxPoster(fox)}" alt="">`}</span>
+      ${foxSexBadge(fox.sex)}<b>${esc(fox.title)}</b><small>${fox.available?(fox.sex==="male"?"Доступен сразу":"Доступна сразу"):"Будет добавлено позднее"}</small></button>`).join("")}</div>
+    <label class="fox-choose-name"><span>${adopted?"Имя остаётся прежним":"Постоянное имя"}</span><input class="fox-name-input" id="foxChooseName" maxlength="32" autocomplete="off" value="${esc(identity.name)}" placeholder="Например, Луна или Фокс" ${adopted?"readonly":""}></label>
+    <p class="small muted">${adopted?"Имя даётся один раз. Падежные формы можно поправить в «Имя и образ».":"Имя даётся один раз и потом не меняется. Падежные формы можно будет поправить в «Имя и образ»."}</p>
+    <div class="grid2"><button class="btn block" id="foxAdopt" ${selected&&identity.name?"":"disabled"}>${adopted?"Выбрать эту лису":"Позвать"}</button>${adopted?`<button class="btn secondary block" id="foxChooseBack">Назад</button>`:""}</div>
+  </section>`;
+}
+function wireCompanionChooser(){
+  const host=$("#companionChooser"); if(!host)return;
+  let selected=foxCurrent()?.id||"";
+  const refresh=()=>{
+    host.querySelectorAll(".fox-option").forEach(b=>{b.classList.toggle("on",b.dataset.fox===selected);b.setAttribute("aria-checked",String(b.dataset.fox===selected));});
+    $("#foxAdopt").disabled=!(selected&&$("#foxChooseName").value.trim());
+  };
+  host.querySelectorAll(".fox-option:not([disabled])").forEach(b=>b.onclick=()=>{selected=b.dataset.fox;refresh();});
+  $("#foxChooseName").oninput=refresh;
+  if($("#foxChooseBack"))$("#foxChooseBack").onclick=()=>{closeCompanion();openCompanion();};
+  $("#foxAdopt").onclick=()=>{
+    const fox=LearningCore.petFox(selected); if(!fox||!fox.available)return;
+    const adopted=!!S.companion.adopted&&!!foxIdentity().name;
+    const name=adopted?foxIdentity().name:$("#foxChooseName").value.trim(); if(!name)return;
+    const commit=()=>{
+      const keepForms=adopted&&foxIdentity().sex===fox.sex;
+      S.companion.fox=fox.id; S.companion.adopted=S.companion.adopted||today();
+      S.companion.identity=LearningCore.petIdentity({sex:fox.sex,name,decline:keepForms?foxIdentity().decline:true,forms:keepForms?foxIdentity().forms:LearningCore.petNameForms(name,fox.sex,true)});
+      save(); if(window.syncCompanion)window.syncCompanion(); closeCompanion(); openCompanion({celebrate:true});
+    };
+    if(adopted)commit();
+    else confirmSheet(`Позвать ${fox.sex==="male"?"лиса":"лису"} по имени ${name}?`,"Имя останется навсегда — изменить его потом нельзя. Падежные формы можно будет поправить.","Позвать",commit);
+  };
+}
 function openCompanion(options={}){
   journeyState();
   const host=$("#foxDrawerHost"); if(!host)return;
-  host.innerHTML=`<div class="fox-drawer-scrim"><aside class="fox-drawer" role="dialog" aria-modal="true" aria-labelledby="foxDrawerTitle"><div class="fox-drawer-head"><div><div class="eyebrow">Компаньон</div><h2 id="foxDrawerTitle">Домик ${esc(foxWho("gen"))}</h2></div><button class="icon-btn" id="foxDrawerClose" aria-label="Закрыть">${ICONS.close}</button></div>${journeyHeroHtml()}${companionCardHtml()}</aside></div>`;
+  const choose=options.choose||!foxReady();
+  host.innerHTML=`<div class="fox-drawer-scrim"><aside class="fox-drawer" role="dialog" aria-modal="true" aria-labelledby="foxDrawerTitle"><div class="fox-drawer-head"><div><div class="eyebrow">Компаньон</div><h2 id="foxDrawerTitle">${choose&&!foxReady()?"Новый спутник":`Домик ${esc(foxWho("gen"))}`}</h2></div><button class="icon-btn" id="foxDrawerClose" aria-label="Закрыть">${ICONS.close}</button></div>${journeyHeroHtml()}${choose?companionChooserHtml():companionCardHtml()}</aside></div>`;
   document.body.classList.add("fox-drawer-open");
   $("#foxDrawerClose").onclick=closeCompanion;
   $(".fox-drawer-scrim").onclick=e=>{if(e.target===e.currentTarget)closeCompanion();};
-  wireCompanion(); if($("#hJourney"))$("#hJourney").onclick=journeyStart;
+  if($("#hJourney"))$("#hJourney").onclick=journeyStart;
+  if(choose){wireCompanionChooser();$("#foxDrawerClose").focus();return;}
+  wireCompanion();
   const mood=LearningCore.petMood(S.companion,today()).mood;
   if(options.celebrate)playFoxAnimation("happy",mood);
-  else if(mood===0)playFoxAnimation(foxAmbientAnimation(LearningCore.petMood(S.companion,today())),mood);
+  else if(mood<=1)playFoxAnimation("notice",mood);
   $("#foxDrawerClose").focus();
 }
 function closeCompanion(){
   clearTimeout(foxAnimationTimer); foxAnimationTimer=0;
-  const host=$("#foxDrawerHost");if(host)host.innerHTML="";
+  const host=$("#foxDrawerHost");if(host){host.querySelectorAll("video").forEach(v=>{v.pause();v.removeAttribute("src");v.load();});host.innerHTML="";}
   document.body.classList.remove("fox-drawer-open");
   $("#foxHandle")?.focus();
 }
@@ -119,20 +214,18 @@ function companionIdentitySheet(draft){
   journeyState();
   const identity=LearningCore.petIdentity(draft||foxIdentity()), suggested=LearningCore.petNameForms(identity.name,identity.sex,identity.decline);
   const labels={gen:"Кого?",dat:"Кому?",acc:"Кого?",ins:"Кем?",prep:"О ком?"};
+  const fox=foxCurrent(), adopted=!!S.companion.adopted&&!!foxIdentity().name;
   sheet(`<div class="row between"><div><div class="eyebrow">Компаньон</div><h2>Имя и образ</h2></div><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
-    <p class="muted">Выбери лису или лиса и дай компаньону имя. Оно сохранится вместе с прогрессом и появится в репликах и виджете.</p>
+    <p class="muted">${adopted?"Имя постоянное, а падежные формы можно поправить: они появляются в репликах и виджете.":"Дай компаньону имя. Оно сохранится вместе с прогрессом и появится в репликах и виджете."}</p>
     <div class="fox-identity-form">
-      <label><span>Кто твой компаньон</span><div class="seg" id="foxSex"><button class="${identity.sex==="female"?"on":""}" data-sex="female">Лиса</button><button class="${identity.sex==="male"?"on":""}" data-sex="male">Лис</button></div></label>
-      <label><span>Имя</span><input class="fox-name-input" id="foxName" maxlength="32" autocomplete="off" value="${esc(identity.name)}" placeholder="Например, Луна или Фокс"></label>
+      <div class="fox-identity-fox"><img src="${fox?foxPoster(fox):""}" alt="">${fox?`<div>${foxSexBadge(fox.sex)}<b>${esc(fox.title)}</b></div>`:""}<button class="btn ghost small" id="foxChange">Другая лиса</button></div>
+      <label><span>Имя</span><input class="fox-name-input" id="foxName" maxlength="32" autocomplete="off" value="${esc(identity.name)}" placeholder="Например, Луна или Фокс" ${adopted?"readonly":""}></label>
       <label class="fox-decline"><input type="checkbox" id="foxDecline" ${identity.decline?"checked":""}><span>Склонять имя в русских фразах</span></label>
       <div class="row between"><span class="small muted">Предложенные формы можно исправить вручную.</span><button class="btn ghost small" id="foxSuggest">Предложить формы</button></div>
       <div class="fox-name-forms">${Object.entries(labels).map(([key,label])=>`<label><span>${label}</span><input class="fox-name-input" data-fox-form="${key}" maxlength="32" value="${esc(identity.forms[key]||suggested[key])}" placeholder="${esc(suggested[key])}"></label>`).join("")}</div>
       <button class="btn block" id="foxIdentitySave">Сохранить</button>
     </div>`);
-  $("#foxSex").querySelectorAll("button").forEach(button=>button.onclick=()=>{
-    const name=$("#foxName").value, decline=$("#foxDecline").checked;
-    companionIdentitySheet({sex:button.dataset.sex,name,decline,forms:LearningCore.petNameForms(name,button.dataset.sex,decline)});
-  });
+  $("#foxChange").onclick=()=>{closeSheet();closeCompanion();openCompanion({choose:true});};
   $("#foxSuggest").onclick=()=>{
     const forms=LearningCore.petNameForms($("#foxName").value,identity.sex,$("#foxDecline").checked);
     document.querySelectorAll("[data-fox-form]").forEach(input=>input.value=forms[input.dataset.foxForm]);
@@ -140,7 +233,7 @@ function companionIdentitySheet(draft){
   $("#foxName").oninput=()=>$("#foxSuggest").click();
   $("#foxDecline").onchange=()=>$("#foxSuggest").click();
   $("#foxIdentitySave").onclick=()=>{
-    const name=$("#foxName").value, decline=$("#foxDecline").checked;
+    const name=adopted?foxIdentity().name:$("#foxName").value, decline=$("#foxDecline").checked;
     const forms=Object.fromEntries([...document.querySelectorAll("[data-fox-form]")].map(input=>[input.dataset.foxForm,input.value]));
     S.companion.identity=LearningCore.petIdentity({sex:identity.sex,name,decline,forms:decline?forms:LearningCore.petNameForms(name,identity.sex,false)});
     save(); if(window.syncCompanion)window.syncCompanion(); closeSheet(); closeCompanion(); openCompanion();
@@ -162,7 +255,7 @@ async function companionAct(action){
 }
 function wireCompanion(){
   if($("#foxFeed"))$("#foxFeed").onclick=()=>companionAct("feed"); if($("#foxWater"))$("#foxWater").onclick=()=>companionAct("water"); if($("#foxPet"))$("#foxPet").onclick=()=>companionAct("pet"); if($("#foxCollection"))$("#foxCollection").onclick=companionCollection;
-  if($("#foxIdentity"))$("#foxIdentity").onclick=companionIdentitySheet;
+  if($("#foxIdentity"))$("#foxIdentity").onclick=()=>companionIdentitySheet();
   if($("#foxPin"))$("#foxPin").onclick=()=>window.pinCompanion().catch(()=>toast("Добавь виджет через меню рабочего стола"));
 }
 let journeyRunning = false;

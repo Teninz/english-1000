@@ -1,21 +1,48 @@
-.fox-handle{--fox-warm:#e76524;--fox-light:#657086;position:fixed;right:0;top:132px;z-index:18;width:50px;height:64px;padding:8px 6px 8px 10px;border:1px solid var(--line);border-right:0;border-radius:18px 0 0 18px;background:var(--surface);color:#252b38;box-shadow:0 8px 24px #0004;cursor:pointer}
-.fox-handle svg{width:100%;height:100%;display:block}.fox-handle circle{fill:var(--ink)}
+.fox-handle{position:fixed;right:0;top:132px;z-index:18;width:58px;height:64px;padding:5px 4px 5px 8px;border:1px solid var(--line);border-right:0;border-radius:18px 0 0 18px;background:var(--surface);box-shadow:0 8px 24px #0004;cursor:pointer}
+.fox-handle img{width:100%;height:100%;display:block;object-fit:contain;filter:drop-shadow(0 2px 3px #0005)}
 .fox-drawer-open .fox-handle{visibility:hidden}
 /* во время занятия ручка не нужна: она перекрывала карточку, а «Продолжить занятие» перезапускало урок */
 body:has(.sess-top) .fox-handle{display:none}
 body.fox-drawer-open{overflow:hidden}
+/* листы («Имя и образ», коллекция, подтверждения) открываются поверх панели лисы */
+body.fox-drawer-open #overlay .scrim{z-index:60}
 .fox-drawer-scrim{position:fixed;inset:0;z-index:50;background:#070a0db8;display:flex;justify-content:flex-end;animation:fadeIn .2s ease-out}
 .fox-drawer{width:min(430px,94vw);height:100%;overflow:auto;overscroll-behavior:contain;padding:calc(18px + env(safe-area-inset-top)) 18px calc(92px + env(safe-area-inset-bottom));background:linear-gradient(180deg,var(--surface-2) 0,var(--surface) 32%);box-shadow:-18px 0 50px #0007;animation:foxDrawerIn .28s ease-out}
 .fox-drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.fox-drawer-head h2{font-size:24px;margin:2px 0 0}
 .fox-drawer .companion{border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 92%,transparent)}
-.fox-drawer .fox-meeting{flex-direction:column;text-align:center;overflow:hidden}.fox-drawer .fox-pet{width:272px;height:272px;margin:-12px auto -20px}
+.fox-drawer .fox-meeting{flex-direction:column;text-align:center;overflow:hidden}
+/* Сцена v2: лесной фон 16:9 показывается вырезом 4:5, лиса сидит в средней глубине перед световым пятном */
+.fox-stage{position:relative;width:100%;aspect-ratio:4/5;margin:2px 0 10px;border-radius:16px;overflow:hidden;background:#1a1d24;isolation:isolate}
+.fox-scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:66% 50%}
+.fox-actor{position:absolute;left:50%;bottom:21%;height:47%;aspect-ratio:530/794;transform:translateX(-50%)}
+.fox-actor::before{content:"";position:absolute;left:12%;right:6%;bottom:-2.5%;height:9%;border-radius:50%;background:radial-gradient(closest-side,#0a0603aa,transparent);z-index:0}
+/* без кроссфейда: два полупрозрачных края друг над другом дают ореол; переключение идёт жёстко на кадре покоя */
+.fox-clip{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;filter:sepia(.14) saturate(1.05) drop-shadow(0 5px 7px #0007);background:transparent;opacity:0}
+.fox-clip.on{opacity:1}
+.fox-clip[hidden]{display:none}
+.fox-stage.mood-2 .fox-actor,.fox-stage.mood-3 .fox-actor{filter:saturate(.7) brightness(.82)}
+.fox-stage.mood-1 .fox-actor{filter:saturate(.88) brightness(.93)}
+.fox-beta{margin:-2px 0 10px}
+/* Выбор спутника */
+.fox-choose h2{margin:4px 0 8px}
+.fox-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.fox-option{display:grid;gap:6px;padding:9px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2);color:var(--ink);text-align:center;font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.fox-option b{font-size:15px}.fox-option small{color:var(--muted);font-size:12px}
+.fox-option.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.fox-option.locked{opacity:.5;cursor:default}
+.fox-option-art{display:block;aspect-ratio:2/3;border-radius:10px;overflow:hidden;background:radial-gradient(#2b3040,#1a1d24)}
+.fox-option-art video,.fox-option-art img{width:100%;height:100%;display:block;object-fit:contain}
+.fox-sex{display:inline-flex;align-items:center;justify-content:center;gap:3px;justify-self:center;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.4}
+.fox-sex.female{background:#ff6fa833;color:#ff7fb0}.fox-sex.male{background:#4f9cff33;color:#6fa9ff}
+[data-theme="light"] .fox-sex.female{color:#c2185b}[data-theme="light"] .fox-sex.male{color:#1e63c9}
+.fox-choose-name{display:grid;gap:7px;font-size:13px;color:var(--muted)}
+.fox-identity-fox{display:flex;align-items:center;gap:12px}.fox-identity-fox img{width:52px;height:78px;object-fit:contain;border-radius:8px;background:var(--surface-2)}
+.fox-identity-fox>div{display:grid;gap:4px;justify-items:start;flex:1}.fox-identity-fox b{font-size:15px}
 @keyframes foxDrawerIn{from{transform:translateX(100%)}to{transform:none}}
 .companion{border:1px solid var(--line)}
 .fox-meeting{display:flex;align-items:center;gap:12px;margin:4px 0}
 .fox-meeting h2{font-size:20px;margin-bottom:8px}
 .fox-meeting>div{min-width:0}
-.fox-pet{width:124px;height:144px;flex:none;object-fit:contain;filter:drop-shadow(0 8px 10px #0003)}
-.fox-pet{image-rendering:pixelated}
 .fox-response{min-height:42px;margin:8px 0 12px;color:var(--accent-deep)}
 .fox-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.fox-actions .btn{padding-inline:7px;font-size:13px}
 .fox-card-tools{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap}.fox-card-head{align-items:flex-start}.fox-card-head>.eyebrow{padding-top:9px}
@@ -44,5 +71,5 @@ body.scenic .flash .face,body.scenic .q{background:rgba(var(--surface-rgb),.98)}
 .flash .tap,.flash .pos{color:var(--muted)}
 body:has(.sess-top) #scene{opacity:.3}
 body:has(.sess-top) #scene *{animation-play-state:paused!important}
-@media(max-width:370px){.fox-pet{width:94px;height:122px}.fox-drawer .fox-pet{width:210px;height:210px}.fox-actions{gap:5px}.fox-actions .btn{padding-inline:4px;font-size:12px}.fox-week{gap:4px}.fox-week span{width:23px;height:23px}.fox-meeting h2{font-size:18px}.progress-overview{gap:12px}.progress-donut{width:96px}.fox-card-head{align-items:stretch;flex-direction:column}.fox-card-tools{justify-content:flex-start}.fox-name-forms{grid-template-columns:1fr}}
+@media(max-width:370px){.fox-grid{gap:7px}.fox-option{padding:7px}.fox-actions{gap:5px}.fox-actions .btn{padding-inline:4px;font-size:12px}.fox-week{gap:4px}.fox-week span{width:23px;height:23px}.fox-meeting h2{font-size:18px}.progress-overview{gap:12px}.progress-donut{width:96px}.fox-card-head{align-items:stretch;flex-direction:column}.fox-card-tools{justify-content:flex-start}.fox-name-forms{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}

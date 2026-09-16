@@ -1,0 +1,222 @@
+{
+  "01-boy-calm_first": {
+    "frames": 145,
+    "start": 2,
+    "bg_first_stable": [
+      66,
+      98,
+      69
+    ],
+    "bg_last": [
+      64,
+      98,
+      68
+    ],
+    "bg_drift_max": 3.0,
+    "best_loop": [
+      2.01,
+      3,
+      142
+    ],
+    "first_stable_vs_last": 2.14,
+    "max_step_after_start": 4.0
+  },
+  "02-girl-warm_first": {
+    "frames": 121,
+    "start": 0,
+    "bg_first_stable": [
+      252,
+      252,
+      252
+    ],
+    "bg_last": [
+      253,
+      253,
+      253
+    ],
+    "bg_drift_max": 1.0,
+    "best_loop": [
+      1.25,
+      1,
+      120
+    ],
+    "first_stable_vs_last": 1.35,
+    "max_step_after_start": 5.83
+  },
+  "03-girl-gentle_attention": {
+    "frames": 145,
+    "start": 10,
+    "bg_first_stable": [
+      131,
+      164,
+      115
+    ],
+    "bg_last": [
+      139,
+      175,
+      123
+    ],
+    "bg_drift_max": 12.0,
+    "best_loop": [
+      0.91,
+      18,
+      144
+    ],
+    "first_stable_vs_last": 4.23,
+    "max_step_after_start": 3.7
+  },
+  "03-girl-gentle_first": {
+    "frames": 97,
+    "start": 1,
+    "bg_first_stable": [
+      69,
+      143,
+      63
+    ],
+    "bg_last": [
+      65,
+      134,
+      62
+    ],
+    "bg_drift_max": 10.0,
+    "best_loop": [
+      2.16,
+      3,
+      95
+    ],
+    "first_stable_vs_last": 4.19,
+    "max_step_after_start": 3.27
+  },
+  "03-girl-gentle_look": {
+    "frames": 97,
+    "start": 7,
+    "bg_first_stable": [
+      125,
+      177,
+      113
+    ],
+    "bg_last": [
+      128,
+      184,
+      118
+    ],
+    "bg_drift_max": 8.0,
+    "best_loop": [
+      0.99,
+      9,
+      91
+    ],
+    "first_stable_vs_last": 2.65,
+    "max_step_after_start": 5.5
+  },
+  "03-girl-gentle_smile": {
+    "frames": 97,
+    "start": 2,
+    "bg_first_stable": [
+      62,
+      99,
+      72
+    ],
+    "bg_last": [
+      62,
+      100,
+      73
+    ],
+    "bg_drift_max": 2.0,
+    "best_loop": [
+      1.15,
+      9,
+      83
+    ],
+    "first_stable_vs_last": 1.46,
+    "max_step_after_start": 2.45
+  },
+  "04-boy-bold_attention": {
+    "frames": 97,
+    "start": 1,
+    "bg_first_stable": [
+      83,
+      131,
+      81
+    ],
+    "bg_last": [
+      78,
+      127,
+      76
+    ],
+    "bg_drift_max": 7.0,
+    "best_loop": [
+      1.08,
+      11,
+      87
+    ],
+    "first_stable_vs_last": 3.3,
+    "max_step_after_start": 5.51
+  },
+  "04-boy-bold_first": {
+    "frames": 145,
+    "start": 1,
+    "bg_first_stable": [
+      73,
+      104,
+      76
+    ],
+    "bg_last": [
+      74,
+      106,
+      77
+    ],
+    "bg_drift_max": 2.0,
+    "best_loop": [
+      1.38,
+      1,
+      142
+    ],
+    "first_stable_vs_last": 1.43,
+    "max_step_after_start": 4.34
+  },
+  "04-boy-bold_look": {
+    "frames": 97,
+    "start": 2,
+    "bg_first_stable": [
+      86,
+      112,
+      69
+    ],
+    "bg_last": [
+      87,
+      113,
+      70
+    ],
+    "bg_drift_max": 2.0,
+    "best_loop": [
+      1.37,
+      5,
+      96
+    ],
+    "first_stable_vs_last": 1.47,
+    "max_step_after_start": 5.87
+  },
+  "04-boy-bold_smile": {
+    "frames": 97,
+    "start": 2,
+    "bg_first_stable": [
+      84,
+      120,
+      86
+    ],
+    "bg_last": [
+      82,
+      119,
+      86
+    ],
+    "bg_drift_max": 3.0,
+    "best_loop": [
+      1.03,
+      10,
+      95
+    ],
+    "first_stable_vs_last": 1.2,
+    "max_step_after_start": 2.87
+  }
+}

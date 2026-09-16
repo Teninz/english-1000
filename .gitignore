@@ -5,9 +5,16 @@ Free/
 apk/
 *.zip
 dist/
+output/
+tools/__pycache__/
 art/companion-anim-frames/
 tools/companion-source/layer-prototype-v1/frames/
 tools/companion-source/layer-prototype-v1/preview.html
+# кадры и пробы лис v2 воспроизводятся скриптами из art/companion-references; в Git только скрипты, analysis.json и summary.json
+tools/companion-source/clips-v1/*/
+tools/companion-source/clips-v1/export/
+tools/companion-source/clips-v1/export-tests/
+tools/companion-source/scene-tests/
 android/signing.keystore
 android/keystore.properties
 android/app/build/

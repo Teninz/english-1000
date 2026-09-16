@@ -57,7 +57,22 @@ const LearningCore = (() => {
     const suggested=petNameForms(name,sex,decline), incoming=object(value?.forms)?value.forms:{};
     return {sex,name,decline,forms:Object.fromEntries(petFormKeys.map(k=>[k,typeof incoming[k]==="string"&&incoming[k].trim()?incoming[k].normalize("NFKC").replace(/\s+/g," ").trim().slice(0,32):suggested[k]]))};
   }
-  const petEmpty = () => ({completed:{},fed:0,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null,identity:petIdentityEmpty()});
+  // Лисы v2: 03 и 04 доступны с четырьмя реакциями, 01 и 02 показываются приглушённо до следующих версий.
+  const petFoxes = [
+    {id:"03-girl-gentle",sex:"female",title:"Тихая",available:true,states:["idle","look","notice","blink"]},
+    {id:"04-boy-bold",sex:"male",title:"Смелый",available:true,states:["idle","look","notice","blink"]},
+    {id:"01-boy-calm",sex:"male",title:"Спокойный",available:false,states:["idle"]},
+    {id:"02-girl-warm",sex:"female",title:"Тёплая",available:false,states:["idle"]}
+  ];
+  const petFox = id => petFoxes.find(f=>f.id===id) || null;
+  const petEmpty = () => ({completed:{},fed:0,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null,identity:petIdentityEmpty(),fox:null,adopted:null});
+  // Родное хранилище Android возвращает только известные ему поля: выбор лисы и дата встречи переносятся из прежнего снимка.
+  function petKeepChoice(next, previous) {
+    if(!object(next))return next;
+    if(next.fox===undefined&&previous?.fox)next.fox=previous.fox;
+    if(next.adopted===undefined&&previous?.adopted)next.adopted=previous.adopted;
+    return next;
+  }
   const petSex = pet => petIdentity(pet?.identity).sex;
   function petTerm(pet, form="nom") {
     const identity=petIdentity(pet?.identity), key=petFormKeys.includes(form)?form:"nom";
@@ -228,6 +243,10 @@ const LearningCore = (() => {
         if(!petFormKeys.every(k=>identity.forms[k]===undefined||(typeof identity.forms[k]==="string"&&identity.forms[k].length<=32)))fail();
       }
       o.companion.identity=petIdentity(identity);
+      if(o.companion.fox!==undefined&&o.companion.fox!==null&&!petFox(o.companion.fox))fail();
+      if(o.companion.adopted!==undefined&&o.companion.adopted!==null&&!dateOK(o.companion.adopted))fail();
+      if(o.companion.fox===undefined)o.companion.fox=null;
+      if(o.companion.adopted===undefined)o.companion.adopted=null;
     }
     o.thematic=o.thematic||thematicEmpty();
     if(!object(o.thematic)||!object(o.thematic.settings)||!object(o.thematic.topics)||!object(o.thematic.equipmentRewards))fail();
@@ -279,6 +298,6 @@ const LearningCore = (() => {
     o.set = JSON.parse(JSON.stringify(current.set || {auto:true}));
     return o;
   }
-  return {intervals,dateOK,norm,englishForms,englishMatch,schedule,empty,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
+  return {intervals,dateOK,norm,englishForms,englishMatch,schedule,empty,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
 })();
 if (typeof module !== "undefined") module.exports = LearningCore;

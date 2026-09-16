@@ -140,13 +140,13 @@ if (NATIVE) {
   window.syncCompanion = () => companionQueue(async()=>{
     journeyState();
     const r=await NATIVE.P.Widget.companionSync({state:S.companion});
-    S.companion=r.state;
+    S.companion=LearningCore.petKeepChoice(r.state,S.companion);
     for(const day of Object.keys(r.state.completed))S.journey.completed[day]=1;
     origSave();
     if(companionDrawerOpen()&&!inSession&&!$(".scrim"))openCompanion();
     return r.state;
   }).catch(()=>{toast("Не удалось синхронизировать лису с виджетом");});
-  window.nativeCompanionAction = action => companionQueue(()=>NATIVE.P.Widget.companionAction({action}));
+  window.nativeCompanionAction = action => companionQueue(async()=>{const r=await NATIVE.P.Widget.companionAction({action});r.state=LearningCore.petKeepChoice(r.state,S.companion);return r;});
   window.resetCompanion = () => companionQueue(()=>NATIVE.P.Widget.companionReset()).catch(()=>toast("Не удалось сбросить виджет лисы"));
   window.shareProgressFile = content => NATIVE.P.Widget.shareProgress({content});
   window.pinCompanion = async()=>{const r=await NATIVE.P.Widget.companionPin();if(!r.supported)toast("Удерживай рабочий стол → Виджеты → ShadowFox → Лиса-компаньон");};
