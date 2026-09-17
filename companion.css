@@ -28,6 +28,10 @@ body.fox-drawer-open #overlay .scrim{z-index:60}
 .fox-stage.mood-2 .fox-actor,.fox-stage.mood-3 .fox-actor{filter:saturate(.7) brightness(.82)}
 .fox-stage.mood-1 .fox-actor{filter:saturate(.88) brightness(.93)}
 .fox-beta{margin:-2px 0 10px}
+/* Загрузка набора анимаций (APK): клипы хранятся в памяти приложения, а не в пакете */
+.fox-pack{display:grid;gap:8px;margin:0 0 12px;padding:12px;border:1px dashed var(--line);border-radius:12px;background:var(--surface-2)}
+.fox-pack b{font-size:14px}.fox-pack p{margin:0}
+.fox-pack-bar{height:8px;border-radius:9px;background:var(--surface);overflow:hidden}.fox-pack-bar i{display:block;height:100%;background:var(--accent);border-radius:inherit;transition:width .3s}
 /* Выбор спутника */
 .fox-choose h2{margin:4px 0 8px}
 .fox-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}

@@ -153,6 +153,62 @@ if (NATIVE) {
   NATIVE.app.addListener("appStateChange",s=>{if(s.isActive)syncCompanion();});
   syncCompanion();
 
+  // --- набор анимаций лисы: скачивается по кнопке и хранится в приватной папке приложения (как контент в играх) ---
+  // Файлы берутся с GitHub Releases по версии из manifest.js; в APK лежат только постеры. Пока набора нет — лиса неподвижна.
+  window.foxPackStore = (() => {
+    const FS = NATIVE.P.Filesystem, KEY = "foxPack", DIR = "DATA";
+    const pack = () => (typeof FOX_PACK !== "undefined" ? FOX_PACK : {version:0});
+    const base = () => pack().base || `https://github.com/Teninz/english-1000/releases/download/fox-pack-${pack().version}/`;
+    const flat = path => path.split("/").join("__");
+    const local = path => `fox-pack/${pack().version}/${flat(path)}`;
+    const record = () => { try { return JSON.parse(localStorage.getItem(KEY) || "null") || {}; } catch (e) { return {}; } };
+    const save = r => localStorage.setItem(KEY, JSON.stringify(r));
+    let urls = {}, state = "missing", percent = 0, error = "";
+    async function init() {
+      const r = record();
+      if (!FS) { state = "missing"; return; }
+      if (r.version !== pack().version) { state = r.version ? "stale" : "missing"; return; }
+      const files = foxPackFiles();
+      const next = {};
+      for (const f of files) {
+        try { await FS.stat({ path: local(f.path), directory: DIR }); const u = await FS.getUri({ path: local(f.path), directory: DIR }); next[f.path] = NATIVE.C.convertFileSrc(u.uri); }
+        catch (e) { state = "missing"; return; }
+      }
+      urls = next; state = "ready";
+    }
+    async function download(onProgress) {
+      if (!FS || state === "downloading") return;
+      state = "downloading"; percent = 0; error = "";
+      const files = foxPackFiles(), total = Math.max(1, files.reduce((s, f) => s + f.kb * 1024, 0));
+      let done = 0, current = 0;
+      const handle = await FS.addListener("progress", p => { current = p.bytes || 0; const pct = Math.min(99, Math.round((done + current) / total * 100)); if (pct !== percent) { percent = pct; onProgress && onProgress(pct); } });
+      try {
+        for (const f of files) {
+          let exists = false;
+          try { const st = await FS.stat({ path: local(f.path), directory: DIR }); exists = st.size > 1000; } catch (e) {}
+          if (!exists) await FS.downloadFile({ url: base() + flat(f.path), path: local(f.path), directory: DIR, recursive: true, progress: true });
+          done += f.kb * 1024; current = 0;
+          percent = Math.min(99, Math.round(done / total * 100)); onProgress && onProgress(percent);
+        }
+        save({ version: pack().version, day: today() });
+        await init();
+        if (state !== "ready") throw new Error("Файлы не прошли проверку после загрузки");
+        percent = 100; onProgress && onProgress(100);
+      } catch (e) {
+        state = record().version === pack().version ? "ready" : "missing";
+        error = "Не удалось загрузить: " + (e && e.message ? e.message : "проверь интернет") ;
+        if (state === "ready") await init();
+        throw e;
+      } finally { handle.remove(); }
+    }
+    async function remove() {
+      try { await FS.rmdir({ path: "fox-pack", directory: DIR, recursive: true }); } catch (e) {}
+      localStorage.removeItem(KEY); urls = {}; state = "missing"; percent = 0;
+    }
+    init().then(() => { if (state === "ready" && companionDrawerOpen() && !inSession && !$(".scrim")) { closeCompanion(); openCompanion(); } });
+    return { ready: () => state === "ready", url: path => urls[path] || null, status: () => ({ state, percent, error }), download, remove };
+  })();
+
   // --- ежедневное напоминание (настраивается в настройках через S.set.remind = "HH:MM" | null) ---
   window.scheduleReminder = async function () {
     try {

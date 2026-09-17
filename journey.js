@@ -12,7 +12,20 @@ const FOX_REWARDS = [
 const FOX_V2_DIR = "art/companion-v2";
 const foxPack = () => (typeof FOX_PACK !== "undefined" ? FOX_PACK : {fps:24,foxes:{},scene:{periods:{},transitions:{}}});
 const foxPackFox = fox => foxPack().foxes[fox?.id] || {clips:{}};
-const foxClipNames = fox => Object.keys(foxPackFox(fox).clips || {});
+// В APK клипы не упакованы: их скачивает и хранит native.js (window.foxPackStore), пока набора нет — постеры.
+// На сайте файлы лежат рядом с приложением, хранилище не нужно.
+const foxPackReady = () => !window.foxPackStore || window.foxPackStore.ready();
+const foxPackUrl = path => window.foxPackStore ? window.foxPackStore.url(path) : `${FOX_V2_DIR}/${path}`;
+// Список файлов набора: [{path, kb}] — по нему идут загрузка, проверка и подсчёт размера.
+function foxPackFiles(){
+  const pack=foxPack(), files=[];
+  for(const [fox,f] of Object.entries(pack.foxes||{}))for(const [clip,c] of Object.entries(f.clips||{}))files.push({path:`${fox}/${clip}.webm`,kb:c.kb||0});
+  for(const loops of Object.values(pack.scene?.periods||{}))for(const l of loops)files.push({path:`scene/${l.file}.webm`,kb:l.kb||0});
+  for(const [name,tr] of Object.entries(pack.scene?.transitions||{}))files.push({path:`scene/${name}.webm`,kb:tr.kb||0});
+  return files;
+}
+const foxPackMb = () => Math.max(1,Math.round(foxPackFiles().reduce((s,f)=>s+f.kb,0)/1024));
+const foxClipNames = fox => foxPackReady() ? Object.keys(foxPackFox(fox).clips || {}) : [];
 // Время суток по часам устройства: 07:30 утро, 12:30 день, 19:30 вечер, 23:30 ночь.
 const FOX_PERIOD_ORDER = ["morning","day","evening","night"];
 const FOX_PERIOD_NAMES = {morning:"утро",day:"день",evening:"вечер",night:"ночь"};
@@ -31,12 +44,12 @@ const foxStill = () => foxReducedMotion() || S.set?.motion===false;
 const foxMoodAnimation = mood => ["idle","quiet","sad","withdrawn"][mood] || "idle";
 const foxCurrent = () => LearningCore.petFox(S.companion?.fox);
 const foxReady = () => !!(foxCurrent() && foxIdentity().name);
-const foxAsset = (fox,clip) => `${FOX_V2_DIR}/${fox.id}/${clip}.webm`;
+const foxAsset = (fox,clip) => foxPackUrl(`${fox.id}/${clip}.webm`);
 const foxPoster = (fox,kind="") => `${FOX_V2_DIR}/${fox.id}/poster${kind?"-"+kind:""}.webp`;
-const foxSceneLoops = period => (foxPack().scene?.periods?.[period]||[]).map(x=>x.file);
-const foxSceneSrc = file => `${FOX_V2_DIR}/scene/${file}.webm`;
+const foxSceneLoops = period => foxPackReady() ? (foxPack().scene?.periods?.[period]||[]).map(x=>x.file) : [];
+const foxSceneSrc = file => foxPackUrl(`scene/${file}.webm`);
 const foxScenePoster = period => `${FOX_V2_DIR}/scene/${period}.webp`;
-const foxHasClip = (fox,clip) => !!foxPackFox(fox).clips?.[clip];
+const foxHasClip = (fox,clip) => foxPackReady() && !!foxPackFox(fox).clips?.[clip];
 const foxPreviewClip = fox => foxHasClip(fox,"calm1") ? "calm1" : foxClipNames(fox)[0] || null;
 
 const foxPrevPeriod = period => FOX_PERIOD_ORDER[(FOX_PERIOD_ORDER.indexOf(period)+3)%4];
@@ -52,7 +65,7 @@ function foxStageHtml(fox,mood,alt){
   // Спит, если сейчас ночь и переходить не нужно, либо если прошлый визит был ночью — тогда проснётся на глазах.
   const asleep=hasSleep&&(change?change.seen==="night":period==="night");
   const loops=foxSceneLoops(period), loop=loops[Math.floor(Math.random()*loops.length)];
-  const transition=change&&foxPack().scene?.transitions?.[`${change.hop}-${period}`]?`${change.hop}-${period}`:null;
+  const transition=change&&foxPackReady()&&foxPack().scene?.transitions?.[`${change.hop}-${period}`]?`${change.hop}-${period}`:null;
   const scene=foxStill()||!loop
     ? `<img class="fox-scene on" src="${foxScenePoster(period)}" alt="">`
     : `<video class="fox-scene on" src="${transition?foxSceneSrc(transition):foxSceneSrc(loop)}" poster="${foxScenePoster(transition?change.hop:period)}" autoplay muted ${transition?"":"loop"} playsinline disablepictureinpicture></video><video class="fox-scene" muted playsinline preload="auto" disablepictureinpicture ${transition?`src="${foxSceneSrc(loop)}" loop`:""}></video>`;
@@ -196,7 +209,7 @@ function foxSceneChange(from,to){
     el.oncanplay=()=>{el.oncanplay=null; el.classList.add("on"); el.play?.().catch?.(()=>{}); active.classList.remove("on"); active.pause(); el.onended=onEnd||null;};
   };
   const transition=foxPeriodTransition(from,to);
-  if(transition&&foxPack().scene?.transitions?.[transition]&&loop){
+  if(transition&&foxPackReady()&&foxPack().scene?.transitions?.[transition]&&loop){
     swap(idle,foxSceneSrc(transition),false,()=>{
       active.loop=true; active.src=foxSceneSrc(loop); active.load();
       active.oncanplay=()=>{active.oncanplay=null; active.classList.add("on"); active.play?.().catch?.(()=>{}); idle.classList.remove("on"); idle.pause();};
@@ -229,6 +242,21 @@ function maybeCompleteLesson(results){
 function activeStreak(){ return S.streak.last && S.streak.last >= addDays(today(),-1) ? S.streak.n : 0; }
 function activityCount(){ return Object.keys(dayRec().words || {}).length; }
 function memoryCount(){ return Object.keys(dayRec().remembered || {}).length; }
+// Блок загрузки набора анимаций (только в APK): кнопка с размером, прогресс, обновление и удаление.
+function foxPackCardHtml(){
+  const store=window.foxPackStore; if(!store)return "";
+  const mb=foxPackMb(), st=store.status();
+  if(st.state==="downloading")return `<div class="fox-pack" id="foxPack"><div class="row between"><b>Загружаем анимации…</b><span class="small muted" id="foxPackPct">${st.percent}%</span></div><div class="fox-pack-bar"><i style="width:${st.percent}%"></i></div><p class="small muted">Файлы сохраняются в памяти приложения; при обрыве загрузка продолжится с того же места.</p></div>`;
+  if(st.state==="ready")return `<div class="fox-pack" id="foxPack"><div class="row between"><span class="small muted">Анимации загружены · ${mb} МБ</span><button class="btn ghost small" id="foxPackRemove">Удалить</button></div></div>`;
+  const update=st.state==="stale";
+  return `<div class="fox-pack" id="foxPack"><b>${update?"Доступно обновление анимаций":"Анимации лисы не загружены"}</b><p class="small muted">${update?"Набор изменился — нужно скачать новые файлы.":"Клипы лисы и живой фон не входят в приложение, чтобы оно оставалось лёгким. Загрузка один раз, нужен интернет."}</p>${st.error?`<p class="small" style="color:var(--bad)">${esc(st.error)}</p>`:""}<button class="btn block" id="foxPackDownload">${update?"Обновить":"Загрузить"} · ${mb} МБ</button></div>`;
+}
+function wireFoxPack(){
+  const store=window.foxPackStore; if(!store)return;
+  const rerender=()=>{if(companionDrawerOpen()&&!inSession&&!$(".scrim")){closeCompanion();openCompanion();}};
+  if($("#foxPackDownload"))$("#foxPackDownload").onclick=()=>{store.download(p=>{const pct=$("#foxPackPct"),bar=$("#foxPack .fox-pack-bar i");if(pct)pct.textContent=`${p}%`;if(bar)bar.style.width=`${p}%`;}).then(rerender).catch(()=>rerender());rerender();};
+  if($("#foxPackRemove"))$("#foxPackRemove").onclick=()=>confirmSheet("Удалить анимации?","Лиса останется, но будет показываться неподвижной картинкой, пока набор не загрузить снова.","Удалить",()=>store.remove().then(rerender),true);
+}
 function companionCardHtml(){
   const j = journeyState(), p = LearningCore.petMood(S.companion,today());
   const male=foxMale(), who=foxWhoCap(), pronoun=foxPronoun();
@@ -243,6 +271,7 @@ function companionCardHtml(){
   return `<section class="card companion" id="companionCard">
     <div class="row between fox-card-head"><div class="eyebrow">${male?"Твой":"Твоя"} ${esc(foxWho())}</div><div class="fox-card-tools"><button class="btn ghost small" id="foxIdentity">Имя и образ</button><button class="btn ghost small" id="foxCollection">Коллекция · ${Object.keys(j.rewards).length}/${FOX_REWARDS.length}</button></div></div>
     <div class="fox-meeting">${foxStageHtml(foxCurrent(),p.mood,`${who}: ${moods[p.mood]}`)}<div><h2>${moods[p.mood]}</h2><p class="small muted">${esc(texts[p.mood])}</p></div></div>
+    ${foxPackCardHtml()}
     <p class="small muted fox-beta">Бета-версия компаньона: лиса живёт по часам телефона — утро, день, вечер и ночной сон. Позже будут открываться новые взаимодействия, предметы и домики.</p>
     <p class="small fox-response" id="foxResponse" role="status" aria-live="polite">${memoryCount() ? `Сегодня ты вспомнил ${plural(memoryCount(),"слово","слова","слов")} после перерыва.` : "Вода всегда доступна. Первое занятие дня приносит одно угощение."}</p>
     <div class="fox-actions"><button class="btn secondary" id="foxFeed" ${p.mood===3 || !p.treats ? "disabled":""}>Угостить · ${p.treats}</button><button class="btn secondary" id="foxWater" ${p.mood===3?"disabled":""}>Напоить</button><button class="btn secondary" id="foxPet" ${p.mood===3?"disabled":""}>Погладить</button></div>
@@ -302,7 +331,7 @@ function openCompanion(options={}){
   $(".fox-drawer-scrim").onclick=e=>{if(e.target===e.currentTarget)closeCompanion();};
   if($("#hJourney"))$("#hJourney").onclick=journeyStart;
   if(choose){wireCompanionChooser();$("#foxDrawerClose").focus();return;}
-  wireCompanion();
+  wireCompanion(); wireFoxPack();
   foxPlayerStart();
   if(options.celebrate)playFoxAnimation("happy");
   $("#foxDrawerClose").focus();

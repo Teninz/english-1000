@@ -229,6 +229,23 @@ test('лисы v2: набор клипов, постеры и суточный �
   assert.ok(read('sw.js').includes('importScripts("./art/companion-v2/manifest.js")'));
   assert.ok(read('index.html').includes('<script src="art/companion-v2/manifest.js"></script>'));
   assert.ok(read('tools/build-web.js').includes('"companion-references"'));
+  // в APK клипов нет: их скачивает foxPackStore с GitHub Releases; сайт отдаёт файлы из репозитория
+  assert.ok(read('tools/build-web.js').includes('src.endsWith(".webm")'));
+  assert.equal(read('sw.js').includes('.webm`'),false,'service worker не должен предзагружать клипы');
+  const native=read('native.js');assert.ok(native.includes('window.foxPackStore'));assert.ok(native.includes('releases/download/fox-pack-'));assert.ok(native.includes('FS.downloadFile'));
+  assert.ok(read('package.json').includes('@capacitor/filesystem'));
+  const run=app();run(read('art/companion-v2/manifest.js'));
+  const files=run('JSON.stringify(foxPackFiles())');assert.equal(JSON.parse(files).length,Object.keys(manifest.foxes['04-boy-bold'].clips).length+Object.values(manifest.scene.periods).flat().length+Object.keys(manifest.scene.transitions).length);
+  assert.ok(JSON.parse(files).every(f=>f.kb>0&&(f.path.startsWith('04-boy-bold/')||f.path.startsWith('scene/'))));
+  assert.equal(run('foxPackReady()'),true,'без хранилища (сайт) набор считается доступным');
+  run('window.foxPackStore={ready:()=>false,url:()=>null,status:()=>({state:"missing",percent:0,error:""})}');
+  assert.equal(run('foxPackReady()'),false);assert.equal(run('foxClipNames(LearningCore.petFox("04-boy-bold")).length'),0);
+  assert.ok(run('S.companion=LearningCore.petEmpty();S.companion.fox="04-boy-bold";S.companion.identity=LearningCore.petIdentity({sex:"male",name:"Фокс"});journeyState();foxStageHtml(foxCurrent(),0,"x")').includes('<img class="fox-clip on"'),'без набора — постер');
+  assert.ok(run('foxPackCardHtml()').includes('id="foxPackDownload"'));
+  run('window.foxPackStore={ready:()=>true,url:p=>"file://"+p,status:()=>({state:"ready",percent:100,error:""})}');
+  assert.equal(run('foxAsset(foxCurrent(),"calm1")'),'file://04-boy-bold/calm1.webm');
+  assert.ok(run('foxPackCardHtml()').includes('id="foxPackRemove"'));
+  run('delete window.foxPackStore');
 });
 test('время суток лисы берётся из часов устройства, переход показывается один раз при смене периода',()=>{
   const run=app();
