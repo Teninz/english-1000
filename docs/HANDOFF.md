@@ -1,19 +1,19 @@
 # ShadowFox Eng — журнал решений и курс дальше
 
-Обновлено: 15 сентября 2026. Читать в начале нового чата вместе с `docs/SRS.md`. Для сборки текущей тестовой APK использовать `docs/TEST_APK_HANDOFF-1.0.3.5.md`.
+Обновлено: 17 сентября 2026. Читать в начале нового чата вместе с `docs/SRS.md`. Для сборки текущей тестовой APK использовать `docs/TEST_APK_HANDOFF-1.0.3.5.md`.
 
 ## Где что лежит
 
 | Что | Где |
 |---|---|
-| Проект | `C:\Claude\english-1000\` (основная машина) / `E:\english-1000\english-1000\` (вторая машина, без git/node/JDK, есть Python 3.14) |
+| Проект | `C:\Claude\english-1000\` (основная машина) / `E:\english-1000\english-1000\` (вторая машина: git, node, Python 3.14; JDK нет — APK только через GitHub Actions, запуск `python tools/gh-actions.py dispatch <ветка>`) |
 | Веб-часть (единый код для сайта и APK) | `index.html`, `words-a.js`, `words-b.js`, `ex-ru.js`, `scenes.js`, `tts.js`, `ach.js`, `daily.js`, `about.js`, `native.js`, `sw.js`, `manifest.json` |
 | Android-оболочка (Capacitor 8) | `android/` — `app/src/main/java/io/github/teninz/shadowfox/`: `MainActivity.java`, `WordWidget.kt`, `WidgetPlugin.java`, `SpeakService.kt`, `RoadService.kt`, `RoadPlugin.java` |
 | Сборка веб-части в APK | `tools/build-web.js` → `dist/` (в gitignore) |
 | Иконки / логотип | `tools/make-icons.ps1`, `tools/make-logo.ps1`, `tools/make-android-icons.ps1` (PowerShell с BOM) из `art/shadowfox.png` (профиль) и `art/shadowfox-front.png` (анфас) |
 | Облачная сборка | `.github/workflows/android.yml` — на каждый пуш в `main`; артефакт `ShadowFoxEng-<версия>` (APK + AAB) |
 | Ключ подписи | `apk/signing.keystore` + `apk/signing-key-info.txt` (в gitignore, **хранить!**); копии в секретах GitHub `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` |
-| Готовые APK | `apk/ShadowFoxEng-*.apk`; последняя выпущенная — `1.0.3.2`, текущая рабочая — `1.0.3.5` |
+| Готовые APK | `apk/ShadowFoxEng-*.apk`; последняя выпущенная — `1.0.3.2`, текущая рабочая — `1.0.3.6` (лисы v2, проверена на телефоне) |
 | Лиса-компаньон | `journey.js`, `companion.css`, Android `CompanionStore.kt` / `CompanionWidget.kt`; 2D-пайплайн — `docs/PIXEL_FOX_SPEC.md`, `tools/build-pixel-companion.py` |
 | Тематические маршруты | `thematic-data.js`, `thematic.js`, `thematic.css`; логика и валидация — `learning-core.js`; правила — `docs/THEMATIC_LEARNING_SPEC.md` |
 | Сайт | https://teninz.github.io/english-1000/ (GitHub Pages, репо `Teninz/english-1000`) |
@@ -36,7 +36,7 @@
 
 ## Схема версий
 
-В RuStore загружена **1.0** (TWA-обёртка, PWABuilder). Все последующие сборки — `1.0.x.y`; последняя выпущенная APK — **1.0.3.2**, текущая рабочая версия с пиксельным компаньоном — **1.0.3.5**.
+В RuStore загружена **1.0** (TWA-обёртка, PWABuilder). Все последующие сборки — `1.0.x.y`; последняя выпущенная APK — **1.0.3.2**, текущая рабочая версия с лисами v2 — **1.0.3.6** (проверена на телефоне 17.09, в магазин не отправлялась).
 
 ## Ключевые решения и почему
 
@@ -68,7 +68,7 @@
 
 - **Микрофон в фоне**: проверить на телефонах, что распознавание работает при погашенном экране; у Xiaomi/Huawei/Samsung может потребоваться отключить оптимизацию батареи для приложения — если подтвердится, добавить подсказку в экран «В дороге».
 - **Виджет после обновления**: лаунчер кэширует разметку — иногда нужно удалить и добавить заново или перезагрузить телефон.
-- **Лисы v2 (1.0.3.6)**: воспроизведение VP9 с альфа-каналом в Android WebView не проверено на телефонах — первое, что нужно сделать перед публикацией. Пиксельные папки `art/companion` и `art/companion-anim` исключены из сборки, но лежат в репозитории — можно удалить. На этой машине (E:\) нет `git`, `node` и JDK: тесты (`npm test`) и `npm run build:web` после правок 16.09 не запускались, только ручная проверка в браузере.
+- **Лисы v2 (1.0.3.6)**: VP9 с альфа-каналом и автозапуск `<video>` в Android WebView **проверены на телефоне 17.09** — выбор, имя, реакции и фон работают. Тестовая сборка: `apk/ShadowFoxEng-1.0.3.6.apk` (run 35049959545, ветка `fox-reference-chain`). Для запуска сборки и скачивания артефактов без `gh` есть `tools/gh-actions.py` (использует токен Git Credential Manager). Пиксельные папки `art/companion` и `art/companion-anim` исключены из сборки, но лежат в репозитории — можно удалить. На этой машине (E:\) нет `git`, `node` и JDK: тесты (`npm test`) и `npm run build:web` после правок 16.09 не запускались, только ручная проверка в браузере.
 - **Тематические маршруты**: веб-интерфейс и автоматические тесты готовы; перед выпуском проверить на реальном Android сворачивание, принудительное закрытие и системную кнопку «Назад». Локальный APK пока не собран: на машине нет JDK/`JAVA_HOME`; `npx cap sync android` выполнен.
 - **Piper в WebView**: работает (OPFS), модели с huggingface.co — без доступа к нему скачивание не пройдёт; при необходимости положить модели в репозиторий.
 - **Артефакт claude.ai** (`claude.ai/code/artifact/1dfea440-…`) больше не источник истины и был перезаписан извне — не публиковать без перечитывания.
