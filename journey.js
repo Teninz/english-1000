@@ -59,7 +59,7 @@ function foxStageHtml(fox,mood,alt){
   const actor=foxStill()||!foxClipNames(fox).length
     ? `<img class="fox-clip on" src="${foxPoster(fox,asleep?"sleep":"")}" alt="${esc(alt)}">`
     : `<video class="fox-clip" muted playsinline preload="auto" disablepictureinpicture aria-label="${esc(alt)}" poster="${foxPoster(fox,asleep?"sleep":"")}"></video><video class="fox-clip" muted playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>`;
-  return `<div class="fox-stage mood-${mood}" id="foxStage" data-mood="${mood}" data-period="${period}" data-mode="${asleep?"asleep":"awake"}" data-from="${change?change.seen:""}" data-transition="${transition||""}" title="${FOX_PERIOD_NAMES[period]}">${scene}<div class="fox-actor">${actor}</div></div>`;
+  return `<div class="fox-stage mood-${mood}" id="foxStage" data-mood="${mood}" data-period="${period}" data-mode="${asleep?"asleep":"awake"}" data-zoom="${asleep?"in":"out"}" data-from="${change?change.seen:""}" data-transition="${transition||""}" title="${FOX_PERIOD_NAMES[period]}">${scene}<div class="fox-actor">${actor}</div></div>`;
 }
 
 // --- плеер ---
@@ -92,6 +92,13 @@ function foxSetMode(mode){
   const s=foxStage(); if(!s)return; s.dataset.mode=mode;
   const img=s.querySelector("img.fox-clip"); if(img)img.src=foxPoster(foxCurrent(),mode==="asleep"?"sleep":"");
 }
+// Наезд «камеры»: фон плавно приближается на протяжении клипа lie-down и отдаляется на wake-up.
+function foxCameraFor(clip){
+  const stage=foxStage(); if(!stage)return;
+  const ms=foxPackFox(foxCurrent()).clips?.[clip]?.ms||0;
+  if(clip==="lie-down"){stage.style.setProperty("--fox-zoom-ms",`${ms}ms`);stage.dataset.zoom="in";}
+  else if(clip==="wake-up"){stage.style.setProperty("--fox-zoom-ms",`${ms}ms`);stage.dataset.zoom="out";}
+}
 // Что играть следующим, если очередь пуста: во сне — петля сна, наяву — случайный спокойный клип.
 function foxAutoClip(){
   const fox=foxCurrent(), names=foxClipNames(fox);
@@ -118,6 +125,7 @@ function foxPlayNext(){
   const swap=()=>{
     try{idle.currentTime=0;}catch(e){}
     idle.classList.add("on"); idle.play?.().catch?.(()=>{});
+    foxCameraFor(name);
     if(previous&&previous!==idle){previous.classList.remove("on");previous.pause();}
     foxPlayer.active=idle; foxPlayer.current=name; if(/^calm\d+$/.test(name))foxPlayer.last=name;
     idle.onended=()=>{if(item?.then)item.then();foxPlayNext();};

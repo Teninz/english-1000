@@ -6,7 +6,7 @@
   art/companion-references/03/03-girl-gentle_greenscreen.png   постер запертой лисы 03
 
 Результат:
-  art/companion-v2/04-boy-bold/<clip>.webm      VP9 + альфа, 24 fps, 640x640
+  art/companion-v2/04-boy-bold/<clip>.webm      VP9 + альфа, 24 fps, 768x768 (общий padded-кадр)
   art/companion-v2/04-boy-bold/poster.webp      покой; poster-sleep.webp — сон
   art/companion-v2/03-girl-gentle/poster.webp   только постер (лиса заперта)
   art/companion-v2/scene/<period>-<n>.webm, <period>.webp, <from>-<to>.webm
@@ -37,20 +37,25 @@ FOX = "04-boy-bold"
 
 # range — [от, до) исходных кадров; from/to — какой канонический кадр подшить к началу/концу.
 # kind: loop — крутится сама; oneshot — от покоя к покою, играется целиком; transition — меняет состояние.
+# framing: "padded" — клип сгенерирован по референсам image/padded (лиса ~72 % кадра, есть запас под уши и хвост);
+#          "orig" — по исходным референсам (лиса ~90 % кадра): такие кадры уменьшаются на PAD_SCALE к центру,
+#          что в точности повторяет построение padded-референсов, и попадают в тот же кадр.
 FOX_CLIPS = {
-    "calm1":       {"src": "04-boy-bold_calm1",       "range": [1, 121],  "kind": "oneshot",    "from": "rest",  "to": "rest"},
-    "calm2":       {"src": "04-boy-bold_calm2",       "range": [1, 121],  "kind": "oneshot",    "from": "rest",  "to": "rest"},
-    "calm3":       {"src": "04-boy-bold_calm3",       "range": [1, 121],  "kind": "oneshot",    "from": "rest",  "to": "rest"},
-    "calm4":       {"src": "04-boy-bold_calm4",       "range": [1, 121],  "kind": "oneshot",    "from": "rest",  "to": "rest"},
-    "lie-down":    {"src": "04-boy-bold_lie-down",    "range": [1, 121],  "kind": "transition", "from": "rest",  "to": None},
-    "fall-asleep": {"src": "04-boy-bold_fall-asleep", "range": [0, 121],  "kind": "transition", "from": None,    "to": "sleep"},
-    "sleep":       {"src": "04-boy-bold_sleep",       "range": [6, 103],  "kind": "loop",       "from": None,    "to": None},
-    "sleep-touch": {"src": "04-boy-bold_sleep-touch", "range": [1, 121],  "kind": "oneshot",    "from": "sleep", "to": "sleep"},
-    "wake-up":     {"src": "04-boy-bold_wake-up",     "range": [0, 241],  "kind": "transition", "from": "sleep", "to": "rest"},
+    "calm1":       {"src": "04-boy-bold_calm1",       "range": [1, 124],  "kind": "oneshot",    "from": "rest",  "to": "rest",  "framing": "padded"},
+    "calm2":       {"src": "04-boy-bold_calm2",       "range": [1, 121],  "kind": "oneshot",    "from": "rest",  "to": "rest",  "framing": "orig"},
+    "calm3":       {"src": "04-boy-bold_calm3",       "range": [1, 124],  "kind": "oneshot",    "from": "rest",  "to": "rest",  "framing": "padded"},
+    "calm4":       {"src": "04-boy-bold_calm4",       "range": [1, 124],  "kind": "oneshot",    "from": "rest",  "to": "rest",  "framing": "padded"},
+    "lie-down":    {"src": "04-boy-bold_lie-down",    "range": [1, 121],  "kind": "transition", "from": "rest",  "to": None,    "framing": "padded"},
+    "fall-asleep": {"src": "04-boy-bold_fall-asleep", "range": [0, 121],  "kind": "transition", "from": None,    "to": "sleep", "framing": "orig"},
+    "sleep":       {"src": "04-boy-bold_sleep",       "range": [6, 103],  "kind": "loop",       "from": None,    "to": None,    "framing": "orig"},
+    "sleep-touch": {"src": "04-boy-bold_sleep-touch", "range": [1, 121],  "kind": "oneshot",    "from": "sleep", "to": "sleep", "framing": "orig"},
+    "wake-up":     {"src": "04-boy-bold_wake-up",     "range": [0, 241],  "kind": "transition", "from": "sleep", "to": "rest",  "framing": "padded"},
 }
-REST = ("04-boy-bold_calm1", 0)   # канонический покой
-SLEEP = ("04-boy-bold_sleep", 6)  # канонический сон
+REST = ("04-boy-bold_calm1", 0, "padded")   # канонический покой
+SLEEP = ("04-boy-bold_sleep", 6, "orig")    # канонический сон
 BLEND_IN, BLEND_OUT = 4, 6        # кадров растворения в начале и в конце
+CANVAS = 768                      # общий холст (разрешение новых клипов)
+PAD_SCALE = 0.72                  # см. art/companion-references/04/image/padded
 
 PERIODS = ["morning", "day", "evening", "night"]
 TRANSITIONS = ["morning-day", "day-evening", "evening-night", "night-morning"]
@@ -67,9 +72,22 @@ KEY = load_module("key-companion-clips")
 V2 = load_module("build-companion-v2")
 
 
-def keyed(clip, index):
+def keyed(clip, index, framing="padded"):
     rgb = np.asarray(Image.open(CLIPS / clip / "frames" / f"{index:03d}.png").convert("RGB"))
-    return Image.fromarray(KEY.key_frame(rgb, KEY.border_color(rgb)))
+    im = Image.fromarray(KEY.key_frame(rgb, KEY.border_color(rgb)))
+    return to_canvas(im, framing)
+
+
+def to_canvas(im, framing):
+    """Приводит кадр к общему холсту CANVAS×CANVAS в padded-кадрировании."""
+    scale = (PAD_SCALE if framing == "orig" else 1.0) * CANVAS / im.width
+    size = max(1, round(im.width * scale))
+    small = im.resize((size, size), Image.LANCZOS) if size != im.width else im
+    if size == CANVAS:
+        return small
+    canvas = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
+    canvas.paste(small, ((CANVAS - size) // 2, (CANVAS - size) // 2))
+    return canvas
 
 
 def blend(a, b, count):
@@ -87,7 +105,7 @@ def build_fox(crf, manifest):
     anchors = {"rest": keyed(*REST), "sleep": keyed(*SLEEP)}
     entry = {"sex": "male", "size": list(anchors["rest"].size), "clips": {}}
     for name, spec in FOX_CLIPS.items():
-        body = [keyed(spec["src"], i) for i in range(*spec["range"])]
+        body = [keyed(spec["src"], i, spec["framing"]) for i in range(*spec["range"])]
         frames = []
         if spec["from"]:
             frames += [anchors[spec["from"]]] + blend(anchors[spec["from"]], body[0], BLEND_IN)
@@ -97,7 +115,7 @@ def build_fox(crf, manifest):
         path = folder / f"{name}.webm"
         V2.ffmpeg_rgb(frames, path, crf, alpha=True)
         entry["clips"][name] = {"kind": spec["kind"], "frames": len(frames), "ms": round(len(frames) * 1000 / FPS),
-                                "kb": round(path.stat().st_size / 1024)}
+                                "kb": round(path.stat().st_size / 1024), "framing": spec["framing"]}
         print(f"{FOX}/{name}.webm {len(frames)} frames {entry['clips'][name]['kb']} KB")
     anchors["rest"].resize((360, 360), Image.LANCZOS).save(folder / "poster.webp", quality=88, method=6)
     anchors["sleep"].resize((360, 360), Image.LANCZOS).save(folder / "poster-sleep.webp", quality=88, method=6)

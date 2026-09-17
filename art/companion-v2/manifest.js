@@ -18,63 +18,72 @@ const FOX_PACK = {
     "04-boy-bold": {
       "sex": "male",
       "size": [
-        640,
-        640
+        768,
+        768
       ],
       "clips": {
         "calm1": {
           "kind": "oneshot",
-          "frames": 132,
-          "ms": 5500,
-          "kb": 1240
+          "frames": 135,
+          "ms": 5625,
+          "kb": 1846,
+          "framing": "padded"
         },
         "calm2": {
           "kind": "oneshot",
           "frames": 132,
           "ms": 5500,
-          "kb": 1187
+          "kb": 1208,
+          "framing": "orig"
         },
         "calm3": {
           "kind": "oneshot",
-          "frames": 132,
-          "ms": 5500,
-          "kb": 1024
+          "frames": 135,
+          "ms": 5625,
+          "kb": 1540,
+          "framing": "padded"
         },
         "calm4": {
           "kind": "oneshot",
-          "frames": 132,
-          "ms": 5500,
-          "kb": 1222
+          "frames": 135,
+          "ms": 5625,
+          "kb": 1667,
+          "framing": "padded"
         },
         "lie-down": {
           "kind": "transition",
           "frames": 125,
           "ms": 5208,
-          "kb": 1526
+          "kb": 1313,
+          "framing": "padded"
         },
         "fall-asleep": {
           "kind": "transition",
           "frames": 128,
           "ms": 5333,
-          "kb": 821
+          "kb": 656,
+          "framing": "orig"
         },
         "sleep": {
           "kind": "loop",
           "frames": 97,
           "ms": 4042,
-          "kb": 622
+          "kb": 501,
+          "framing": "orig"
         },
         "sleep-touch": {
           "kind": "oneshot",
           "frames": 132,
           "ms": 5500,
-          "kb": 932
+          "kb": 794,
+          "framing": "orig"
         },
         "wake-up": {
           "kind": "transition",
           "frames": 253,
           "ms": 10542,
-          "kb": 2629
+          "kb": 2066,
+          "framing": "padded"
         }
       }
     }
