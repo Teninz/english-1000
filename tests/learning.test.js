@@ -194,31 +194,64 @@ test('награды сохраняются после перерыва и пе�
   assert.equal(core.petMood(s.companion,'2026-10-01').mood,3);assert.equal(core.prepareImport(core.portable(s),core.empty()).journey.rewards.hello,'2026-09-14');
 });
 test('обязательные ресурсы PWA и APK присутствуют',()=>{
-  const ctx={self:{addEventListener(){}},location:{}};vm.createContext(ctx);vm.runInContext(read('sw.js')+';this.files=FILES',ctx);
+  const ctx={self:{addEventListener(){}},location:{},importScripts(file){vm.runInContext(read(file.replace('./','')),ctx);}};vm.createContext(ctx);vm.runInContext(read('sw.js')+';this.files=FILES',ctx);
   for(const file of ctx.files)assert.ok(fs.existsSync(path.join(root,file)),file);
   for(const file of ['learning-core.js','fox-motion.js','journey.js','word-forms.js','progress-storage.js','companion.css','thematic.css','thematic.js','thematic-data.js'])assert.ok(read('tools/build-web.js').includes('"'+file+'"'),file);
 });
-test('лисы v2: каждая объявленная лиса имеет WebM-петли, постер и сцену',()=>{
+test('лисы v2: набор клипов, постеры и суточный цикл сцены соответствуют манифесту',()=>{
   const manifest=JSON.parse(read('art/companion-v2/manifest.json'));
-  const webm=file=>{const data=fs.readFileSync(file);assert.deepEqual([...data.subarray(0,4)],[0x1a,0x45,0xdf,0xa3],file);assert.ok(data.length>10_000&&data.length<2_500_000,file);return data.length;};
+  assert.ok(read('art/companion-v2/manifest.js').startsWith('// Генерируется'));assert.ok(read('art/companion-v2/manifest.js').includes('const FOX_PACK = '));
+  const webm=file=>{const data=fs.readFileSync(file);assert.deepEqual([...data.subarray(0,4)],[0x1a,0x45,0xdf,0xa3],file);assert.ok(data.length>10_000&&data.length<3_500_000,file);return data.length;};
   let total=0;
   for(const fox of core.petFoxes){
-    assert.ok(manifest.foxes[fox.id],fox.id);assert.equal(manifest.foxes[fox.id].sex,fox.sex);
-    for(const state of fox.states){
-      total+=webm(path.join(root,'art','companion-v2',fox.id,state+'.webm'));
-      assert.ok(manifest.foxes[fox.id].states[state].frames>=60,`${fox.id}/${state}`);
-    }
-    const poster=fs.readFileSync(path.join(root,'art','companion-v2',fox.id,'poster.webp'));assert.equal(poster.toString('ascii',0,4),'RIFF');
+    const entry=manifest.foxes[fox.id];assert.ok(entry,fox.id);assert.equal(entry.sex,fox.sex);
+    assert.equal(fs.readFileSync(path.join(root,'art','companion-v2',fox.id,'poster.webp')).toString('ascii',0,4),'RIFF');
+    const clips=Object.keys(entry.clips);
+    if(fox.available)assert.ok(clips.length>=1,`${fox.id}: у доступной лисы должны быть клипы`);
+    else assert.equal(clips.length,0,`${fox.id}: у запертой лисы клипов быть не должно`);
+    const onDisk=fs.readdirSync(path.join(root,'art','companion-v2',fox.id)).filter(f=>f.endsWith('.webm')).map(f=>f.slice(0,-5)).sort();
+    assert.deepEqual(onDisk,clips.slice().sort(),`${fox.id}: файлы на диске не совпадают с манифестом`);
+    for(const [clip,c] of Object.entries(entry.clips)){total+=webm(path.join(root,'art','companion-v2',fox.id,clip+'.webm'));assert.ok(['loop','oneshot','transition'].includes(c.kind),clip);assert.ok(c.frames>=48,clip);}
+    if(entry.clips.sleep)assert.ok(fs.existsSync(path.join(root,'art','companion-v2',fox.id,'poster-sleep.webp')));
   }
-  total+=webm(path.join(root,'art','companion-v2','scene','forest.webm'));
-  assert.ok(fs.existsSync(path.join(root,'art','companion-v2','scene','forest.webp')));
+  const bold=manifest.foxes['04-boy-bold'].clips;
+  for(const clip of ['calm1','calm2','calm3','calm4','lie-down','fall-asleep','sleep','sleep-touch','wake-up'])assert.ok(bold[clip],clip);
+  assert.equal(bold.sleep.kind,'loop');assert.equal(bold['wake-up'].kind,'transition');
+  for(const period of ['morning','day','evening','night']){
+    assert.ok(manifest.scene.periods[period].length>=1,period);
+    assert.ok(fs.existsSync(path.join(root,'art','companion-v2','scene',period+'.webp')),period);
+    for(const loop of manifest.scene.periods[period])total+=webm(path.join(root,'art','companion-v2','scene',loop.file+'.webm'));
+  }
+  for(const name of ['morning-day','day-evening','evening-night','night-morning']){assert.ok(manifest.scene.transitions[name],name);total+=webm(path.join(root,'art','companion-v2','scene',name+'.webm'));}
   const handle=fs.readFileSync(path.join(root,'art','companion-v2','handle.png'));assert.deepEqual([...handle.subarray(0,8)],[137,80,78,71,13,10,26,10]);assert.equal(handle.readUInt32BE(16),192);
-  assert.ok(total<12_000_000,`общий размер петель: ${total}`);
-  const available=core.petFoxes.filter(f=>f.available).map(f=>f.id);
-  assert.deepEqual(available,['03-girl-gentle','04-boy-bold']);
-  for(const id of ['01-boy-calm','02-girl-warm'])assert.equal(core.petFox(id).available,false);
-  const sw=read('sw.js');for(const id of core.petFoxes.map(f=>f.id))assert.ok(sw.includes(id),id);
+  assert.ok(total<18_000_000,`общий размер набора: ${total}`);
+  assert.deepEqual(core.petFoxes.filter(f=>f.available).map(f=>f.id),['04-boy-bold']);
+  assert.ok(read('sw.js').includes('importScripts("./art/companion-v2/manifest.js")'));
+  assert.ok(read('index.html').includes('<script src="art/companion-v2/manifest.js"></script>'));
   assert.ok(read('tools/build-web.js').includes('"companion-references"'));
+});
+test('время суток лисы берётся из часов устройства, переход показывается один раз при смене периода',()=>{
+  const run=app();
+  run(read('art/companion-v2/manifest.js'));
+  const at=(h,m)=>run(`foxPeriod(new Date(2026,8,17,${h},${m}))`);
+  assert.equal(at(7,29),'night');assert.equal(at(7,30),'morning');assert.equal(at(12,29),'morning');assert.equal(at(12,30),'day');
+  assert.equal(at(19,29),'day');assert.equal(at(19,30),'evening');assert.equal(at(23,29),'evening');assert.equal(at(23,30),'night');assert.equal(at(3,0),'night');
+  assert.equal(run('foxPeriodTransition("day","evening")'),'day-evening');assert.equal(run('foxPeriodTransition("night","morning")'),'night-morning');assert.equal(run('foxPeriodTransition("morning","evening")'),null);
+  run('S.companion=LearningCore.petEmpty();S.companion.fox="04-boy-bold";S.companion.identity=LearningCore.petIdentity({sex:"male",name:"Фокс"});journeyState();');
+  assert.equal(run('foxOpenTransition("evening")'),null,'первый визит — без перехода');
+  run('S.journey.foxSeen={day:today(),period:"day"}');
+  assert.equal(JSON.stringify(run('foxOpenTransition("evening")')),'{"seen":"day","hop":"day"}');
+  run('S.journey.foxSeen={day:today(),period:"morning"}');
+  assert.equal(JSON.stringify(run('foxOpenTransition("evening")')),'{"seen":"morning","hop":"day"}','пропущенный период — показывается последний переход');
+  run('S.journey.foxSeen={day:today(),period:"evening"}');
+  assert.equal(run('foxOpenTransition("evening")'),null,'тот же период — без перехода');
+  const html=run('S.journey.foxSeen={day:today(),period:"day"};foxStageHtml(foxCurrent(),0,"x")');
+  assert.ok(/data-transition="(day-evening|evening-night|night-morning|morning-day|)"/.test(html));
+  run('S.journey.foxSeen={day:today(),period:"night"}');
+  const wake=run('foxStageHtml(foxCurrent(),0,"x")');
+  if(run('foxPeriod()')!=='night')assert.ok(wake.includes('data-mode="asleep"'),'после ночного визита лиса просыпается на глазах');
+  assert.ok(run('foxStageHtml(foxCurrent(),0,"x")').includes('poster'));
+  for(const old of ['feed','pet','happy','drink','listen','offended','quiet','sad','withdrawn','sleep','hungry','thirsty','lesson','stretch','yawn'])assert.ok(run(`FOX_V2_ROLE["${old}"]`),old);
 });
 test('выбор лисы и постоянное имя переживают сохранение, импорт и родную синхронизацию',()=>{
   const s=core.empty();s.companion=core.petEmpty();
@@ -235,11 +268,10 @@ test('выбор лисы и постоянное имя переживают с
   const run=app();
   assert.equal(run('S.companion=LearningCore.petEmpty();foxReady()'),false);
   assert.equal(run('S.companion.fox="03-girl-gentle";S.companion.identity=LearningCore.petIdentity({sex:"female",name:"Луна"});foxReady()'),true);
-  assert.equal(run('foxAsset(foxCurrent(),"blink")'),'art/companion-v2/03-girl-gentle/blink.webm');
+  assert.equal(run('foxAsset(foxCurrent(),"calm1")'),'art/companion-v2/03-girl-gentle/calm1.webm');
   assert.ok(run('companionChooserHtml()').includes('Будет добавлено позднее'));
   assert.ok(run('companionChooserHtml()').includes('fox-sex male'));
   assert.ok(run('companionCardHtml()').includes('Бета-версия компаньона'));
-  for(const old of ['feed','pet','happy','drink','listen','offended','quiet','sad','withdrawn','sleep','hungry','thirsty','lesson','stretch','yawn'])assert.ok(['idle','look','notice','blink'].includes(run(`FOX_V2_STATE["${old}"]`)),old);
 });
 test('эталонная цепочка имеет ровную абсолютную шкалу 20 FPS',()=>{
   const plan=JSON.parse(read('tools/companion-source/reference-chain-v1.motion.json'));

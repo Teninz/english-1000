@@ -57,12 +57,13 @@ const LearningCore = (() => {
     const suggested=petNameForms(name,sex,decline), incoming=object(value?.forms)?value.forms:{};
     return {sex,name,decline,forms:Object.fromEntries(petFormKeys.map(k=>[k,typeof incoming[k]==="string"&&incoming[k].trim()?incoming[k].normalize("NFKC").replace(/\s+/g," ").trim().slice(0,32):suggested[k]]))};
   }
-  // Лисы v2: 03 и 04 доступны с четырьмя реакциями, 01 и 02 показываются приглушённо до следующих версий.
+  // Лисы v2: пока открыт только 04 (полный набор клипов 17.09); 01–03 показываются приглушённо до своих наборов.
+  // Состав клипов каждой лисы описывает art/companion-v2/manifest.js, собираемый tools/build-companion-pack.py.
   const petFoxes = [
-    {id:"03-girl-gentle",sex:"female",title:"Тихая",available:true,states:["idle","look","notice","blink"]},
-    {id:"04-boy-bold",sex:"male",title:"Смелый",available:true,states:["idle","look","notice","blink"]},
-    {id:"01-boy-calm",sex:"male",title:"Спокойный",available:false,states:["idle"]},
-    {id:"02-girl-warm",sex:"female",title:"Тёплая",available:false,states:["idle"]}
+    {id:"04-boy-bold",sex:"male",title:"Смелый",available:true},
+    {id:"03-girl-gentle",sex:"female",title:"Тихая",available:false},
+    {id:"01-boy-calm",sex:"male",title:"Спокойный",available:false},
+    {id:"02-girl-warm",sex:"female",title:"Тёплая",available:false}
   ];
   const petFox = id => petFoxes.find(f=>f.id===id) || null;
   const petEmpty = () => ({completed:{},fed:0,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null,identity:petIdentityEmpty(),fox:null,adopted:null});

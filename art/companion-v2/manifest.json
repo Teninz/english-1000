@@ -1,119 +1,195 @@
 {
   "fps": 24,
+  "version": 2,
   "foxes": {
     "01-boy-calm": {
       "sex": "male",
-      "states": {
-        "idle": {
-          "frames": 139,
-          "ms": 5792,
-          "kb": 1311
-        }
-      }
+      "clips": {}
     },
     "02-girl-warm": {
       "sex": "female",
-      "states": {
-        "idle": {
-          "frames": 119,
-          "ms": 4958,
-          "kb": 1604
-        }
-      }
+      "clips": {}
     },
     "03-girl-gentle": {
       "sex": "female",
-      "states": {
-        "idle": {
-          "frames": 92,
-          "ms": 3833,
-          "kb": 968
-        },
-        "look": {
-          "frames": 82,
-          "ms": 3417,
-          "kb": 500
-        },
-        "notice": {
-          "frames": 126,
-          "ms": 5250,
-          "kb": 917
-        },
-        "blink": {
-          "frames": 74,
-          "ms": 3083,
-          "kb": 567
-        }
-      },
-      "toneShift": {
-        "look": [
-          -1.2,
-          -0.0,
-          -0.3
-        ],
-        "notice": [
-          -2.3,
-          0.4,
-          -0.6
-        ],
-        "blink": [
-          -0.3,
-          -0.2,
-          0.2
-        ]
-      }
+      "clips": {}
     },
     "04-boy-bold": {
       "sex": "male",
-      "states": {
-        "idle": {
-          "frames": 141,
-          "ms": 5875,
-          "kb": 1385
+      "size": [
+        640,
+        640
+      ],
+      "clips": {
+        "calm1": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 1240
         },
-        "look": {
-          "frames": 91,
-          "ms": 3792,
-          "kb": 745
+        "calm2": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 1187
         },
-        "notice": {
-          "frames": 76,
-          "ms": 3167,
-          "kb": 662
+        "calm3": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 1024
         },
-        "blink": {
-          "frames": 85,
-          "ms": 3542,
-          "kb": 682
+        "calm4": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 1222
+        },
+        "lie-down": {
+          "kind": "transition",
+          "frames": 125,
+          "ms": 5208,
+          "kb": 1526
+        },
+        "fall-asleep": {
+          "kind": "transition",
+          "frames": 128,
+          "ms": 5333,
+          "kb": 821
+        },
+        "sleep": {
+          "kind": "loop",
+          "frames": 97,
+          "ms": 4042,
+          "kb": 622
+        },
+        "sleep-touch": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 932
+        },
+        "wake-up": {
+          "kind": "transition",
+          "frames": 253,
+          "ms": 10542,
+          "kb": 2629
         }
-      },
-      "toneShift": {
-        "look": [
-          -0.4,
-          -0.4,
-          0.1
-        ],
-        "notice": [
-          -0.0,
-          0.4,
-          0.2
-        ],
-        "blink": [
-          -0.1,
-          0.1,
-          -0.1
-        ]
       }
     }
   },
   "scene": {
-    "file": "forest",
-    "frames": 121,
-    "ms": 5042,
-    "size": [
-      852,
-      480
-    ],
-    "kb": 127
+    "periods": {
+      "morning": [
+        {
+          "file": "morning-1",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            852,
+            480
+          ],
+          "kb": 246
+        },
+        {
+          "file": "morning-2",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            852,
+            480
+          ],
+          "kb": 200
+        }
+      ],
+      "day": [
+        {
+          "file": "day-1",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            852,
+            480
+          ],
+          "kb": 127
+        },
+        {
+          "file": "day-2",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            852,
+            480
+          ],
+          "kb": 137
+        }
+      ],
+      "evening": [
+        {
+          "file": "evening-1",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            854,
+            480
+          ],
+          "kb": 214
+        },
+        {
+          "file": "evening-2",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            854,
+            480
+          ],
+          "kb": 185
+        }
+      ],
+      "night": [
+        {
+          "file": "night-1",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            852,
+            480
+          ],
+          "kb": 131
+        },
+        {
+          "file": "night-2",
+          "frames": 144,
+          "ms": 6000,
+          "size": [
+            1280,
+            720
+          ],
+          "kb": 566
+        }
+      ]
+    },
+    "transitions": {
+      "morning-day": {
+        "frames": 121,
+        "ms": 5042,
+        "kb": 277
+      },
+      "day-evening": {
+        "frames": 121,
+        "ms": 5042,
+        "kb": 213
+      },
+      "evening-night": {
+        "frames": 121,
+        "ms": 5042,
+        "kb": 255
+      },
+      "night-morning": {
+        "frames": 121,
+        "ms": 5042,
+        "kb": 289
+      }
+    }
   }
 }

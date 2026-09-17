@@ -15,6 +15,9 @@ tools/companion-source/clips-v1/*/
 tools/companion-source/clips-v1/export/
 tools/companion-source/clips-v1/export-tests/
 tools/companion-source/scene-tests/
+tools/companion-source/clips-v2/*/
+tools/companion-source/clips-v2/*.png
+tools/companion-source/scene-v2/
 android/signing.keystore
 android/keystore.properties
 android/app/build/

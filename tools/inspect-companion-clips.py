@@ -1,7 +1,7 @@
 """Inspect generated companion clips before chroma keying.
 
-For every MP4 in art/companion-references/01 the script writes into
-tools/companion-source/clips-v1/<clip>/:
+For every MP4 in art/companion-references/01 (or --src DIR) the script writes into
+tools/companion-source/clips-v1/<clip>/ (or --out DIR):
 
 - frames/NNN.png          raw decoded frames
 - contact.png             contact sheet of all frames
@@ -95,10 +95,17 @@ def inspect(path):
 
 
 def main():
+    global OUTPUT
+    args = sys.argv[1:]
+    source = SOURCE
+    if "--src" in args:
+        i = args.index("--src"); source = ROOT / args[i + 1]; del args[i:i + 2]
+    if "--out" in args:
+        i = args.index("--out"); OUTPUT = ROOT / args[i + 1]; del args[i:i + 2]
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    clips = sorted(SOURCE.glob("*.mp4"))
-    if len(sys.argv) > 1:
-        clips = [c for c in clips if any(a in c.name for a in sys.argv[1:])]
+    clips = sorted(source.glob("*.mp4"))
+    if args:
+        clips = [c for c in clips if any(a in c.name for a in args)]
     summary = []
     for clip in clips:
         info = inspect(clip)

@@ -1,0 +1,196 @@
+// Генерируется tools/build-companion-pack.py — не править вручную.
+const FOX_PACK = {
+  "fps": 24,
+  "version": 2,
+  "foxes": {
+    "01-boy-calm": {
+      "sex": "male",
+      "clips": {}
+    },
+    "02-girl-warm": {
+      "sex": "female",
+      "clips": {}
+    },
+    "03-girl-gentle": {
+      "sex": "female",
+      "clips": {}
+    },
+    "04-boy-bold": {
+      "sex": "male",
+      "size": [
+        640,
+        640
+      ],
+      "clips": {
+        "calm1": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 1240
+        },
+        "calm2": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 1187
+        },
+        "calm3": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 1024
+        },
+        "calm4": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 1222
+        },
+        "lie-down": {
+          "kind": "transition",
+          "frames": 125,
+          "ms": 5208,
+          "kb": 1526
+        },
+        "fall-asleep": {
+          "kind": "transition",
+          "frames": 128,
+          "ms": 5333,
+          "kb": 821
+        },
+        "sleep": {
+          "kind": "loop",
+          "frames": 97,
+          "ms": 4042,
+          "kb": 622
+        },
+        "sleep-touch": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 932
+        },
+        "wake-up": {
+          "kind": "transition",
+          "frames": 253,
+          "ms": 10542,
+          "kb": 2629
+        }
+      }
+    }
+  },
+  "scene": {
+    "periods": {
+      "morning": [
+        {
+          "file": "morning-1",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            852,
+            480
+          ],
+          "kb": 246
+        },
+        {
+          "file": "morning-2",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            852,
+            480
+          ],
+          "kb": 200
+        }
+      ],
+      "day": [
+        {
+          "file": "day-1",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            852,
+            480
+          ],
+          "kb": 127
+        },
+        {
+          "file": "day-2",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            852,
+            480
+          ],
+          "kb": 137
+        }
+      ],
+      "evening": [
+        {
+          "file": "evening-1",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            854,
+            480
+          ],
+          "kb": 214
+        },
+        {
+          "file": "evening-2",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            854,
+            480
+          ],
+          "kb": 185
+        }
+      ],
+      "night": [
+        {
+          "file": "night-1",
+          "frames": 121,
+          "ms": 5042,
+          "size": [
+            852,
+            480
+          ],
+          "kb": 131
+        },
+        {
+          "file": "night-2",
+          "frames": 144,
+          "ms": 6000,
+          "size": [
+            1280,
+            720
+          ],
+          "kb": 566
+        }
+      ]
+    },
+    "transitions": {
+      "morning-day": {
+        "frames": 121,
+        "ms": 5042,
+        "kb": 277
+      },
+      "day-evening": {
+        "frames": 121,
+        "ms": 5042,
+        "kb": 213
+      },
+      "evening-night": {
+        "frames": 121,
+        "ms": 5042,
+        "kb": 255
+      },
+      "night-morning": {
+        "frames": 121,
+        "ms": 5042,
+        "kb": 289
+      }
+    }
+  }
+};

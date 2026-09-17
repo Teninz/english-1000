@@ -6,82 +6,194 @@ const FOX_REWARDS = [
   {id:"fourteen",icon:"🫖",name:"Вечерний чай",desc:"Заниматься в четырнадцать разных дней",at:14},
   {id:"thirty",icon:"🏡",name:"Дом для лисы",desc:"Заниматься в тридцать разных дней",at:30}
 ];
-// Лиса v2: видеопетли VP9 с альфа-каналом (art/companion-v2), четыре реакции у доступных лис.
-// Прежние названия анимаций из действий и настроений сводятся к этим четырём состояниям.
+// Лиса v2: набор клипов VP9 с альфа-каналом из art/companion-v2 (описание — FOX_PACK из manifest.js).
+// Каждый клип начинается и заканчивается каноническим кадром покоя или сна, поэтому клипы
+// стыкуются в любом порядке. Плеер держит два <video>: пока один играет, во второй грузится следующий.
 const FOX_V2_DIR = "art/companion-v2";
-const FOX_V2_STATE = {idle:"idle",quiet:"idle",sad:"idle",withdrawn:"idle",sleep:"idle",hungry:"idle",thirsty:"idle",lesson:"idle",stretch:"idle",yawn:"idle",listen:"look",offended:"look",pet:"blink",feed:"blink",happy:"blink",drink:"notice",notice:"notice",look:"look",blink:"blink"};
-const FOX_AMBIENT_MS = [[5000,9000],[9000,15000]]; // паузы между реакциями: настроение 0 и 1; при 2–3 реакций нет
+const foxPack = () => (typeof FOX_PACK !== "undefined" ? FOX_PACK : {fps:24,foxes:{},scene:{periods:{},transitions:{}}});
+const foxPackFox = fox => foxPack().foxes[fox?.id] || {clips:{}};
+const foxClipNames = fox => Object.keys(foxPackFox(fox).clips || {});
+// Время суток по часам устройства: 07:30 утро, 12:30 день, 19:30 вечер, 23:30 ночь.
+const FOX_PERIOD_ORDER = ["morning","day","evening","night"];
+const FOX_PERIOD_NAMES = {morning:"утро",day:"день",evening:"вечер",night:"ночь"};
+function foxPeriod(date=new Date()){
+  const m=date.getHours()*60+date.getMinutes();
+  if(m<450||m>=1410)return "night";
+  if(m<750)return "morning";
+  if(m<1170)return "day";
+  return "evening";
+}
+const foxPeriodTransition = (from,to) => FOX_PERIOD_ORDER.indexOf(to)===(FOX_PERIOD_ORDER.indexOf(from)+1)%4 ? `${from}-${to}` : null;
+// Прежние названия анимаций (действия, настроения) сводятся к ролям набора.
+const FOX_V2_ROLE = {idle:"calm",quiet:"calm2",sad:"calm2",withdrawn:"calm2",sleep:"sleep",hungry:"calm3",thirsty:"calm2",lesson:"calm1",stretch:"calm4",yawn:"calm2",listen:"calm1",offended:"calm2",pet:"calm4",feed:"calm3",happy:"calm3",drink:"calm2",notice:"calm3",look:"calm1",blink:"calm2",calm:"calm"};
 const foxReducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 const foxStill = () => foxReducedMotion() || S.set?.motion===false;
 const foxMoodAnimation = mood => ["idle","quiet","sad","withdrawn"][mood] || "idle";
 const foxCurrent = () => LearningCore.petFox(S.companion?.fox);
 const foxReady = () => !!(foxCurrent() && foxIdentity().name);
-const foxAsset = (fox,state) => `${FOX_V2_DIR}/${fox.id}/${state}.webm`;
-const foxPoster = fox => `${FOX_V2_DIR}/${fox.id}/poster.webp`;
-function foxSceneHtml(){
-  return foxStill() ? `<img class="fox-scene" src="${FOX_V2_DIR}/scene/forest.webp" alt="">` : `<video class="fox-scene" src="${FOX_V2_DIR}/scene/forest.webm" poster="${FOX_V2_DIR}/scene/forest.webp" autoplay muted loop playsinline disablepictureinpicture></video>`;
-}
-function foxActorHtml(fox,alt){
-  if(foxStill())return `<img class="fox-clip on" src="${foxPoster(fox)}" alt="${esc(alt)}">`;
-  return fox.states.map(state=>`<video class="fox-clip ${state==="idle"?"on":""}" data-state="${state}" src="${foxAsset(fox,state)}" ${state==="idle"?"autoplay loop":"hidden"} muted playsinline preload="auto" disablepictureinpicture aria-label="${esc(alt)}"></video>`).join("");
+const foxAsset = (fox,clip) => `${FOX_V2_DIR}/${fox.id}/${clip}.webm`;
+const foxPoster = (fox,kind="") => `${FOX_V2_DIR}/${fox.id}/poster${kind?"-"+kind:""}.webp`;
+const foxSceneLoops = period => (foxPack().scene?.periods?.[period]||[]).map(x=>x.file);
+const foxSceneSrc = file => `${FOX_V2_DIR}/scene/${file}.webm`;
+const foxScenePoster = period => `${FOX_V2_DIR}/scene/${period}.webp`;
+const foxHasClip = (fox,clip) => !!foxPackFox(fox).clips?.[clip];
+const foxPreviewClip = fox => foxHasClip(fox,"calm1") ? "calm1" : foxClipNames(fox)[0] || null;
+
+const foxPrevPeriod = period => FOX_PERIOD_ORDER[(FOX_PERIOD_ORDER.indexOf(period)+3)%4];
+// Смена времени суток показывается при открытии панели, если с прошлого визита период изменился
+// (утром открыл, вечером вернулся — идёт переход день→вечер). Повторное открытие в том же периоде — без перехода.
+function foxOpenTransition(period){
+  const seen=journeyState().foxSeen?.period||null;
+  if(!seen||seen===period)return null;
+  return {seen,hop:foxPeriodTransition(seen,period)?seen:foxPrevPeriod(period)};
 }
 function foxStageHtml(fox,mood,alt){
-  return `<div class="fox-stage mood-${mood}" id="foxStage" data-mood="${mood}">${foxSceneHtml()}<div class="fox-actor">${foxActorHtml(fox,alt)}</div></div>`;
+  const period=foxPeriod(), change=foxOpenTransition(period), hasSleep=foxHasClip(fox,"sleep");
+  // Спит, если сейчас ночь и переходить не нужно, либо если прошлый визит был ночью — тогда проснётся на глазах.
+  const asleep=hasSleep&&(change?change.seen==="night":period==="night");
+  const loops=foxSceneLoops(period), loop=loops[Math.floor(Math.random()*loops.length)];
+  const transition=change&&foxPack().scene?.transitions?.[`${change.hop}-${period}`]?`${change.hop}-${period}`:null;
+  const scene=foxStill()||!loop
+    ? `<img class="fox-scene on" src="${foxScenePoster(period)}" alt="">`
+    : `<video class="fox-scene on" src="${transition?foxSceneSrc(transition):foxSceneSrc(loop)}" poster="${foxScenePoster(transition?change.hop:period)}" autoplay muted ${transition?"":"loop"} playsinline disablepictureinpicture></video><video class="fox-scene" muted playsinline preload="auto" disablepictureinpicture ${transition?`src="${foxSceneSrc(loop)}" loop`:""}></video>`;
+  const actor=foxStill()||!foxClipNames(fox).length
+    ? `<img class="fox-clip on" src="${foxPoster(fox,asleep?"sleep":"")}" alt="${esc(alt)}">`
+    : `<video class="fox-clip" muted playsinline preload="auto" disablepictureinpicture aria-label="${esc(alt)}" poster="${foxPoster(fox,asleep?"sleep":"")}"></video><video class="fox-clip" muted playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>`;
+  return `<div class="fox-stage mood-${mood}" id="foxStage" data-mood="${mood}" data-period="${period}" data-mode="${asleep?"asleep":"awake"}" data-from="${change?change.seen:""}" data-transition="${transition||""}" title="${FOX_PERIOD_NAMES[period]}">${scene}<div class="fox-actor">${actor}</div></div>`;
 }
-let foxAnimationTimer = 0;
-function foxClips(){return [...document.querySelectorAll("#foxStage .fox-clip[data-state]")];}
-const FOX_FADE_MS = 0; // кроссфейд отключён: наложение двух полупрозрачных краёв даёт ореол вокруг лисы
-let foxFadeTimer = 0;
-// Переключение клипов: новый запускается с кадра покоя поверх старого и проявляется за 160 мс,
-// старый останавливается после кроссфейда — так гасится разница поз между дублями.
-function foxShow(state){
-  const clips=foxClips(); if(!clips.length)return null;
-  const clip=clips.find(c=>c.dataset.state===state)||clips.find(c=>c.dataset.state==="idle");
-  const current=clips.find(c=>c.classList.contains("on")&&c!==clip);
-  clearTimeout(foxFadeTimer);
-  try{clip.currentTime=0;}catch(e){}
-  clip.hidden=false; clip.style.zIndex="2"; clip.play?.().catch?.(()=>{});
-  const drop=c=>{c.classList.remove("on");c.hidden=true;c.pause();c.style.zIndex="";};
-  requestAnimationFrame(()=>{clip.classList.add("on");if(current&&!FOX_FADE_MS)drop(current);});
-  for(const c of clips)if(c!==clip&&c!==current)drop(c);
-  if(current){current.style.zIndex="1";if(FOX_FADE_MS)foxFadeTimer=setTimeout(()=>drop(current),FOX_FADE_MS+20);}
-  return clip;
+
+// --- плеер ---
+const foxPlayer = {videos:[],active:null,current:null,last:null,planned:null,queue:[],timer:0,periodTimer:0};
+function foxPlayerReset(){
+  clearTimeout(foxPlayer.timer); clearInterval(foxPlayer.periodTimer);
+  foxPlayer.videos=[]; foxPlayer.active=null; foxPlayer.current=null; foxPlayer.last=null; foxPlayer.queue=[]; foxPlayer.timer=0; foxPlayer.periodTimer=0;
 }
-// Реакция должна начаться на границе петли покоя, иначе поза «прыгает» посреди вдоха.
-function foxAtLoopStart(clip,callback,limitMs=7000){
-  const started=performance.now();
-  const tick=()=>{
-    if(!clip.isConnected)return;
-    const t=clip.currentTime, d=clip.duration||0;
-    if(clip.paused||!d||t<0.09||t>d-0.06||performance.now()-started>limitMs)callback();
-    else requestAnimationFrame(tick);
+function foxPlayerStart(){
+  foxPlayerReset();
+  const stage=$("#foxStage"); if(!stage)return;
+  const period=stage.dataset.period, from=stage.dataset.from||null;
+  const j=journeyState();
+  if(!j.foxSeen||j.foxSeen.period!==period||j.foxSeen.day!==today()){j.foxSeen={day:today(),period};save();}
+  // Переход фона уже стоит первым клипом; после него включается петля текущего периода.
+  const scenes=[...stage.querySelectorAll("video.fox-scene")];
+  if(stage.dataset.transition&&scenes.length===2){
+    scenes[0].onended=()=>{scenes[1].classList.add("on");scenes[1].play?.().catch?.(()=>{});scenes[0].classList.remove("on");scenes[0].pause();};
+  }
+  foxPlayer.videos=[...stage.querySelectorAll("video.fox-clip")];
+  if(foxPlayer.videos.length<2)return;
+  stage.onclick=()=>foxTouch();
+  if(from&&from!==period){if(period==="night")foxGoToSleep();else if(from==="night")foxWakeUp();}
+  foxPlayNext();
+  foxPlayer.periodTimer=setInterval(foxCheckPeriod,30000);
+}
+const foxStage = () => $("#foxStage");
+const foxMode = () => foxStage()?.dataset.mode||"awake";
+function foxSetMode(mode){
+  const s=foxStage(); if(!s)return; s.dataset.mode=mode;
+  const img=s.querySelector("img.fox-clip"); if(img)img.src=foxPoster(foxCurrent(),mode==="asleep"?"sleep":"");
+}
+// Что играть следующим, если очередь пуста: во сне — петля сна, наяву — случайный спокойный клип.
+function foxAutoClip(){
+  const fox=foxCurrent(), names=foxClipNames(fox);
+  if(foxMode()==="asleep")return names.includes("sleep")?"sleep":null;
+  const mood=Number(foxStage()?.dataset.mood)||0, period=foxStage()?.dataset.period;
+  let calm=names.filter(n=>/^calm\d+$/.test(n));
+  if(!calm.length)return null;
+  if(mood>=2&&calm.includes("calm2"))calm=["calm2"];
+  else if(period==="evening"&&calm.includes("calm2"))calm=calm.concat(["calm2","calm2"]);
+  const pool=calm.length>1?calm.filter(n=>n!==foxPlayer.last):calm;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function foxPlayNext(){
+  const fox=foxCurrent(); if(!fox||!foxPlayer.videos.length)return;
+  const item=foxPlayer.queue.shift();
+  let name=item?item.clip:foxPlayer.planned;
+  if(!item&&(!name||(name==="sleep")!==(foxMode()==="asleep")))name=foxAutoClip();
+  foxPlayer.planned=null;
+  if(!name)return;
+  const idle=foxPlayer.videos.find(v=>v!==foxPlayer.active)||foxPlayer.videos[0];
+  const src=foxAsset(fox,name);
+  if(!idle.src.endsWith(src)){idle.src=src;idle.load();}
+  const previous=foxPlayer.active;
+  const swap=()=>{
+    try{idle.currentTime=0;}catch(e){}
+    idle.classList.add("on"); idle.play?.().catch?.(()=>{});
+    if(previous&&previous!==idle){previous.classList.remove("on");previous.pause();}
+    foxPlayer.active=idle; foxPlayer.current=name; if(/^calm\d+$/.test(name))foxPlayer.last=name;
+    idle.onended=()=>{if(item?.then)item.then();foxPlayNext();};
+    foxPrepareNext();
   };
-  tick();
+  if(idle.readyState>=3)swap(); else idle.oncanplay=()=>{idle.oncanplay=null;swap();};
 }
-function foxAmbientSchedule(){
-  clearTimeout(foxAnimationTimer); foxAnimationTimer=0;
-  const stage=$("#foxStage"); if(!stage||foxStill())return;
-  const mood=Number(stage.dataset.mood)||0, range=FOX_AMBIENT_MS[mood]; if(!range)return;
-  const states=foxCurrent()?.states.filter(s=>s!=="idle")||[]; if(!states.length)return;
-  foxAnimationTimer=setTimeout(()=>{
-    if(!stage.isConnected||document.hidden){foxAmbientSchedule();return;}
-    playFoxAnimation(states[Math.floor(Math.random()*states.length)],mood);
-  },range[0]+Math.random()*(range[1]-range[0]));
+// Пока играет текущий клип, во второй <video> заранее грузится следующий — переключение без паузы.
+function foxPrepareNext(){
+  const fox=foxCurrent(), idle=foxPlayer.videos.find(v=>v!==foxPlayer.active); if(!fox||!idle)return;
+  const planned=foxPlayer.queue[0]?.clip||foxAutoClip(); if(!planned)return;
+  foxPlayer.planned=planned;
+  const src=foxAsset(fox,planned);
+  if(!idle.src.endsWith(src)){idle.src=src;idle.load();}
 }
-function playFoxAnimation(animation,mood){
-  clearTimeout(foxAnimationTimer); foxAnimationTimer=0;
-  const state=FOX_V2_STATE[animation]||"idle";
-  const clips=foxClips(); if(!clips.length)return;
-  if(state==="idle"){foxShow("idle");foxAmbientSchedule();return;}
-  const idle=clips.find(c=>c.dataset.state==="idle"&&c.classList.contains("on")&&!c.paused);
-  const busy=clips.find(c=>c.dataset.state!=="idle"&&c.classList.contains("on")&&!c.paused&&!c.ended);
-  const start=()=>{
-    const clip=foxShow(state); if(!clip)return;
-    clip.onended=()=>{clip.onended=null; if(!clip.isConnected)return; const next=clip.dataset.next; delete clip.dataset.next; if(next)playFoxAnimation(next,mood); else {foxShow("idle"); foxAmbientSchedule();}};
+function foxQueue(clip,then){
+  if(!foxHasClip(foxCurrent(),clip))return false;
+  foxPlayer.queue.push({clip,then}); foxPrepareNext(); return true;
+}
+// Реакция не прерывает текущий клип: она встаёт в очередь и начнётся с кадра покоя.
+function playFoxAnimation(animation){
+  if(!foxPlayer.videos.length)return;
+  const fox=foxCurrent();
+  if(foxMode()==="asleep"){foxQueue("sleep-touch");return;}
+  let role=FOX_V2_ROLE[animation]||"calm";
+  if(role==="sleep"){foxGoToSleep();return;}
+  if(role==="calm"||!foxHasClip(fox,role))role=foxAutoClip();
+  if(role)foxQueue(role);
+}
+function foxTouch(){
+  if(!foxPlayer.videos.length)return;
+  if(foxPlayer.queue.length)return;
+  playFoxAnimation(foxMode()==="asleep"?"sleep":"pet");
+}
+function foxGoToSleep(){
+  if(foxMode()==="asleep")return;
+  const fox=foxCurrent();
+  if(!foxHasClip(fox,"sleep")){foxSetMode("asleep");return;}
+  foxPlayer.queue=[];
+  if(foxHasClip(fox,"lie-down"))foxQueue("lie-down");
+  if(foxHasClip(fox,"fall-asleep"))foxQueue("fall-asleep",()=>foxSetMode("asleep")); else foxSetMode("asleep");
+  foxPrepareNext();
+}
+function foxWakeUp(){
+  if(foxMode()!=="asleep")return;
+  const fox=foxCurrent();
+  foxPlayer.queue=[];
+  if(foxHasClip(fox,"wake-up"))foxQueue("wake-up",()=>foxSetMode("awake")); else foxSetMode("awake");
+  foxPrepareNext();
+}
+// Смена времени суток при открытой панели: переход фона и смена режима лисы.
+function foxCheckPeriod(){
+  const stage=foxStage(); if(!stage||!stage.isConnected){clearInterval(foxPlayer.periodTimer);return;}
+  const from=stage.dataset.period, to=foxPeriod(); if(from===to)return;
+  stage.dataset.period=to; stage.title=FOX_PERIOD_NAMES[to];
+  const j=journeyState(); j.foxSeen={day:today(),period:to}; save();
+  foxSceneChange(from,to);
+  if(to==="night")foxGoToSleep(); else if(from==="night")foxWakeUp();
+}
+function foxSceneChange(from,to){
+  const stage=foxStage(); if(!stage)return;
+  const scenes=[...stage.querySelectorAll("video.fox-scene")];
+  const loops=foxSceneLoops(to), loop=loops[Math.floor(Math.random()*loops.length)];
+  if(foxStill()||scenes.length<2){const img=stage.querySelector("img.fox-scene"); if(img)img.src=foxScenePoster(to); return;}
+  const active=scenes.find(v=>v.classList.contains("on"))||scenes[0], idle=scenes.find(v=>v!==active);
+  const swap=(el,src,loopFlag,onEnd)=>{
+    el.loop=loopFlag; el.src=src; el.load();
+    el.oncanplay=()=>{el.oncanplay=null; el.classList.add("on"); el.play?.().catch?.(()=>{}); active.classList.remove("on"); active.pause(); el.onended=onEnd||null;};
   };
-  // Реакция не прерывает другую посреди движения: она встанет в очередь и начнётся с кадра покоя.
-  if(busy){busy.dataset.next=state;return;}
-  if(idle)foxAtLoopStart(idle,start); else start();
+  const transition=foxPeriodTransition(from,to);
+  if(transition&&foxPack().scene?.transitions?.[transition]&&loop){
+    swap(idle,foxSceneSrc(transition),false,()=>{
+      active.loop=true; active.src=foxSceneSrc(loop); active.load();
+      active.oncanplay=()=>{active.oncanplay=null; active.classList.add("on"); active.play?.().catch?.(()=>{}); idle.classList.remove("on"); idle.pause();};
+    });
+  } else if(loop) swap(idle,foxSceneSrc(loop),true);
 }
 function journeyState(){
   S.journey = S.journey || {completed:{},rewards:{}};
@@ -113,14 +225,17 @@ function companionCardHtml(){
   const j = journeyState(), p = LearningCore.petMood(S.companion,today());
   const male=foxMale(), who=foxWhoCap(), pronoun=foxPronoun();
   const moods = [male?"Рад тебя видеть":"Рада тебя видеть", male?"Притих":"Притихла", "Скучает по тебе", male?"Свернулся клубком":"Свернулась клубком"];
-  const texts = [p.last === today() ? `Сегодня мы уже позанимались. ${who} рад${male?"":"а"}, что ты заглянул!` : p.last ? "У нас есть несколько слов для короткого занятия." : `${who} теперь твой компаньон. Давай начнём с пяти слов?`, `Один день без занятия. ${who} ждёт вашей следующей встречи.`, `Два дня без занятия. На ласку ${pronoun} отвечает лишь движением ушек.`, "Три дня или больше без занятия. Еда и ласка пока не помогают — начните урок вместе."];
+  // Ночью (23:30–07:30) лиса спит: заголовок и подсказка про сон вместо приветствия.
+  const asleepNow=foxPeriod()==="night"&&foxHasClip(foxCurrent(),"sleep")&&p.mood===0;
+  if(asleepNow)moods[0]="Сладко спит";
+  const texts = [asleepNow ? `Ночью ${who} спит и видит сны про новые слова. Коснись — ${pronoun} шевельнётся, а утром проснётся ${male?"сам":"сама"}.` : p.last === today() ? `Сегодня мы уже позанимались. ${who} рад${male?"":"а"}, что ты заглянул!` : p.last ? "У нас есть несколько слов для короткого занятия." : `${who} теперь твой компаньон. Давай начнём с пяти слов?`, `Один день без занятия. ${who} ждёт вашей следующей встречи.`, `Два дня без занятия. На ласку ${pronoun} отвечает лишь движением ушек.`, "Три дня или больше без занятия. Еда и ласка пока не помогают — начните урок вместе."];
   const total = Object.keys(j.completed).length, next = FOX_REWARDS.find(r=>!j.rewards[r.id]);
   const week = Array.from({length:7},(_,i)=>addDays(today(),i-6));
   const weekly = week.filter(d=>j.completed[d]).length;
   return `<section class="card companion" id="companionCard">
     <div class="row between fox-card-head"><div class="eyebrow">${male?"Твой":"Твоя"} ${esc(foxWho())}</div><div class="fox-card-tools"><button class="btn ghost small" id="foxIdentity">Имя и образ</button><button class="btn ghost small" id="foxCollection">Коллекция · ${Object.keys(j.rewards).length}/${FOX_REWARDS.length}</button></div></div>
     <div class="fox-meeting">${foxStageHtml(foxCurrent(),p.mood,`${who}: ${moods[p.mood]}`)}<div><h2>${moods[p.mood]}</h2><p class="small muted">${esc(texts[p.mood])}</p></div></div>
-    <p class="small muted fox-beta">Бета-версия компаньона: пока четыре базовые реакции. Позже будут открываться новые взаимодействия, предметы и домики.</p>
+    <p class="small muted fox-beta">Бета-версия компаньона: лиса живёт по часам телефона — утро, день, вечер и ночной сон. Позже будут открываться новые взаимодействия, предметы и домики.</p>
     <p class="small fox-response" id="foxResponse" role="status" aria-live="polite">${memoryCount() ? `Сегодня ты вспомнил ${plural(memoryCount(),"слово","слова","слов")} после перерыва.` : "Вода всегда доступна. Первое занятие дня приносит одно угощение."}</p>
     <div class="fox-actions"><button class="btn secondary" id="foxFeed" ${p.mood===3 || !p.treats ? "disabled":""}>Угостить · ${p.treats}</button><button class="btn secondary" id="foxWater" ${p.mood===3?"disabled":""}>Напоить</button><button class="btn secondary" id="foxPet" ${p.mood===3?"disabled":""}>Погладить</button></div>
     <div class="fox-week" aria-label="Занятия за последние семь дней">${week.map(d=>`<span class="${j.completed[d]?"done":""}" title="${d}">${j.completed[d]?"✓":"·"}</span>`).join("")}<b>${weekly}/4 дня</b></div>
@@ -136,9 +251,9 @@ function companionChooserHtml(){
   const identity=foxIdentity(), adopted=!!S.companion.adopted&&!!identity.name, selected=foxCurrent()?.id||"";
   return `<section class="card companion fox-choose" id="companionChooser">
     <div class="eyebrow">Компаньон · бета</div><h2>${adopted?"Другая лиса":"Выбери спутника"}</h2>
-    <p class="small muted">Бета-версия компаньона: пока у лис четыре базовые реакции. Позже будут открываться новые взаимодействия, предметы и домики.</p>
+    <p class="small muted">Бета-версия компаньона: лиса живёт по часам телефона — утро, день, вечер и ночной сон. Позже будут открываться новые взаимодействия, предметы и домики.</p>
     <div class="fox-grid" role="radiogroup" aria-label="Лисы">${LearningCore.petFoxes.map(fox=>`<button type="button" class="fox-option ${fox.id===selected?"on":""} ${fox.available?"":"locked"}" data-fox="${fox.id}" role="radio" aria-checked="${fox.id===selected}" ${fox.available?"":"disabled"}>
-      <span class="fox-option-art">${fox.available&&!foxStill()?`<video src="${foxAsset(fox,"idle")}" poster="${foxPoster(fox)}" autoplay muted loop playsinline disablepictureinpicture></video>`:`<img src="${foxPoster(fox)}" alt="">`}</span>
+      <span class="fox-option-art">${fox.available&&!foxStill()&&foxPreviewClip(fox)?`<video src="${foxAsset(fox,foxPreviewClip(fox))}" poster="${foxPoster(fox)}" autoplay muted loop playsinline disablepictureinpicture></video>`:`<img src="${foxPoster(fox)}" alt="">`}</span>
       ${foxSexBadge(fox.sex)}<b>${esc(fox.title)}</b><small>${fox.available?(fox.sex==="male"?"Доступен сразу":"Доступна сразу"):"Будет добавлено позднее"}</small></button>`).join("")}</div>
     <label class="fox-choose-name"><span>${adopted?"Имя остаётся прежним":"Постоянное имя"}</span><input class="fox-name-input" id="foxChooseName" maxlength="32" autocomplete="off" value="${esc(identity.name)}" placeholder="Например, Луна или Фокс" ${adopted?"readonly":""}></label>
     <p class="small muted">${adopted?"Имя даётся один раз. Падежные формы можно поправить в «Имя и образ».":"Имя даётся один раз и потом не меняется. Падежные формы можно будет поправить в «Имя и образ»."}</p>
@@ -180,13 +295,12 @@ function openCompanion(options={}){
   if($("#hJourney"))$("#hJourney").onclick=journeyStart;
   if(choose){wireCompanionChooser();$("#foxDrawerClose").focus();return;}
   wireCompanion();
-  const mood=LearningCore.petMood(S.companion,today()).mood;
-  if(options.celebrate)playFoxAnimation("happy",mood);
-  else if(mood<=1)playFoxAnimation("notice",mood);
+  foxPlayerStart();
+  if(options.celebrate)playFoxAnimation("happy");
   $("#foxDrawerClose").focus();
 }
 function closeCompanion(){
-  clearTimeout(foxAnimationTimer); foxAnimationTimer=0;
+  foxPlayerReset();
   const host=$("#foxDrawerHost");if(host){host.querySelectorAll("video").forEach(v=>{v.pause();v.removeAttribute("src");v.load();});host.innerHTML="";}
   document.body.classList.remove("fox-drawer-open");
   $("#foxHandle")?.focus();
@@ -250,7 +364,7 @@ async function companionAct(action){
     const feed=$("#foxFeed"); if(feed){feed.textContent=`Угостить · ${LearningCore.petMood(S.companion,today()).treats}`;feed.disabled=mood===3||!LearningCore.petMood(S.companion,today()).treats;}
     const water=$("#foxWater");if(water)water.disabled=mood===3;
     const pet=$("#foxPet");if(pet)pet.disabled=mood===3;
-    playFoxAnimation(mood===2?"offended":action==="water"?"drink":action,mood);
+    playFoxAnimation(mood===2?"offended":action==="water"?"drink":action);
   } catch(e) { toast("Не удалось сохранить действие. Попробуй ещё раз."); if(tab==="home"&&!inSession)renderHome(); }
 }
 function wireCompanion(){
