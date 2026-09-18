@@ -26,10 +26,11 @@ body.fox-drawer-open #overlay .scrim{z-index:60}
 .fox-clip.on{opacity:1}
 .fox-clip[hidden]{display:none}
 /* настроение показывают сами клипы (грусть, обида) — затемнения больше нет */
-.fox-beta{margin:-2px 0 10px}
+.fox-beta{display:grid;gap:4px;margin:0 0 12px;padding:12px 14px;border-radius:12px;font-size:13px;color:var(--ink);background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 34%,transparent),color-mix(in srgb,var(--accent) 6%,transparent) 70%,transparent);border-left:3px solid var(--accent)}
+.fox-beta b{font-size:14px}.fox-beta span{color:var(--muted)}
 /* Загрузка набора анимаций (APK): клипы хранятся в памяти приложения, а не в пакете */
 .fox-pack{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin:0 0 12px;padding:12px;border:1px dashed var(--line);border-radius:12px;background:var(--surface-2);min-width:0}
-.fox-pack>*{min-width:0}.fox-pack b{font-size:14px}.fox-pack p{margin:0;overflow-wrap:anywhere}.fox-pack .btn{width:100%}
+.fox-pack>*{min-width:0}.fox-pack .row{gap:10px}.fox-pack .row span{white-space:nowrap}.fox-pack b{font-size:14px}.fox-pack p{margin:0;overflow-wrap:anywhere}.fox-pack .btn{width:100%}
 .fox-pack-bar{height:8px;border-radius:9px;background:var(--surface);overflow:hidden}.fox-pack-bar i{display:block;height:100%;background:var(--accent);border-radius:inherit;transition:width .3s}
 /* Выбор спутника */
 .fox-choose h2{margin:4px 0 8px}

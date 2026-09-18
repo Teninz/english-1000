@@ -164,6 +164,21 @@ if (NATIVE) {
     const record = () => { try { return JSON.parse(localStorage.getItem(KEY) || "null") || {}; } catch (e) { return {}; } };
     const save = r => localStorage.setItem(KEY, JSON.stringify(r));
     let urls = {}, state = "missing", percent = 0, error = "";
+    // WebView не воспроизводит <video> по внутреннему адресу _capacitor_file_, поэтому файл читается целиком
+    // и отдаётся плееру как blob-URL. Сначала через fetch (быстро), при неудаче — через readFile (base64).
+    async function blobUrl(path) {
+      const u = await FS.getUri({ path: local(path), directory: DIR });
+      try {
+        const res = await fetch(NATIVE.C.convertFileSrc(u.uri));
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return URL.createObjectURL(await res.blob());
+      } catch (e) {
+        const r = await FS.readFile({ path: local(path), directory: DIR });
+        const bin = atob(r.data), bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return URL.createObjectURL(new Blob([bytes], { type: "video/webm" }));
+      }
+    }
     async function init() {
       const r = record();
       if (!FS) { state = "missing"; return; }
@@ -171,9 +186,10 @@ if (NATIVE) {
       const files = foxPackFiles();
       const next = {};
       for (const f of files) {
-        try { await FS.stat({ path: local(f.path), directory: DIR }); const u = await FS.getUri({ path: local(f.path), directory: DIR }); next[f.path] = NATIVE.C.convertFileSrc(u.uri); }
-        catch (e) { state = "missing"; return; }
+        try { const st = await FS.stat({ path: local(f.path), directory: DIR }); if (!(st.size > 1000)) throw new Error("empty"); next[f.path] = await blobUrl(f.path); }
+        catch (e) { for (const old of Object.values(next)) URL.revokeObjectURL(old); state = "missing"; error = "Набор повреждён: " + (e && e.message || e); return; }
       }
+      for (const old of Object.values(urls)) URL.revokeObjectURL(old);
       urls = next; state = "ready";
     }
     async function download(onProgress) {
@@ -206,9 +222,11 @@ if (NATIVE) {
     }
     async function remove() {
       try { await FS.rmdir({ path: "fox-pack", directory: DIR, recursive: true }); } catch (e) {}
-      localStorage.removeItem(KEY); urls = {}; state = "missing"; percent = 0;
+      localStorage.removeItem(KEY); for (const old of Object.values(urls)) URL.revokeObjectURL(old); urls = {}; state = "missing"; percent = 0;
     }
     init().then(() => { if (state === "ready" && companionDrawerOpen() && !inSession && !$(".scrim")) { closeCompanion(); openCompanion(); } });
+    // Ошибка воспроизведения из плеера (journey.js): показывается в блоке набора, чтобы её можно было прочитать на телефоне.
+    window.foxPackMediaError = (path, code, msg) => { error = `Видео не запускается (${code}${msg ? ": " + msg : ""}): ${path}`; };
     return { ready: () => state === "ready", url: path => urls[path] || null, status: () => ({ state, percent, error }), download, remove };
   })();
 

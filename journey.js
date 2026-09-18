@@ -101,6 +101,7 @@ function foxPlayerStart(){
     scenes[0].onended=()=>{scenes[1].classList.add("on");scenes[1].play?.().catch?.(()=>{});scenes[0].classList.remove("on");scenes[0].pause();};
   }
   foxPlayer.videos=[...stage.querySelectorAll("video.fox-clip")];
+  stage.querySelectorAll("video").forEach(v=>{v.onerror=()=>{const e=v.error;if(window.foxPackMediaError){window.foxPackMediaError((v.currentSrc||v.src||"").split("/").pop().slice(0,40),e?e.code:"?",e?.message);foxPackRefresh();}};});
   if(foxPlayer.videos.length<2)return;
   stage.onclick=()=>foxTouch();
   if(from&&from!==period){if(period==="night")foxGoToSleep();else if(from==="night")foxWakeUp();}
@@ -306,15 +307,15 @@ function companionCardHtml(){
   const week = Array.from({length:7},(_,i)=>addDays(today(),i-6));
   const weekly = week.filter(d=>j.completed[d]).length;
   return `<section class="card companion" id="companionCard">
-    <div class="row between fox-card-head"><div class="eyebrow">${male?"Твой":"Твоя"} ${esc(foxWho())}</div><div class="fox-card-tools"><button class="btn ghost small" id="foxIdentity">Имя и образ</button><button class="btn ghost small" id="foxCollection">Коллекция · ${Object.keys(j.rewards).length}/${FOX_REWARDS.length}</button></div></div>
+    <div class="row between fox-card-head"><div class="eyebrow">${male?"Твой":"Твоя"} ${esc(foxWho())}</div><div class="fox-card-tools"><button class="btn ghost small" id="foxIdentity">Имя и образ</button><button class="btn ghost small" id="foxCollection">Отметки · ${Object.keys(j.rewards).length}/${FOX_REWARDS.length}</button></div></div>
     <div class="fox-meeting">${foxStageHtml(foxCurrent(),p.mood,`${who}: ${moods[p.mood]}`)}<div><h2>${moods[p.mood]}</h2><p class="small muted">${esc(asleepNow?sleepText:texts[p.mood])}</p></div></div>
     ${foxPackCardHtml()}
-    <p class="small muted fox-beta">Бета-версия компаньона: лиса живёт по часам телефона — утро, день, вечер и ночной сон. Позже будут открываться новые взаимодействия, предметы и домики.</p>
+    <div class="fox-beta"><b>Бета-версия компаньона</b><span>Лиса живёт по часам телефона: утро, день, вечер и ночной сон, а настроение зависит от занятий. Предметы, домики и новые взаимодействия появятся в следующих версиях.</span></div>
     <p class="small fox-response" id="foxResponse" role="status" aria-live="polite">${memoryCount() ? `Сегодня ты вспомнил ${plural(memoryCount(),"слово","слова","слов")} после перерыва.` : p.mood>=3 ? `${who} обидел${male?"ся":"ась"} и сидит спиной. Только занятие вернёт ${male?"его":"её"}.` : p.mood>=1 ? `${who} грустит без занятий. Коснись — ${pronoun} вздохнёт.` : `Коснись ${foxWho("gen")} — ${pronoun} откликнется.`}</p>
     <div class="fox-week" aria-label="Занятия за последние семь дней">${week.map(d=>`<span class="${j.completed[d]?"done":""}" title="${d}">${j.completed[d]?"✓":"·"}</span>`).join("")}<b>${weekly}/4 дня</b></div>
     <p class="small muted">${weekly>=4?"Недельная цель выполнена. Можно отдохнуть или продолжить в своём темпе.":"Цель — четыре дня занятий за последние семь. Не обязательно подряд."}</p>
     ${window.pinCompanion?'<button class="btn ghost small" id="foxPin">Добавить лису на рабочий стол</button>':""}
-    ${next?`<p class="small" style="margin-top:8px">${next.icon} До награды «${next.name}» — ${plural(Math.max(0,next.at-total),"день занятий","дня занятий","дней занятий")}.</p>`:`<p class="small">Вся коллекция собрана. Лиса остаётся рядом!</p>`}
+    ${next?`<p class="small muted" style="margin-top:8px">${next.icon} Через ${plural(Math.max(0,next.at-total),"день занятий","дня занятий","дней занятий")} — отметка «${next.name}».</p>`:`<p class="small muted">Все отметки за дни занятий собраны.</p>`}
   </section>`;
 }
 function foxFaceIcon(){return `<img src="${FOX_V2_DIR}/handle.png" alt="" draggable="false">`;}
@@ -395,7 +396,7 @@ function progressAccordionHtml(){
 function companionCollection(){
   const j = journeyState();
   const male=foxMale(), who=foxWhoCap();
-  sheet(`<div class="row between"><h2>Сокровища ${esc(foxWho("gen"))}</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div><p class="muted">Память о ваших занятиях. Пропуски не отнимают награды.</p><div class="fox-rewards">${FOX_REWARDS.map(r=>`<div class="card ${j.rewards[r.id]?"earned":""}"><span class="reward-icon">${r.icon}</span><b>${r.name}</b><p class="small muted">${r.desc}</p><span class="small">${j.rewards[r.id]?`Получено ${j.rewards[r.id]}`:"Ещё впереди"}</span></div>`).join("")}</div><p class="small muted">После первого полного пропущенного дня ${esc(who)} притихает, после второго грустит, после третьего не реагирует на еду и ласку. Одно завершённое занятие возвращает ${male?"его":"её"} к общению.</p>`);
+  sheet(`<div class="row between"><h2>Отметки ${esc(foxWho("gen"))}</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div><p class="muted">Памятные отметки за дни занятий. Пропуски их не отнимают. Предметы для домика за достижения появятся позже.</p><div class="fox-rewards">${FOX_REWARDS.map(r=>`<div class="card ${j.rewards[r.id]?"earned":""}"><span class="reward-icon">${r.icon}</span><b>${r.name}</b><p class="small muted">${r.desc}</p><span class="small">${j.rewards[r.id]?`Получено ${j.rewards[r.id]}`:"Ещё впереди"}</span></div>`).join("")}</div><p class="small muted">После первого пропущенного дня ${esc(who)} грустит, после третьего обижается и садится спиной. Одно завершённое занятие возвращает ${male?"его":"её"} к общению.</p>`);
 }
 function companionIdentitySheet(draft){
   journeyState();
@@ -473,7 +474,7 @@ function journeyNext(){
   if(repair.length){p.phase="repair";save();startSession({title:"Сегодня · ещё одна встреча",items:repair.map(i=>({i,kind:"mc"})),mode:"repair",after:"home",onComplete:journeyNext});return;}
   p.done=true; journeyRunning=false; inSession=false; lessonComplete(); const first=p.firstOfDay!==false;
   go("home"); openCompanion({celebrate:true});
-  const response=$("#foxResponse");if(response)response.textContent=`Занятие закончено: ${p.review.length} слов в практике, ${p.fresh.length} новых. ${first?"В корзинке появилось угощение.":"Сегодняшняя встреча уже отмечена."}`;
+  const response=$("#foxResponse");if(response)response.textContent=`Занятие закончено: ${p.review.length} слов в практике, ${p.fresh.length} новых. ${first?"Сегодняшняя встреча отмечена.":"Сегодняшняя встреча уже была отмечена."}`;
 }
 function tomorrowText(){
   const n=startedList().filter(i=>W(i).due===addDays(today(),1)).length;
