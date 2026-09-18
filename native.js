@@ -198,7 +198,8 @@ if (NATIVE) {
         percent = 100; onProgress && onProgress(100);
       } catch (e) {
         state = record().version === pack().version ? "ready" : "missing";
-        error = "Не удалось загрузить: " + (e && e.message ? e.message : "проверь интернет") ;
+        const reason = String(e && e.message || "").replace(/^Error downloading file:\s*/i, "").replace(/^\/data\/[^:]*:\s*/i, "");
+        error = "Не удалось загрузить: " + (reason || "проверь интернет");
         if (state === "ready") await init();
         throw e;
       } finally { handle.remove(); }

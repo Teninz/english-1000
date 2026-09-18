@@ -251,11 +251,27 @@ function foxPackCardHtml(){
   const update=st.state==="stale";
   return `<div class="fox-pack" id="foxPack"><b>${update?"Доступно обновление анимаций":"Анимации лисы не загружены"}</b><p class="small muted">${update?"Набор изменился — нужно скачать новые файлы.":"Клипы лисы и живой фон не входят в приложение, чтобы оно оставалось лёгким. Загрузка один раз, нужен интернет."}</p>${st.error?`<p class="small" style="color:var(--bad)">${esc(st.error)}</p>`:""}<button class="btn block" id="foxPackDownload">${update?"Обновить":"Загрузить"} · ${mb} МБ</button></div>`;
 }
+// Блок обновляется на месте, а панель перерисовывается только когда набор появился или удалён —
+// с сохранением прокрутки, чтобы домик не «прыгал».
+function foxPackRefresh(){
+  const block=$("#foxPack"); if(!block)return;
+  const wrap=document.createElement("div"); wrap.innerHTML=foxPackCardHtml(); const next=wrap.firstElementChild;
+  if(next)block.replaceWith(next); else block.remove();
+  wireFoxPack();
+}
+function foxDrawerRerender(){
+  if(!companionDrawerOpen()||inSession||$(".scrim"))return;
+  const top=$(".fox-drawer")?.scrollTop||0;
+  closeCompanion(); openCompanion();
+  const drawer=$(".fox-drawer"); if(drawer)drawer.scrollTop=top;
+}
 function wireFoxPack(){
   const store=window.foxPackStore; if(!store)return;
-  const rerender=()=>{if(companionDrawerOpen()&&!inSession&&!$(".scrim")){closeCompanion();openCompanion();}};
-  if($("#foxPackDownload"))$("#foxPackDownload").onclick=()=>{store.download(p=>{const pct=$("#foxPackPct"),bar=$("#foxPack .fox-pack-bar i");if(pct)pct.textContent=`${p}%`;if(bar)bar.style.width=`${p}%`;}).then(rerender).catch(()=>rerender());rerender();};
-  if($("#foxPackRemove"))$("#foxPackRemove").onclick=()=>confirmSheet("Удалить анимации?","Лиса останется, но будет показываться неподвижной картинкой, пока набор не загрузить снова.","Удалить",()=>store.remove().then(rerender),true);
+  if($("#foxPackDownload"))$("#foxPackDownload").onclick=()=>{
+    store.download(p=>{const pct=$("#foxPackPct"),bar=$("#foxPack .fox-pack-bar i");if(pct)pct.textContent=`${p}%`;if(bar)bar.style.width=`${p}%`;}).then(foxDrawerRerender).catch(foxPackRefresh);
+    foxPackRefresh();
+  };
+  if($("#foxPackRemove"))$("#foxPackRemove").onclick=()=>confirmSheet("Удалить анимации?","Лиса останется, но будет показываться неподвижной картинкой, пока набор не загрузить снова.","Удалить",()=>store.remove().then(foxDrawerRerender),true);
 }
 function companionCardHtml(){
   const j = journeyState(), p = LearningCore.petMood(S.companion,today());
