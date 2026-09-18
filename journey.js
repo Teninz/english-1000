@@ -268,7 +268,7 @@ function foxPackCardHtml(){
   const store=window.foxPackStore; if(!store)return "";
   const mb=foxPackMb(), st=store.status();
   if(st.state==="downloading")return `<div class="fox-pack" id="foxPack"><div class="row between"><b>Загружаем анимации…</b><span class="small muted" id="foxPackPct">${st.percent}%</span></div><div class="fox-pack-bar"><i style="width:${st.percent}%"></i></div><p class="small muted">Файлы сохраняются в памяти приложения; при обрыве загрузка продолжится с того же места.</p></div>`;
-  if(st.state==="ready")return `<div class="fox-pack" id="foxPack"><div class="row between"><span class="small muted">Анимации загружены · ${mb} МБ</span><button class="btn ghost small" id="foxPackRemove">Удалить</button></div></div>`;
+  if(st.state==="ready")return `<div class="fox-pack" id="foxPack"><div class="row between"><span class="small muted">Анимации загружены · ${mb} МБ</span><button class="btn ghost small" id="foxPackRemove">Удалить</button></div>${st.error?`<p class="small" style="color:var(--bad)">${esc(st.error)}</p>`:""}<div class="row between"><span class="small muted" id="foxProbeOut">${st.probe?esc(st.probe):"Если лиса не двигается — запусти проверку."}</span><button class="btn ghost small" id="foxProbe">Проверка видео</button></div></div>`;
   const update=st.state==="stale";
   return `<div class="fox-pack" id="foxPack"><b>${update?"Доступно обновление анимаций":"Анимации лисы не загружены"}</b><p class="small muted">${update?"Набор изменился — нужно скачать новые файлы.":"Клипы лисы и живой фон не входят в приложение, чтобы оно оставалось лёгким. Загрузка один раз, нужен интернет."}</p>${st.error?`<p class="small" style="color:var(--bad)">${esc(st.error)}</p>`:""}<button class="btn block" id="foxPackDownload">${update?"Обновить":"Загрузить"} · ${mb} МБ</button></div>`;
 }
@@ -286,12 +286,35 @@ function foxDrawerRerender(){
   closeCompanion(); openCompanion();
   const drawer=$(".fox-drawer"); if(drawer)drawer.scrollTop=top;
 }
+// Диагностика воспроизведения: один маленький клип четырьмя способами. Результат остаётся в блоке набора.
+async function foxProbeRun(){
+  const store=window.foxPackStore, out=$("#foxProbeOut"); if(!store)return;
+  const say=text=>{if(out)out.textContent=text;if(store.setProbe)store.setProbe(text);};
+  say("Проверяю…");
+  const tryPlay=(label,src)=>new Promise(resolve=>{
+    if(!src){resolve(`${label}: нет источника`);return;}
+    const v=document.createElement("video"); v.muted=true; v.playsInline=true; v.setAttribute("playsinline",""); v.preload="auto"; v.style.cssText="position:fixed;left:-9999px;width:64px;height:64px";
+    const done=r=>{clearTimeout(timer);v.remove();resolve(`${label}: ${r}`);};
+    const timer=setTimeout(()=>done(`тайм-аут (rs${v.readyState} ns${v.networkState})`),6000);
+    v.onerror=()=>done(`ошибка ${v.error?v.error.code:"?"}${v.error&&v.error.message?" "+v.error.message.slice(0,60):""}`);
+    v.onplaying=()=>done("играет");
+    document.body.appendChild(v); v.src=src; v.load(); v.play().catch(e=>done("play(): "+(e&&e.name)));
+  });
+  const results=[];
+  results.push(await tryPlay("APK",`art/companion-probe/probe.webm`));
+  try{const b=await (await fetch("art/companion-probe/probe.webm")).blob();results.push(await tryPlay("APK→память",URL.createObjectURL(b)));}catch(e){results.push("APK→память: fetch "+(e&&e.message));}
+  const probes=store.probeSources?await store.probeSources("scene/day-1.webm"):{};
+  for(const [label,src] of Object.entries(probes))results.push(await tryPlay(label,src));
+  const ua=(navigator.userAgent.match(/Chrome\/[\d.]+/)||[""])[0];
+  say(results.join(" · ")+` · ${ua}`);
+}
 function wireFoxPack(){
   const store=window.foxPackStore; if(!store)return;
   if($("#foxPackDownload"))$("#foxPackDownload").onclick=()=>{
     store.download(p=>{const pct=$("#foxPackPct"),bar=$("#foxPack .fox-pack-bar i");if(pct)pct.textContent=`${p}%`;if(bar)bar.style.width=`${p}%`;}).then(foxDrawerRerender).catch(foxPackRefresh);
     foxPackRefresh();
   };
+  if($("#foxProbe"))$("#foxProbe").onclick=()=>foxProbeRun();
   if($("#foxPackRemove"))$("#foxPackRemove").onclick=()=>confirmSheet("Удалить анимации?","Лиса останется, но будет показываться неподвижной картинкой, пока набор не загрузить снова.","Удалить",()=>store.remove().then(foxDrawerRerender),true);
 }
 function companionCardHtml(){
@@ -315,7 +338,7 @@ function companionCardHtml(){
     <div class="fox-week" aria-label="Занятия за последние семь дней">${week.map(d=>`<span class="${j.completed[d]?"done":""}" title="${d}">${j.completed[d]?"✓":"·"}</span>`).join("")}<b>${weekly}/4 дня</b></div>
     <p class="small muted">${weekly>=4?"Недельная цель выполнена. Можно отдохнуть или продолжить в своём темпе.":"Цель — четыре дня занятий за последние семь. Не обязательно подряд."}</p>
     ${window.pinCompanion?'<button class="btn ghost small" id="foxPin">Добавить лису на рабочий стол</button>':""}
-    ${next?`<p class="small muted" style="margin-top:8px">${next.icon} Через ${plural(Math.max(0,next.at-total),"день занятий","дня занятий","дней занятий")} — отметка «${next.name}».</p>`:`<p class="small muted">Все отметки за дни занятий собраны.</p>`}
+
   </section>`;
 }
 function foxFaceIcon(){return `<img src="${FOX_V2_DIR}/handle.png" alt="" draggable="false">`;}

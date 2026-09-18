@@ -11,7 +11,7 @@ for (const d of dirs) fs.cpSync(path.join(root, d), path.join(dist, d), {
   // Исходные PNG-кадры нужны только для пересборки APNG и не должны попадать в APK.
   // Референсы, исходные клипы и пробы фона живут в art/, но в APK не нужны.
   // Клипы лисы (.webm) в APK не входят: приложение скачивает их с GitHub Releases по кнопке (native.js, foxPackStore).
-  filter: src => !["companion-anim-frames", "companion", "companion-anim", "companion-references", "Visual", "Фон"].includes(path.basename(src)) && !/^Фон.*\.png$/u.test(path.basename(src)) && !(src.includes("companion-v2") && src.endsWith(".webm")),
+  filter: src => !["companion-anim-frames", "companion", "companion-anim", "companion-references", "Visual", "Фон"].includes(path.basename(src)) && !/^Фон.*\.png$/u.test(path.basename(src)) && !(src.includes("companion-v2") && src.endsWith(".webm")), // companion-probe/probe.webm остаётся: он нужен диагностике
 });
 
 // внутри APK service worker не нужен: файлы и так локальные

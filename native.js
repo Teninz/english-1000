@@ -227,7 +227,16 @@ if (NATIVE) {
     init().then(() => { if (state === "ready" && companionDrawerOpen() && !inSession && !$(".scrim")) { closeCompanion(); openCompanion(); } });
     // Ошибка воспроизведения из плеера (journey.js): показывается в блоке набора, чтобы её можно было прочитать на телефоне.
     window.foxPackMediaError = (path, code, msg) => { error = `Видео не запускается (${code}${msg ? ": " + msg : ""}): ${path}`; };
-    return { ready: () => state === "ready", url: path => urls[path] || null, status: () => ({ state, percent, error }), download, remove };
+    let probe = "";
+    // Источники для диагностики: скачанный файл напрямую (_capacitor_file_), тот же файл через память, data-URL.
+    async function probeSources(path) {
+      const out = {};
+      try { const u = await FS.getUri({ path: local(path), directory: DIR }); out["файл"] = NATIVE.C.convertFileSrc(u.uri); } catch (e) { out["файл"] = null; }
+      out["файл→память"] = urls[path] || null;
+      try { const r = await FS.readFile({ path: local(path), directory: DIR }); out["data-url"] = "data:video/webm;base64," + r.data; } catch (e) { out["data-url"] = null; }
+      return out;
+    }
+    return { ready: () => state === "ready", url: path => urls[path] || null, status: () => ({ state, percent, error, probe }), download, remove, probeSources, setProbe: text => { probe = text; } };
   })();
 
   // --- ежедневное напоминание (настраивается в настройках через S.set.remind = "HH:MM" | null) ---
