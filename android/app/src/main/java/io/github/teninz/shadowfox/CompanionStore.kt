@@ -79,17 +79,19 @@ object CompanionStore {
         val male = male(state)
         return when (mood) {
             0 -> "${who(state)} ${if (male) "рад" else "рада"} тебя видеть"
-            1 -> "${who(state)} ${if (male) "притих" else "притихла"}"
+            1 -> "${who(state)} ${if (male) "загрустил" else "загрустила"}"
             2 -> "${who(state)} скучает по тебе"
-            else -> "${who(state)} ${if (male) "свернулся" else "свернулась"} клубком"
+            else -> "${who(state)} ${if (male) "обиделся" else "обиделась"}"
         }
     }
     fun message(state: JSONObject): String = when (mood(state)) {
         1 -> "Один день без урока. ${who(state)} ждёт вашей встречи."
-        2 -> "Два дня без урока. ${who(state)} едва шевелит ушами."
-        3 -> "Три дня без урока. Начните занятие, чтобы ${who(state)} ожил${if (male(state)) "" else "а"}."
-        else -> if (state.getJSONObject("completed").has(today())) "Сегодня вы уже позанимались. ${who(state)} довол${if (male(state)) "ен" else "ьна"}!" else "Пять слов вместе? За занятие получишь угощение."
+        2 -> "Два дня без урока. ${who(state)} совсем ${if (male(state)) "приуныл" else "приуныла"}."
+        3 -> "Три дня без урока. ${who(state)} сидит спиной — только занятие вернёт ${if (male(state)) "его" else "её"}."
+        else -> if (state.getJSONObject("completed").has(today())) "Сегодня вы уже позанимались. ${who(state)} довол${if (male(state)) "ен" else "ьна"}!" else "Пять слов вместе? Короткое занятие — и ${who(state)} ${if (male(state)) "рад" else "рада"}."
     }
+    fun sleepTitle(state: JSONObject): String = "${who(state)} сладко спит"
+    fun sleepMessage(state: JSONObject): String = "Ночью ${who(state)} спит и видит сны про новые слова. Утром проснётся ${if (male(state)) "сам" else "сама"}."
     @Synchronized fun act(context: Context, action: String): JSONObject {
         val state = read(context)
         val mood = mood(state)

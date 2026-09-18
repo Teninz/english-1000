@@ -330,14 +330,16 @@ test('лиса открывается отдельной панелью, инф�
 });
 test('Android-виджет использует те же четыре состояния модели, что и приложение',()=>{
   const kotlin=read('android/app/src/main/java/io/github/teninz/shadowfox/CompanionWidget.kt');
-  for(const name of ['idle','sad_1','sad_2','withdrawn']){
+  for(const name of ['idle','sad_1','sad_2','withdrawn','sleep']){
     assert.ok(kotlin.includes('R.drawable.companion_'+name),name);
     const file=path.join(root,'android','app','src','main','res','drawable-nodpi','companion_'+name+'.png');
     assert.ok(fs.existsSync(file),file);const data=fs.readFileSync(file);assert.ok(data.length>1_000,file);
-    assert.equal(data.readUInt32BE(16),128);assert.equal(data.readUInt32BE(20),128);
+    assert.equal(data.readUInt32BE(16),256);assert.equal(data.readUInt32BE(20),256);
   }
-  assert.ok(read('android/app/src/main/res/layout/companion_widget.xml').includes('@drawable/companion_idle'));
-  assert.ok(kotlin.includes('R.id.fox_water'));
+  const layout=read('android/app/src/main/res/layout/companion_widget.xml');
+  assert.ok(layout.includes('@drawable/companion_idle'));assert.ok(layout.includes('fox_lesson'));
+  for(const gone of ['fox_feed','fox_water','fox_pet'])assert.equal(layout.includes(gone),false,gone);
+  assert.equal(kotlin.includes('R.id.fox_water'),false);assert.ok(kotlin.includes('companion_sleep'));
   const store=read('android/app/src/main/java/io/github/teninz/shadowfox/CompanionStore.kt');
   assert.ok(store.includes('.put("identity", identityEmpty())'));
   assert.ok(kotlin.includes('CompanionStore.title(state, mood)'));
