@@ -181,6 +181,8 @@ if (NATIVE) {
       state = "downloading"; percent = 0; error = "";
       const files = foxPackFiles(), total = Math.max(1, files.reduce((s, f) => s + f.kb * 1024, 0));
       let done = 0, current = 0;
+      // downloadFile не создаёт папку назначения даже с recursive — делаем это сами (ошибка «уже существует» безвредна).
+      try { await FS.mkdir({ path: `fox-pack/${pack().version}`, directory: DIR, recursive: true }); } catch (e) {}
       const handle = await FS.addListener("progress", p => { current = p.bytes || 0; const pct = Math.min(99, Math.round((done + current) / total * 100)); if (pct !== percent) { percent = pct; onProgress && onProgress(pct); } });
       try {
         for (const f of files) {
