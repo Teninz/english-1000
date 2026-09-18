@@ -215,7 +215,8 @@ test('лисы v2: набор клипов, постеры и суточный �
     if(entry.clips.sleep)assert.ok(fs.existsSync(path.join(root,'art','companion-v2',fox.id,'poster-sleep.webp')));
   }
   const bold=manifest.foxes['04-boy-bold'].clips;
-  for(const clip of ['calm-idle','calm1','calm2','calm3','calm4','calm5','touch','sad-idle','sad1','sad2','offended-idle','offended1','lie-down','fall-asleep','sleep','sleep-touch','wake-up'])assert.ok(bold[clip],clip);
+  for(const clip of ['calm1','calm2','calm3','calm4','calm5','touch','sad-idle','sad1','sad2','offended-idle','offended1','lie-down','fall-asleep','sleep','sleep-touch','wake-up'])assert.ok(bold[clip],clip);
+  assert.equal(bold['calm-idle'],undefined,'петля с мерцающим фоном убрана');
   for(const kind of ['sad','offended','sleep'])assert.ok(fs.existsSync(path.join(root,'art','companion-v2','04-boy-bold',`poster-${kind}.webp`)),kind);
   assert.deepEqual(Object.keys(manifest.foxes['04-boy-bold'].sets).sort(),['calm','offended','sad']);
   assert.equal(bold.sleep.kind,'loop');assert.equal(bold['wake-up'].kind,'transition');
@@ -232,13 +233,13 @@ test('лисы v2: набор клипов, постеры и суточный �
   assert.ok(read('index.html').includes('<script src="art/companion-v2/manifest.js"></script>'));
   assert.ok(read('tools/build-web.js').includes('"companion-references"'));
   // в APK клипов нет: их скачивает foxPackStore с GitHub Releases; сайт отдаёт файлы из репозитория
-  assert.ok(read('tools/build-web.js').includes('src.endsWith(".webm")'));
+  assert.ok(read('tools/build-web.js').includes('src.endsWith(".webm") && !src.includes("scene")'),'сцена остаётся в APK, клипы лисы — нет');
   assert.equal(read('sw.js').includes('.webm`'),false,'service worker не должен предзагружать клипы');
   const native=read('native.js');assert.ok(native.includes('window.foxPackStore'));assert.ok(native.includes('releases/download/fox-pack-'));assert.ok(native.includes('FS.downloadFile'));
   assert.ok(read('package.json').includes('@capacitor/filesystem'));
   const run=app();run(read('art/companion-v2/manifest.js'));
-  const files=run('JSON.stringify(foxPackFiles())');assert.equal(JSON.parse(files).length,Object.keys(manifest.foxes['04-boy-bold'].clips).length+Object.values(manifest.scene.periods).flat().length+Object.keys(manifest.scene.transitions).length);
-  assert.ok(JSON.parse(files).every(f=>f.kb>0&&(f.path.startsWith('04-boy-bold/')||f.path.startsWith('scene/'))));
+  const files=run('JSON.stringify(foxPackFiles())');assert.equal(JSON.parse(files).length,Object.keys(manifest.foxes['04-boy-bold'].clips).length,'в набор входят только клипы лисы');
+  assert.ok(JSON.parse(files).every(f=>f.kb>0&&f.path.startsWith('04-boy-bold/')));
   assert.equal(run('foxPackReady()'),true,'без хранилища (сайт) набор считается доступным');
   run('window.foxPackStore={ready:()=>false,url:()=>null,status:()=>({state:"missing",percent:0,error:""})}');
   assert.equal(run('foxPackReady()'),false);assert.equal(run('foxClipNames(LearningCore.petFox("04-boy-bold")).length'),0);
@@ -253,6 +254,7 @@ test('время суток лисы берётся из часов устрой
   const run=app();
   run(read('art/companion-v2/manifest.js'));
   const at=(h,m)=>run(`foxPeriod(new Date(2026,8,17,${h},${m}))`);
+  assert.ok(read('about.js').includes('"1.0.2.3"')&&read('about.js').includes('"1.0.3.0"')&&read('about.js').includes('"1.0.3.1"')&&read('about.js').includes('"1.0"'),'список версий с 1.0');assert.ok(read('about.js').includes('about-more'));
   assert.equal(at(7,29),'night');assert.equal(at(7,30),'morning');assert.equal(at(12,29),'morning');assert.equal(at(12,30),'day');
   assert.equal(at(19,29),'day');assert.equal(at(19,30),'evening');assert.equal(at(23,29),'evening');assert.equal(at(23,30),'night');assert.equal(at(3,0),'night');
   assert.equal(run('foxPeriodTransition("day","evening")'),'day-evening');assert.equal(run('foxPeriodTransition("night","morning")'),'night-morning');assert.equal(run('foxPeriodTransition("morning","evening")'),null);
@@ -272,7 +274,7 @@ test('время суток лисы берётся из часов устрой
   assert.ok(run('foxStageHtml(foxCurrent(),0,"x")').includes('poster'));
   assert.equal(run('foxMoodSet(0)'),'calm');assert.equal(run('foxMoodSet(1)'),'sad');assert.equal(run('foxMoodSet(2)'),'sad');assert.equal(run('foxMoodSet(3)'),'offended');
   const sets=JSON.parse(run('JSON.stringify({calm:foxSet("calm"),sad:foxSet("sad"),offended:foxSet("offended")})'));
-  assert.equal(sets.calm.idle,'calm-idle');assert.ok(sets.calm.active.length>=4);assert.equal(sets.calm.touch,'touch');
+  assert.equal(sets.calm.idle,null);assert.ok(sets.calm.active.length>=4);assert.equal(sets.calm.touch,'touch');
   assert.equal(sets.sad.idle,'sad-idle');assert.ok(sets.sad.active.includes('sad1'));assert.equal(sets.offended.idle,'offended-idle');assert.ok(sets.offended.active.includes('offended1'));
   assert.ok(run('foxStageHtml(foxCurrent(),1,"x")').includes('data-set="sad"'));assert.ok(run('foxStageHtml(foxCurrent(),3,"x")').includes('data-set="offended"'));
   assert.equal(run('companionCardHtml()').includes('id="foxFeed"'),false,'кнопок еды/воды/ласки больше нет');

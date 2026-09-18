@@ -22,13 +22,6 @@ const FOX_PACK = {
         768
       ],
       "clips": {
-        "calm-idle": {
-          "kind": "loop",
-          "frames": 107,
-          "ms": 4458,
-          "kb": 1064,
-          "framing": "padded"
-        },
         "calm1": {
           "kind": "oneshot",
           "frames": 135,
@@ -144,7 +137,7 @@ const FOX_PACK = {
       },
       "sets": {
         "calm": {
-          "idle": "calm-idle",
+          "idle": null,
           "active": [
             "calm1",
             "calm2",

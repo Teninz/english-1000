@@ -82,3 +82,6 @@ body:has(.sess-top) #scene{opacity:.3}
 body:has(.sess-top) #scene *{animation-play-state:paused!important}
 @media(max-width:370px){.fox-grid{gap:7px}.fox-option{padding:7px}.fox-actions{gap:5px}.fox-actions .btn{padding-inline:4px;font-size:12px}.fox-week{gap:4px}.fox-week span{width:23px;height:23px}.fox-meeting h2{font-size:18px}.progress-overview{gap:12px}.progress-donut{width:96px}.fox-card-head{align-items:stretch;flex-direction:column}.fox-card-tools{justify-content:flex-start}.fox-name-forms{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+
+/* «О приложении»: старые версии свёрнуты */
+.about-more{margin-top:10px}.about-more summary{cursor:pointer;color:var(--accent);list-style:none;padding:6px 0}.about-more summary::-webkit-details-marker{display:none}.about-more summary::before{content:"▸ ";}.about-more[open] summary::before{content:"▾ ";}

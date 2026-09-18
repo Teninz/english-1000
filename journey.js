@@ -20,8 +20,7 @@ const foxPackUrl = path => window.foxPackStore ? window.foxPackStore.url(path) :
 function foxPackFiles(){
   const pack=foxPack(), files=[];
   for(const [fox,f] of Object.entries(pack.foxes||{}))for(const [clip,c] of Object.entries(f.clips||{}))files.push({path:`${fox}/${clip}.webm`,kb:c.kb||0});
-  for(const loops of Object.values(pack.scene?.periods||{}))for(const l of loops)files.push({path:`scene/${l.file}.webm`,kb:l.kb||0});
-  for(const [name,tr] of Object.entries(pack.scene?.transitions||{}))files.push({path:`scene/${name}.webm`,kb:tr.kb||0});
+  // Сцена (петли и переходы фона) лежит внутри APK и в набор не входит.
   return files;
 }
 const foxPackMb = () => Math.max(1,Math.round(foxPackFiles().reduce((s,f)=>s+f.kb,0)/1024));
@@ -53,8 +52,8 @@ const foxCurrent = () => LearningCore.petFox(S.companion?.fox);
 const foxReady = () => !!(foxCurrent() && foxIdentity().name);
 const foxAsset = (fox,clip) => foxPackUrl(`${fox.id}/${clip}.webm`);
 const foxPoster = (fox,kind="") => `${FOX_V2_DIR}/${fox.id}/poster${kind?"-"+kind:""}.webp`;
-const foxSceneLoops = period => foxPackReady() ? (foxPack().scene?.periods?.[period]||[]).map(x=>x.file) : [];
-const foxSceneSrc = file => foxPackUrl(`scene/${file}.webm`);
+const foxSceneLoops = period => (foxPack().scene?.periods?.[period]||[]).map(x=>x.file);
+const foxSceneSrc = file => `${FOX_V2_DIR}/scene/${file}.webm`;
 const foxScenePoster = period => `${FOX_V2_DIR}/scene/${period}.webp`;
 const foxHasClip = (fox,clip) => foxPackReady() && !!foxPackFox(fox).clips?.[clip];
 const foxPreviewClip = fox => foxHasClip(fox,"calm1") ? "calm1" : foxClipNames(fox)[0] || null;
@@ -73,7 +72,7 @@ function foxStageHtml(fox,mood,alt){
   const asleep=hasSleep&&(change?change.seen==="night":period==="night");
   const posterKind=asleep?"sleep":set==="calm"?"":set;
   const loops=foxSceneLoops(period), loop=loops[Math.floor(Math.random()*loops.length)];
-  const transition=change&&foxPackReady()&&foxPack().scene?.transitions?.[`${change.hop}-${period}`]?`${change.hop}-${period}`:null;
+  const transition=change&&foxPack().scene?.transitions?.[`${change.hop}-${period}`]?`${change.hop}-${period}`:null;
   const scene=foxStill()||!loop
     ? `<img class="fox-scene on" src="${foxScenePoster(period)}" alt="">`
     : `<video class="fox-scene on" src="${transition?foxSceneSrc(transition):foxSceneSrc(loop)}" poster="${foxScenePoster(transition?change.hop:period)}" autoplay muted ${transition?"":"loop"} playsinline disablepictureinpicture></video><video class="fox-scene" muted playsinline preload="auto" disablepictureinpicture ${transition?`src="${foxSceneSrc(loop)}" loop`:""}></video>`;
@@ -230,7 +229,7 @@ function foxSceneChange(from,to){
     el.oncanplay=()=>{el.oncanplay=null; el.classList.add("on"); el.play?.().catch?.(()=>{}); active.classList.remove("on"); active.pause(); el.onended=onEnd||null;};
   };
   const transition=foxPeriodTransition(from,to);
-  if(transition&&foxPackReady()&&foxPack().scene?.transitions?.[transition]&&loop){
+  if(transition&&foxPack().scene?.transitions?.[transition]&&loop){
     swap(idle,foxSceneSrc(transition),false,()=>{
       active.loop=true; active.src=foxSceneSrc(loop); active.load();
       active.oncanplay=()=>{active.oncanplay=null; active.classList.add("on"); active.play?.().catch?.(()=>{}); idle.classList.remove("on"); idle.pause();};

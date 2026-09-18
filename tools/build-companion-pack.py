@@ -43,7 +43,6 @@ PACK_VERSION = 3  # поднимать при любом изменении со
 #          что в точности повторяет построение padded-референсов, и попадают в тот же кадр.
 FOX_CLIPS = {
     # спокойное состояние (0 пропущенных дней)
-    "calm-idle":     {"src": "04-boy-bold_calm-idle",     "range": [14, 121], "kind": "loop",       "from": None,       "to": None,       "framing": "padded"},
     "calm1":         {"src": "04-boy-bold_calm1",         "range": [1, 124],  "kind": "oneshot",    "from": "rest",     "to": "rest",     "framing": "padded"},
     "calm2":         {"src": "04-boy-bold_calm2",         "range": [1, 121],  "kind": "oneshot",    "from": "rest",     "to": "rest",     "framing": "orig"},
     "calm3":         {"src": "04-boy-bold_calm3",         "range": [1, 124],  "kind": "oneshot",    "from": "rest",     "to": "rest",     "framing": "padded"},
@@ -73,7 +72,7 @@ ANCHORS = {
 }
 # Наборы по настроению: петля покоя, «сюжетные» вставки и реакция на касание.
 SETS = {
-    "calm":     {"idle": "calm-idle",     "active": ["calm1", "calm2", "calm3", "calm4", "calm5"], "touch": "touch"},
+    "calm":     {"idle": None,            "active": ["calm1", "calm2", "calm3", "calm4", "calm5"], "touch": "touch"},  # петля покоя отложена: у дубля мерцал фон
     "sad":      {"idle": "sad-idle",      "active": ["sad1", "sad2"],                              "touch": None},
     "offended": {"idle": "offended-idle", "active": ["offended1"],                                 "touch": None},
 }
