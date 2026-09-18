@@ -2,6 +2,7 @@
 const FOX_PACK = {
   "fps": 24,
   "version": 3,
+  "bundled": true,
   "foxes": {
     "01-boy-calm": {
       "sex": "male",

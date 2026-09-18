@@ -26,6 +26,9 @@ body.fox-drawer-open #overlay .scrim{z-index:60}
 .fox-clip.on{opacity:1}
 .fox-clip[hidden]{display:none}
 /* настроение показывают сами клипы (грусть, обида) — затемнения больше нет */
+/* служебные строки (проверка видео, ошибки) переносятся по ширине экрана и не растягивают панель */
+#foxMediaReport,.fox-pack p,.fox-response{overflow-wrap:anywhere;word-break:break-word;max-width:100%;min-width:0}
+.fox-drawer .card,.fox-drawer .companion{min-width:0;max-width:100%;overflow:hidden}
 .fox-beta{display:grid;gap:4px;margin:0 0 12px;padding:12px 14px;border-radius:12px;font-size:13px;color:var(--ink);background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 34%,transparent),color-mix(in srgb,var(--accent) 6%,transparent) 70%,transparent);border-left:3px solid var(--accent)}
 .fox-beta b{font-size:14px}.fox-beta span{color:var(--muted)}
 /* Загрузка набора анимаций (APK): клипы хранятся в памяти приложения, а не в пакете */

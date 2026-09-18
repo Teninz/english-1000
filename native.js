@@ -155,7 +155,8 @@ if (NATIVE) {
 
   // --- набор анимаций лисы: скачивается по кнопке и хранится в приватной папке приложения (как контент в играх) ---
   // Файлы берутся с GitHub Releases по версии из manifest.js; в APK лежат только постеры. Пока набора нет — лиса неподвижна.
-  window.foxPackStore = (() => {
+  // При bundled: true (manifest.js) клипы лежат в APK, хранилище и кнопка загрузки не нужны.
+  if (typeof FOX_PACK === "undefined" || !FOX_PACK.bundled) window.foxPackStore = (() => {
     const FS = NATIVE.P.Filesystem, KEY = "foxPack", DIR = "DATA";
     const pack = () => (typeof FOX_PACK !== "undefined" ? FOX_PACK : {version:0});
     const base = () => pack().base || `https://github.com/Teninz/english-1000/releases/download/fox-pack-${pack().version}/`;

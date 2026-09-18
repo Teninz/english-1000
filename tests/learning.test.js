@@ -233,9 +233,9 @@ test('лисы v2: набор клипов, постеры и суточный �
   assert.ok(read('index.html').includes('<script src="art/companion-v2/manifest.js"></script>'));
   assert.ok(read('tools/build-web.js').includes('"companion-references"'));
   // в APK клипов нет: их скачивает foxPackStore с GitHub Releases; сайт отдаёт файлы из репозитория
-  assert.ok(read('tools/build-web.js').includes('src.endsWith(".webm") && !src.includes("scene")'),'сцена остаётся в APK, клипы лисы — нет');
+  assert.equal(manifest.bundled,true,'клипы упакованы в APK');assert.equal(read('tools/build-web.js').includes('src.endsWith(".webm")'),false,'webm не исключаются из APK');
   assert.equal(read('sw.js').includes('.webm`'),false,'service worker не должен предзагружать клипы');
-  const native=read('native.js');assert.ok(native.includes('window.foxPackStore'));assert.ok(native.includes('releases/download/fox-pack-'));assert.ok(native.includes('FS.downloadFile'));
+  const native=read('native.js');assert.ok(native.includes('window.foxPackStore'));assert.ok(native.includes('!FOX_PACK.bundled'));assert.ok(native.includes('releases/download/fox-pack-'));assert.ok(native.includes('FS.downloadFile'));
   assert.ok(read('package.json').includes('@capacitor/filesystem'));
   const run=app();run(read('art/companion-v2/manifest.js'));
   const files=run('JSON.stringify(foxPackFiles())');assert.equal(JSON.parse(files).length,Object.keys(manifest.foxes['04-boy-bold'].clips).length,'в набор входят только клипы лисы');

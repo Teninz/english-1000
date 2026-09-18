@@ -106,6 +106,21 @@ function foxPlayerStart(){
   if(from&&from!==period){if(period==="night")foxGoToSleep();else if(from==="night")foxWakeUp();}
   foxPlayNext();
   foxPlayer.periodTimer=setInterval(foxCheckPeriod,30000);
+  foxPlayer.timer=setTimeout(foxMediaCheck,5000);
+}
+// Если через 5 с после открытия видео так и не пошло — состояние каждого элемента и версия WebView
+// показываются прямо в панели (только в приложении), чтобы причину было видно без отладки.
+function foxMediaCheck(){
+  const stage=foxStage(); if(!stage||!stage.isConnected||typeof NATIVE==="undefined"||!NATIVE)return;
+  const videos=[...stage.querySelectorAll("video.on")]; if(!videos.length)return;
+  const bad=videos.filter(v=>v.paused||v.readyState<3||v.error);
+  if(!bad.length)return;
+  const ua=(navigator.userAgent.match(/Chrome\/[\d.]+/)||[""])[0];
+  const parts=videos.map(v=>`${v.classList.contains("fox-scene")?"фон":"лиса"} ${(v.currentSrc||v.src||"").split("/").pop().slice(0,28)}: rs${v.readyState} ns${v.networkState} ${v.paused?"пауза":"играет"} t${v.currentTime.toFixed(1)}${v.error?" err"+v.error.code+(v.error.message?" "+v.error.message.slice(0,50):""):""}`);
+  const line=`Проверка видео: ${parts.join(" · ")} · ${ua||"WebView ?"}`;
+  let el=$("#foxMediaReport");
+  if(!el){el=document.createElement("p");el.id="foxMediaReport";el.className="small";el.style.cssText="color:var(--bad);margin:0 0 10px;overflow-wrap:anywhere";const beta=$(".fox-beta");if(beta)beta.after(el);else stage.after(el);}
+  el.textContent=line;
 }
 const foxStage = () => $("#foxStage");
 // Система останавливает видео в свёрнутом приложении; при возврате запускаем активные клипы заново.

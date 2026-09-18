@@ -35,6 +35,7 @@ OUT = ROOT / "art" / "companion-v2"
 FPS = 24
 FOX = "04-boy-bold"
 PACK_VERSION = 3  # поднимать при любом изменении состава клипов: приложение скачивает релиз fox-pack-<версия>
+BUNDLED = True    # True — клипы упакованы в APK и не скачиваются (схема 1.0.3.6); False — набор по кнопке из GitHub Releases
 
 # range — [от, до) исходных кадров; from/to — какой канонический кадр подшить к началу/концу.
 # kind: loop — крутится сама; oneshot — от покоя к покою, играется целиком; transition — меняет состояние.
@@ -210,7 +211,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     path = OUT / "manifest.json"
     manifest = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    manifest = {"fps": FPS, "version": PACK_VERSION, "foxes": manifest.get("foxes", {}), "scene": manifest.get("scene", {})}
+    manifest = {"fps": FPS, "version": PACK_VERSION, "bundled": BUNDLED, "foxes": manifest.get("foxes", {}), "scene": manifest.get("scene", {})}
     want = lambda key: not args.only or key in args.only
     if want("fox"):
         build_fox(args.crf, manifest)
