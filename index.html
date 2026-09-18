@@ -1205,6 +1205,8 @@ if(qsDemo.get("demo")){ const sc = qsDemo.get("screen"); setTimeout(() => {
   else if(sc==="road"){ go("road"); }
   else if(sc==="words"){ go("words"); openLevel = 0; drawWords(); }
   else if(sc==="settings"){ settingsSheet(); }
+  else if(sc==="companion"||sc==="choose"){ journeyState(); if(sc==="companion"){ S.companion.fox="04-boy-bold"; S.companion.adopted=today(); S.companion.identity=LearningCore.petIdentity({sex:"male",name:"Фокс"}); S.companion.completed[today()]=1; S.journey.completed[today()]=1; S.journey.foxSeen={day:today(),period:foxPeriod()}; } openCompanion(); }
+  else if(sc==="thematic"){ go("thematic"); }
   else if(sc) go(sc); }, 200); }
 document.addEventListener("visibilitychange", () => {if(document.visibilityState==="visible" && !inSession && tab==="home")go("home");});
 document.addEventListener("visibilitychange", thematicOnVisible);
