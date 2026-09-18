@@ -1,6 +1,6 @@
 {
   "fps": 24,
-  "version": 2,
+  "version": 3,
   "foxes": {
     "01-boy-calm": {
       "sex": "male",
@@ -21,6 +21,13 @@
         768
       ],
       "clips": {
+        "calm-idle": {
+          "kind": "loop",
+          "frames": 107,
+          "ms": 4458,
+          "kb": 1064,
+          "framing": "padded"
+        },
         "calm1": {
           "kind": "oneshot",
           "frames": 135,
@@ -48,6 +55,55 @@
           "ms": 5625,
           "kb": 1667,
           "framing": "padded"
+        },
+        "calm5": {
+          "kind": "oneshot",
+          "frames": 136,
+          "ms": 5667,
+          "kb": 1923,
+          "framing": "padded"
+        },
+        "touch": {
+          "kind": "oneshot",
+          "frames": 135,
+          "ms": 5625,
+          "kb": 1684,
+          "framing": "padded"
+        },
+        "sad-idle": {
+          "kind": "loop",
+          "frames": 112,
+          "ms": 4667,
+          "kb": 547,
+          "framing": "orig"
+        },
+        "sad1": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 709,
+          "framing": "orig"
+        },
+        "sad2": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 530,
+          "framing": "orig"
+        },
+        "offended-idle": {
+          "kind": "loop",
+          "frames": 121,
+          "ms": 5042,
+          "kb": 568,
+          "framing": "orig"
+        },
+        "offended1": {
+          "kind": "oneshot",
+          "frames": 132,
+          "ms": 5500,
+          "kb": 889,
+          "framing": "orig"
         },
         "lie-down": {
           "kind": "transition",
@@ -83,6 +139,34 @@
           "ms": 10542,
           "kb": 2066,
           "framing": "padded"
+        }
+      },
+      "sets": {
+        "calm": {
+          "idle": "calm-idle",
+          "active": [
+            "calm1",
+            "calm2",
+            "calm3",
+            "calm4",
+            "calm5"
+          ],
+          "touch": "touch"
+        },
+        "sad": {
+          "idle": "sad-idle",
+          "active": [
+            "sad1",
+            "sad2"
+          ],
+          "touch": null
+        },
+        "offended": {
+          "idle": "offended-idle",
+          "active": [
+            "offended1"
+          ],
+          "touch": null
         }
       }
     }

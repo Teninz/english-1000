@@ -7,7 +7,7 @@
 
 Результат:
   art/companion-v2/04-boy-bold/<clip>.webm      VP9 + альфа, 24 fps, 768x768 (общий padded-кадр)
-  art/companion-v2/04-boy-bold/poster.webp      покой; poster-sleep.webp — сон
+  art/companion-v2/04-boy-bold/poster.webp      покой; poster-sad/-offended/-sleep.webp — грусть, обида, сон
   art/companion-v2/03-girl-gentle/poster.webp   только постер (лиса заперта)
   art/companion-v2/scene/<period>-<n>.webm, <period>.webp, <from>-<to>.webm
   art/companion-v2/manifest.json + manifest.js  описание набора для плеера
@@ -17,7 +17,7 @@
 краям клипа подшиваются короткие растворения, поэтому переключение между
 любыми клипами бесшовно.
 
-  python tools/build-companion-pack.py [--crf 30] [--only fox|scene|posters]
+  python tools/build-companion-pack.py [--crf 30] [--only fox|scene|posters|manifest]
 """
 import argparse
 import importlib.util
@@ -34,6 +34,7 @@ SCENE_SRC = ROOT / "tools" / "companion-source" / "scene-v2" / "src"
 OUT = ROOT / "art" / "companion-v2"
 FPS = 24
 FOX = "04-boy-bold"
+PACK_VERSION = 3  # поднимать при любом изменении состава клипов: приложение скачивает релиз fox-pack-<версия>
 
 # range — [от, до) исходных кадров; from/to — какой канонический кадр подшить к началу/концу.
 # kind: loop — крутится сама; oneshot — от покоя к покою, играется целиком; transition — меняет состояние.
@@ -41,18 +42,41 @@ FOX = "04-boy-bold"
 #          "orig" — по исходным референсам (лиса ~90 % кадра): такие кадры уменьшаются на PAD_SCALE к центру,
 #          что в точности повторяет построение padded-референсов, и попадают в тот же кадр.
 FOX_CLIPS = {
-    "calm1":       {"src": "04-boy-bold_calm1",       "range": [1, 124],  "kind": "oneshot",    "from": "rest",  "to": "rest",  "framing": "padded"},
-    "calm2":       {"src": "04-boy-bold_calm2",       "range": [1, 121],  "kind": "oneshot",    "from": "rest",  "to": "rest",  "framing": "orig"},
-    "calm3":       {"src": "04-boy-bold_calm3",       "range": [1, 124],  "kind": "oneshot",    "from": "rest",  "to": "rest",  "framing": "padded"},
-    "calm4":       {"src": "04-boy-bold_calm4",       "range": [1, 124],  "kind": "oneshot",    "from": "rest",  "to": "rest",  "framing": "padded"},
-    "lie-down":    {"src": "04-boy-bold_lie-down",    "range": [1, 121],  "kind": "transition", "from": "rest",  "to": None,    "framing": "padded"},
-    "fall-asleep": {"src": "04-boy-bold_fall-asleep", "range": [0, 121],  "kind": "transition", "from": None,    "to": "sleep", "framing": "orig"},
-    "sleep":       {"src": "04-boy-bold_sleep",       "range": [6, 103],  "kind": "loop",       "from": None,    "to": None,    "framing": "orig"},
-    "sleep-touch": {"src": "04-boy-bold_sleep-touch", "range": [1, 121],  "kind": "oneshot",    "from": "sleep", "to": "sleep", "framing": "orig"},
-    "wake-up":     {"src": "04-boy-bold_wake-up",     "range": [0, 241],  "kind": "transition", "from": "sleep", "to": "rest",  "framing": "padded"},
+    # спокойное состояние (0 пропущенных дней)
+    "calm-idle":     {"src": "04-boy-bold_calm-idle",     "range": [14, 121], "kind": "loop",       "from": None,       "to": None,       "framing": "padded"},
+    "calm1":         {"src": "04-boy-bold_calm1",         "range": [1, 124],  "kind": "oneshot",    "from": "rest",     "to": "rest",     "framing": "padded"},
+    "calm2":         {"src": "04-boy-bold_calm2",         "range": [1, 121],  "kind": "oneshot",    "from": "rest",     "to": "rest",     "framing": "orig"},
+    "calm3":         {"src": "04-boy-bold_calm3",         "range": [1, 124],  "kind": "oneshot",    "from": "rest",     "to": "rest",     "framing": "padded"},
+    "calm4":         {"src": "04-boy-bold_calm4",         "range": [1, 124],  "kind": "oneshot",    "from": "rest",     "to": "rest",     "framing": "padded"},
+    "calm5":         {"src": "04-boy-bold_calm5",         "range": [1, 121],  "kind": "oneshot",    "from": "rest",     "to": "rest",     "framing": "padded", "blend_out": 10},
+    "touch":         {"src": "04-boy-bold_touch",         "range": [1, 124],  "kind": "oneshot",    "from": "rest",     "to": "rest",     "framing": "padded"},
+    # грусть (1–2 дня без занятий)
+    "sad-idle":      {"src": "04-boy-bold_sad-idle",      "range": [9, 121],  "kind": "loop",       "from": None,       "to": None,       "framing": "orig"},
+    "sad1":          {"src": "04-boy-bold_sad1",          "range": [1, 121],  "kind": "oneshot",    "from": "sad",      "to": "sad",      "framing": "orig"},
+    "sad2":          {"src": "04-boy-bold_sad2",          "range": [1, 121],  "kind": "oneshot",    "from": "sad",      "to": "sad",      "framing": "orig"},
+    # обида (3 дня и больше)
+    "offended-idle": {"src": "04-boy-bold_offended-idle", "range": [0, 121],  "kind": "loop",       "from": None,       "to": None,       "framing": "orig"},
+    "offended1":     {"src": "04-boy-bold_offended1",     "range": [1, 121],  "kind": "oneshot",    "from": "offended", "to": "offended", "framing": "orig"},
+    # сон
+    "lie-down":      {"src": "04-boy-bold_lie-down",      "range": [1, 121],  "kind": "transition", "from": "rest",     "to": None,       "framing": "padded"},
+    "fall-asleep":   {"src": "04-boy-bold_fall-asleep",   "range": [0, 121],  "kind": "transition", "from": None,       "to": "sleep",    "framing": "orig"},
+    "sleep":         {"src": "04-boy-bold_sleep",         "range": [6, 103],  "kind": "loop",       "from": None,       "to": None,       "framing": "orig"},
+    "sleep-touch":   {"src": "04-boy-bold_sleep-touch",   "range": [1, 121],  "kind": "oneshot",    "from": "sleep",    "to": "sleep",    "framing": "orig"},
+    "wake-up":       {"src": "04-boy-bold_wake-up",       "range": [0, 241],  "kind": "transition", "from": "sleep",    "to": "rest",     "framing": "padded"},
 }
-REST = ("04-boy-bold_calm1", 0, "padded")   # канонический покой
-SLEEP = ("04-boy-bold_sleep", 6, "orig")    # канонический сон
+# Канонические кадры: покой, грусть, обида, сон. Клипы одного набора начинаются и заканчиваются своим кадром.
+ANCHORS = {
+    "rest":     ("04-boy-bold_calm1", 0, "padded"),
+    "sad":      ("04-boy-bold_sad-idle", 9, "orig"),
+    "offended": ("04-boy-bold_offended-idle", 0, "orig"),
+    "sleep":    ("04-boy-bold_sleep", 6, "orig"),
+}
+# Наборы по настроению: петля покоя, «сюжетные» вставки и реакция на касание.
+SETS = {
+    "calm":     {"idle": "calm-idle",     "active": ["calm1", "calm2", "calm3", "calm4", "calm5"], "touch": "touch"},
+    "sad":      {"idle": "sad-idle",      "active": ["sad1", "sad2"],                              "touch": None},
+    "offended": {"idle": "offended-idle", "active": ["offended1"],                                 "touch": None},
+}
 BLEND_IN, BLEND_OUT = 4, 6        # кадров растворения в начале и в конце
 CANVAS = 768                      # общий холст (разрешение новых клипов)
 PAD_SCALE = 0.72                  # см. art/companion-references/04/image/padded
@@ -102,8 +126,8 @@ def build_fox(crf, manifest):
     for old in folder.glob("*.webm"):  # клипы прежнего набора (idle/look/notice/blink) больше не нужны
         if old.stem not in FOX_CLIPS:
             old.unlink()
-    anchors = {"rest": keyed(*REST), "sleep": keyed(*SLEEP)}
-    entry = {"sex": "male", "size": list(anchors["rest"].size), "clips": {}}
+    anchors = {name: keyed(*src) for name, src in ANCHORS.items()}
+    entry = {"sex": "male", "size": list(anchors["rest"].size), "clips": {}, "sets": SETS}
     for name, spec in FOX_CLIPS.items():
         body = [keyed(spec["src"], i, spec["framing"]) for i in range(*spec["range"])]
         frames = []
@@ -111,14 +135,14 @@ def build_fox(crf, manifest):
             frames += [anchors[spec["from"]]] + blend(anchors[spec["from"]], body[0], BLEND_IN)
         frames += body
         if spec["to"]:
-            frames += blend(body[-1], anchors[spec["to"]], BLEND_OUT) + [anchors[spec["to"]]]
+            frames += blend(body[-1], anchors[spec["to"]], spec.get("blend_out", BLEND_OUT)) + [anchors[spec["to"]]]
         path = folder / f"{name}.webm"
         V2.ffmpeg_rgb(frames, path, crf, alpha=True)
         entry["clips"][name] = {"kind": spec["kind"], "frames": len(frames), "ms": round(len(frames) * 1000 / FPS),
                                 "kb": round(path.stat().st_size / 1024), "framing": spec["framing"]}
         print(f"{FOX}/{name}.webm {len(frames)} frames {entry['clips'][name]['kb']} KB")
-    anchors["rest"].resize((360, 360), Image.LANCZOS).save(folder / "poster.webp", quality=88, method=6)
-    anchors["sleep"].resize((360, 360), Image.LANCZOS).save(folder / "poster-sleep.webp", quality=88, method=6)
+    for name, im in anchors.items():
+        im.resize((360, 360), Image.LANCZOS).save(folder / ("poster.webp" if name == "rest" else f"poster-{name}.webp"), quality=88, method=6)
     manifest["foxes"][FOX] = entry
 
 
@@ -187,7 +211,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     path = OUT / "manifest.json"
     manifest = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    manifest = {"fps": FPS, "version": 2, "foxes": manifest.get("foxes", {}), "scene": manifest.get("scene", {})}
+    manifest = {"fps": FPS, "version": PACK_VERSION, "foxes": manifest.get("foxes", {}), "scene": manifest.get("scene", {})}
     want = lambda key: not args.only or key in args.only
     if want("fox"):
         build_fox(args.crf, manifest)

@@ -37,8 +37,15 @@ function foxPeriod(date=new Date()){
   return "evening";
 }
 const foxPeriodTransition = (from,to) => FOX_PERIOD_ORDER.indexOf(to)===(FOX_PERIOD_ORDER.indexOf(from)+1)%4 ? `${from}-${to}` : null;
-// Прежние названия анимаций (действия, настроения) сводятся к ролям набора.
-const FOX_V2_ROLE = {idle:"calm",quiet:"calm2",sad:"calm2",withdrawn:"calm2",sleep:"sleep",hungry:"calm3",thirsty:"calm2",lesson:"calm1",stretch:"calm4",yawn:"calm2",listen:"calm1",offended:"calm2",pet:"calm4",feed:"calm3",happy:"calm3",drink:"calm2",notice:"calm3",look:"calm1",blink:"calm2",calm:"calm"};
+// Наборы клипов по настроению (manifest: foxes[id].sets): петля покоя, «сюжетные» вставки и реакция на касание.
+// 0 пропущенных дней — calm, 1–2 — sad, 3 и больше — offended. Сон ночью — в любом настроении.
+const foxMoodSet = mood => mood >= 3 ? "offended" : mood >= 1 ? "sad" : "calm";
+function foxSet(name){
+  const sets=foxPackFox(foxCurrent()).sets||{}, set=sets[name]||sets.calm||{idle:null,active:[],touch:null};
+  const has=clip=>clip&&foxHasClip(foxCurrent(),clip);
+  return {idle:has(set.idle)?set.idle:null, active:(set.active||[]).filter(has), touch:has(set.touch)?set.touch:null};
+}
+const FOX_IDLE_RUNS = [2, 5]; // сколько кругов петли покоя между вставками (петля ≈ 4–5 с)
 const foxReducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 const foxStill = () => foxReducedMotion() || S.set?.motion===false;
 const foxMoodAnimation = mood => ["idle","quiet","sad","withdrawn"][mood] || "idle";
@@ -61,25 +68,26 @@ function foxOpenTransition(period){
   return {seen,hop:foxPeriodTransition(seen,period)?seen:foxPrevPeriod(period)};
 }
 function foxStageHtml(fox,mood,alt){
-  const period=foxPeriod(), change=foxOpenTransition(period), hasSleep=foxHasClip(fox,"sleep");
+  const period=foxPeriod(), change=foxOpenTransition(period), hasSleep=foxHasClip(fox,"sleep"), set=foxMoodSet(mood);
   // Спит, если сейчас ночь и переходить не нужно, либо если прошлый визит был ночью — тогда проснётся на глазах.
   const asleep=hasSleep&&(change?change.seen==="night":period==="night");
+  const posterKind=asleep?"sleep":set==="calm"?"":set;
   const loops=foxSceneLoops(period), loop=loops[Math.floor(Math.random()*loops.length)];
   const transition=change&&foxPackReady()&&foxPack().scene?.transitions?.[`${change.hop}-${period}`]?`${change.hop}-${period}`:null;
   const scene=foxStill()||!loop
     ? `<img class="fox-scene on" src="${foxScenePoster(period)}" alt="">`
     : `<video class="fox-scene on" src="${transition?foxSceneSrc(transition):foxSceneSrc(loop)}" poster="${foxScenePoster(transition?change.hop:period)}" autoplay muted ${transition?"":"loop"} playsinline disablepictureinpicture></video><video class="fox-scene" muted playsinline preload="auto" disablepictureinpicture ${transition?`src="${foxSceneSrc(loop)}" loop`:""}></video>`;
   const actor=foxStill()||!foxClipNames(fox).length
-    ? `<img class="fox-clip on" src="${foxPoster(fox,asleep?"sleep":"")}" alt="${esc(alt)}">`
-    : `<video class="fox-clip" muted playsinline preload="auto" disablepictureinpicture aria-label="${esc(alt)}" poster="${foxPoster(fox,asleep?"sleep":"")}"></video><video class="fox-clip" muted playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>`;
-  return `<div class="fox-stage mood-${mood}" id="foxStage" data-mood="${mood}" data-period="${period}" data-mode="${asleep?"asleep":"awake"}" data-zoom="${asleep?"in":"out"}" data-from="${change?change.seen:""}" data-transition="${transition||""}" title="${FOX_PERIOD_NAMES[period]}">${scene}<div class="fox-actor">${actor}</div></div>`;
+    ? `<img class="fox-clip on" src="${foxPoster(fox,posterKind)}" alt="${esc(alt)}">`
+    : `<video class="fox-clip" muted playsinline preload="auto" disablepictureinpicture aria-label="${esc(alt)}" poster="${foxPoster(fox,posterKind)}"></video><video class="fox-clip" muted playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>`;
+  return `<div class="fox-stage mood-${mood}" id="foxStage" data-mood="${mood}" data-period="${period}" data-mode="${asleep?"asleep":"awake"}" data-set="${set}" data-zoom="${asleep?"in":"out"}" data-from="${change?change.seen:""}" data-transition="${transition||""}" title="${FOX_PERIOD_NAMES[period]}">${scene}<div class="fox-actor">${actor}</div></div>`;
 }
 
 // --- плеер ---
-const foxPlayer = {videos:[],active:null,current:null,last:null,planned:null,queue:[],timer:0,periodTimer:0};
+const foxPlayer = {videos:[],active:null,current:null,last:null,planned:null,queue:[],timer:0,periodTimer:0,idleRuns:0,idleTarget:3};
 function foxPlayerReset(){
   clearTimeout(foxPlayer.timer); clearInterval(foxPlayer.periodTimer);
-  foxPlayer.videos=[]; foxPlayer.active=null; foxPlayer.current=null; foxPlayer.last=null; foxPlayer.queue=[]; foxPlayer.timer=0; foxPlayer.periodTimer=0;
+  foxPlayer.videos=[]; foxPlayer.active=null; foxPlayer.current=null; foxPlayer.last=null; foxPlayer.queue=[]; foxPlayer.planned=null; foxPlayer.timer=0; foxPlayer.periodTimer=0; foxResetIdleRuns();
 }
 function foxPlayerStart(){
   foxPlayerReset();
@@ -100,10 +108,18 @@ function foxPlayerStart(){
   foxPlayer.periodTimer=setInterval(foxCheckPeriod,30000);
 }
 const foxStage = () => $("#foxStage");
+// Система останавливает видео в свёрнутом приложении; при возврате запускаем активные клипы заново.
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden)return;
+  const stage=foxStage(); if(!stage)return;
+  stage.querySelectorAll("video.on").forEach(v=>{if(v.paused&&!v.ended)v.play?.().catch?.(()=>{});});
+  if(foxPlayer.active&&foxPlayer.active.ended)foxPlayNext();
+});
 const foxMode = () => foxStage()?.dataset.mode||"awake";
 function foxSetMode(mode){
   const s=foxStage(); if(!s)return; s.dataset.mode=mode;
-  const img=s.querySelector("img.fox-clip"); if(img)img.src=foxPoster(foxCurrent(),mode==="asleep"?"sleep":"");
+  const set=s.dataset.set||"calm";
+  const img=s.querySelector("img.fox-clip"); if(img)img.src=foxPoster(foxCurrent(),mode==="asleep"?"sleep":set==="calm"?"":set);
 }
 // Наезд «камеры»: фон плавно приближается на протяжении клипа lie-down и отдаляется на wake-up.
 function foxCameraFor(clip){
@@ -114,16 +130,16 @@ function foxCameraFor(clip){
 }
 // Что играть следующим, если очередь пуста: во сне — петля сна, наяву — случайный спокойный клип.
 function foxAutoClip(){
-  const fox=foxCurrent(), names=foxClipNames(fox);
-  if(foxMode()==="asleep")return names.includes("sleep")?"sleep":null;
-  const mood=Number(foxStage()?.dataset.mood)||0, period=foxStage()?.dataset.period;
-  let calm=names.filter(n=>/^calm\d+$/.test(n));
-  if(!calm.length)return null;
-  if(mood>=2&&calm.includes("calm2"))calm=["calm2"];
-  else if(period==="evening"&&calm.includes("calm2"))calm=calm.concat(["calm2","calm2"]);
-  const pool=calm.length>1?calm.filter(n=>n!==foxPlayer.last):calm;
+  const fox=foxCurrent(); if(!fox)return null;
+  if(foxMode()==="asleep")return foxHasClip(fox,"sleep")?"sleep":null;
+  const set=foxSet(foxStage()?.dataset.set||"calm");
+  const idleDue=foxPlayer.idleRuns<foxPlayer.idleTarget;
+  if(set.idle&&(idleDue||!set.active.length))return set.idle;
+  if(!set.active.length)return set.idle;
+  const pool=set.active.length>1?set.active.filter(n=>n!==foxPlayer.last):set.active;
   return pool[Math.floor(Math.random()*pool.length)];
 }
+const foxResetIdleRuns = () => {foxPlayer.idleRuns=0;foxPlayer.idleTarget=FOX_IDLE_RUNS[0]+Math.floor(Math.random()*(FOX_IDLE_RUNS[1]-FOX_IDLE_RUNS[0]+1));};
 function foxPlayNext(){
   const fox=foxCurrent(); if(!fox||!foxPlayer.videos.length)return;
   const item=foxPlayer.queue.shift();
@@ -140,7 +156,9 @@ function foxPlayNext(){
     idle.classList.add("on"); idle.play?.().catch?.(()=>{});
     foxCameraFor(name);
     if(previous&&previous!==idle){previous.classList.remove("on");previous.pause();}
-    foxPlayer.active=idle; foxPlayer.current=name; if(/^calm\d+$/.test(name))foxPlayer.last=name;
+    foxPlayer.active=idle; foxPlayer.current=name;
+    const set=foxSet(foxStage()?.dataset.set||"calm");
+    if(name===set.idle)foxPlayer.idleRuns++; else if(set.active.includes(name)){foxPlayer.last=name;foxResetIdleRuns();}
     idle.onended=()=>{if(item?.then)item.then();foxPlayNext();};
     foxPrepareNext();
   };
@@ -161,32 +179,34 @@ function foxQueue(clip,then){
 // Реакция не прерывает текущий клип: она встаёт в очередь и начнётся с кадра покоя.
 function playFoxAnimation(animation){
   if(!foxPlayer.videos.length)return;
-  const fox=foxCurrent();
   if(foxMode()==="asleep"){foxQueue("sleep-touch");return;}
-  let role=FOX_V2_ROLE[animation]||"calm";
-  if(role==="sleep"){foxGoToSleep();return;}
-  if(role==="calm"||!foxHasClip(fox,role))role=foxAutoClip();
-  if(role)foxQueue(role);
+  if(animation==="sleep"){foxGoToSleep();return;}
+  const set=foxSet(foxStage()?.dataset.set||"calm");
+  const clip=(animation==="pet"&&set.touch)||(set.active.length?set.active.filter(n=>n!==foxPlayer.last)[0]||set.active[0]:null);
+  if(clip)foxQueue(clip);
 }
 function foxTouch(){
   if(!foxPlayer.videos.length)return;
   if(foxPlayer.queue.length)return;
   playFoxAnimation(foxMode()==="asleep"?"sleep":"pet");
 }
+// Цепочки «ложится/засыпает» и «просыпается» сняты из спокойной позы: в грусти и обиде переключение жёсткое.
 function foxGoToSleep(){
   if(foxMode()==="asleep")return;
   const fox=foxCurrent();
   if(!foxHasClip(fox,"sleep")){foxSetMode("asleep");return;}
   foxPlayer.queue=[];
-  if(foxHasClip(fox,"lie-down"))foxQueue("lie-down");
-  if(foxHasClip(fox,"fall-asleep"))foxQueue("fall-asleep",()=>foxSetMode("asleep")); else foxSetMode("asleep");
+  const calm=(foxStage()?.dataset.set||"calm")==="calm";
+  if(calm&&foxHasClip(fox,"lie-down"))foxQueue("lie-down");
+  if(calm&&foxHasClip(fox,"fall-asleep"))foxQueue("fall-asleep",()=>foxSetMode("asleep")); else {foxSetMode("asleep");foxCameraFor("lie-down");}
   foxPrepareNext();
 }
 function foxWakeUp(){
   if(foxMode()!=="asleep")return;
   const fox=foxCurrent();
   foxPlayer.queue=[];
-  if(foxHasClip(fox,"wake-up"))foxQueue("wake-up",()=>foxSetMode("awake")); else foxSetMode("awake");
+  const calm=(foxStage()?.dataset.set||"calm")==="calm";
+  if(calm&&foxHasClip(fox,"wake-up"))foxQueue("wake-up",()=>foxSetMode("awake")); else {foxSetMode("awake");foxCameraFor("wake-up");}
   foxPrepareNext();
 }
 // Смена времени суток при открытой панели: переход фона и смена режима лисы.
@@ -276,21 +296,21 @@ function wireFoxPack(){
 function companionCardHtml(){
   const j = journeyState(), p = LearningCore.petMood(S.companion,today());
   const male=foxMale(), who=foxWhoCap(), pronoun=foxPronoun();
-  const moods = [male?"Рад тебя видеть":"Рада тебя видеть", male?"Притих":"Притихла", "Скучает по тебе", male?"Свернулся клубком":"Свернулась клубком"];
+  const moods = [male?"Рад тебя видеть":"Рада тебя видеть", male?"Загрустил":"Загрустила", "Скучает по тебе", male?"Обиделся":"Обиделась"];
   // Ночью (23:30–07:30) лиса спит: заголовок и подсказка про сон вместо приветствия.
-  const asleepNow=foxPeriod()==="night"&&foxHasClip(foxCurrent(),"sleep")&&p.mood===0;
-  if(asleepNow)moods[0]="Сладко спит";
-  const texts = [asleepNow ? `Ночью ${who} спит и видит сны про новые слова. Коснись — ${pronoun} шевельнётся, а утром проснётся ${male?"сам":"сама"}.` : p.last === today() ? `Сегодня мы уже позанимались. ${who} рад${male?"":"а"}, что ты заглянул!` : p.last ? "У нас есть несколько слов для короткого занятия." : `${who} теперь твой компаньон. Давай начнём с пяти слов?`, `Один день без занятия. ${who} ждёт вашей следующей встречи.`, `Два дня без занятия. На ласку ${pronoun} отвечает лишь движением ушек.`, "Три дня или больше без занятия. Еда и ласка пока не помогают — начните урок вместе."];
+  const asleepNow=foxPeriod()==="night"&&foxHasClip(foxCurrent(),"sleep");
+  if(asleepNow)moods[p.mood]=p.mood>=1?"Спит, отвернувшись":"Сладко спит";
+  const sleepText=`Ночью ${who} спит и видит сны про новые слова. Коснись — ${pronoun} шевельнётся, а утром проснётся ${male?"сам":"сама"}.`;
+  const texts = [asleepNow ? sleepText : p.last === today() ? `Сегодня мы уже позанимались. ${who} рад${male?"":"а"}, что ты заглянул!` : p.last ? "У нас есть несколько слов для короткого занятия." : `${who} теперь твой компаньон. Давай начнём с пяти слов?`, `Один день без занятия. ${who} ждёт вашей следующей встречи.`, `Два дня без занятия. ${who} совсем ${male?"приуныл":"приуныла"}.`, `Три дня или больше без занятия. ${who} ${male?"отвернулся":"отвернулась"} и не смотрит — начните урок вместе.`];
   const total = Object.keys(j.completed).length, next = FOX_REWARDS.find(r=>!j.rewards[r.id]);
   const week = Array.from({length:7},(_,i)=>addDays(today(),i-6));
   const weekly = week.filter(d=>j.completed[d]).length;
   return `<section class="card companion" id="companionCard">
     <div class="row between fox-card-head"><div class="eyebrow">${male?"Твой":"Твоя"} ${esc(foxWho())}</div><div class="fox-card-tools"><button class="btn ghost small" id="foxIdentity">Имя и образ</button><button class="btn ghost small" id="foxCollection">Коллекция · ${Object.keys(j.rewards).length}/${FOX_REWARDS.length}</button></div></div>
-    <div class="fox-meeting">${foxStageHtml(foxCurrent(),p.mood,`${who}: ${moods[p.mood]}`)}<div><h2>${moods[p.mood]}</h2><p class="small muted">${esc(texts[p.mood])}</p></div></div>
+    <div class="fox-meeting">${foxStageHtml(foxCurrent(),p.mood,`${who}: ${moods[p.mood]}`)}<div><h2>${moods[p.mood]}</h2><p class="small muted">${esc(asleepNow?sleepText:texts[p.mood])}</p></div></div>
     ${foxPackCardHtml()}
     <p class="small muted fox-beta">Бета-версия компаньона: лиса живёт по часам телефона — утро, день, вечер и ночной сон. Позже будут открываться новые взаимодействия, предметы и домики.</p>
-    <p class="small fox-response" id="foxResponse" role="status" aria-live="polite">${memoryCount() ? `Сегодня ты вспомнил ${plural(memoryCount(),"слово","слова","слов")} после перерыва.` : "Вода всегда доступна. Первое занятие дня приносит одно угощение."}</p>
-    <div class="fox-actions"><button class="btn secondary" id="foxFeed" ${p.mood===3 || !p.treats ? "disabled":""}>Угостить · ${p.treats}</button><button class="btn secondary" id="foxWater" ${p.mood===3?"disabled":""}>Напоить</button><button class="btn secondary" id="foxPet" ${p.mood===3?"disabled":""}>Погладить</button></div>
+    <p class="small fox-response" id="foxResponse" role="status" aria-live="polite">${memoryCount() ? `Сегодня ты вспомнил ${plural(memoryCount(),"слово","слова","слов")} после перерыва.` : p.mood>=3 ? `${who} обидел${male?"ся":"ась"} и сидит спиной. Только занятие вернёт ${male?"его":"её"}.` : p.mood>=1 ? `${who} грустит без занятий. Коснись — ${pronoun} вздохнёт.` : `Коснись ${foxWho("gen")} — ${pronoun} откликнется.`}</p>
     <div class="fox-week" aria-label="Занятия за последние семь дней">${week.map(d=>`<span class="${j.completed[d]?"done":""}" title="${d}">${j.completed[d]?"✓":"·"}</span>`).join("")}<b>${weekly}/4 дня</b></div>
     <p class="small muted">${weekly>=4?"Недельная цель выполнена. Можно отдохнуть или продолжить в своём темпе.":"Цель — четыре дня занятий за последние семь. Не обязательно подряд."}</p>
     ${window.pinCompanion?'<button class="btn ghost small" id="foxPin">Добавить лису на рабочий стол</button>':""}
@@ -406,22 +426,8 @@ function companionIdentitySheet(draft){
     save(); if(window.syncCompanion)window.syncCompanion(); closeSheet(); closeCompanion(); openCompanion();
   };
 }
-async function companionAct(action){
-  const buttons = [$("#foxFeed"),$("#foxWater"),$("#foxPet")]; buttons.forEach(b=>{if(b)b.disabled=true;});
-  try {
-    journeyState();
-    const result = window.nativeCompanionAction ? await window.nativeCompanionAction(action) : LearningCore.petAction(S.companion,action,today());
-    S.companion = result.state; save();
-    const mood=LearningCore.petMood(S.companion,today()).mood;
-    const response=$("#foxResponse"); if(response)response.textContent=result.message;
-    const feed=$("#foxFeed"); if(feed){feed.textContent=`Угостить · ${LearningCore.petMood(S.companion,today()).treats}`;feed.disabled=mood===3||!LearningCore.petMood(S.companion,today()).treats;}
-    const water=$("#foxWater");if(water)water.disabled=mood===3;
-    const pet=$("#foxPet");if(pet)pet.disabled=mood===3;
-    playFoxAnimation(mood===2?"offended":action==="water"?"drink":action);
-  } catch(e) { toast("Не удалось сохранить действие. Попробуй ещё раз."); if(tab==="home"&&!inSession)renderHome(); }
-}
 function wireCompanion(){
-  if($("#foxFeed"))$("#foxFeed").onclick=()=>companionAct("feed"); if($("#foxWater"))$("#foxWater").onclick=()=>companionAct("water"); if($("#foxPet"))$("#foxPet").onclick=()=>companionAct("pet"); if($("#foxCollection"))$("#foxCollection").onclick=companionCollection;
+  if($("#foxCollection"))$("#foxCollection").onclick=companionCollection;
   if($("#foxIdentity"))$("#foxIdentity").onclick=()=>companionIdentitySheet();
   if($("#foxPin"))$("#foxPin").onclick=()=>window.pinCompanion().catch(()=>toast("Добавь виджет через меню рабочего стола"));
 }

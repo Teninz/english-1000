@@ -215,7 +215,9 @@ test('лисы v2: набор клипов, постеры и суточный �
     if(entry.clips.sleep)assert.ok(fs.existsSync(path.join(root,'art','companion-v2',fox.id,'poster-sleep.webp')));
   }
   const bold=manifest.foxes['04-boy-bold'].clips;
-  for(const clip of ['calm1','calm2','calm3','calm4','lie-down','fall-asleep','sleep','sleep-touch','wake-up'])assert.ok(bold[clip],clip);
+  for(const clip of ['calm-idle','calm1','calm2','calm3','calm4','calm5','touch','sad-idle','sad1','sad2','offended-idle','offended1','lie-down','fall-asleep','sleep','sleep-touch','wake-up'])assert.ok(bold[clip],clip);
+  for(const kind of ['sad','offended','sleep'])assert.ok(fs.existsSync(path.join(root,'art','companion-v2','04-boy-bold',`poster-${kind}.webp`)),kind);
+  assert.deepEqual(Object.keys(manifest.foxes['04-boy-bold'].sets).sort(),['calm','offended','sad']);
   assert.equal(bold.sleep.kind,'loop');assert.equal(bold['wake-up'].kind,'transition');
   for(const period of ['morning','day','evening','night']){
     assert.ok(manifest.scene.periods[period].length>=1,period);
@@ -224,7 +226,7 @@ test('лисы v2: набор клипов, постеры и суточный �
   }
   for(const name of ['morning-day','day-evening','evening-night','night-morning']){assert.ok(manifest.scene.transitions[name],name);total+=webm(path.join(root,'art','companion-v2','scene',name+'.webm'));}
   const handle=fs.readFileSync(path.join(root,'art','companion-v2','handle.png'));assert.deepEqual([...handle.subarray(0,8)],[137,80,78,71,13,10,26,10]);assert.equal(handle.readUInt32BE(16),192);
-  assert.ok(total<18_000_000,`общий размер набора: ${total}`);
+  assert.ok(total<32_000_000,`общий размер набора: ${total}`);
   assert.deepEqual(core.petFoxes.filter(f=>f.available).map(f=>f.id),['04-boy-bold']);
   assert.ok(read('sw.js').includes('importScripts("./art/companion-v2/manifest.js")'));
   assert.ok(read('index.html').includes('<script src="art/companion-v2/manifest.js"></script>'));
@@ -268,7 +270,12 @@ test('время суток лисы берётся из часов устрой
   const wake=run('foxStageHtml(foxCurrent(),0,"x")');
   if(run('foxPeriod()')!=='night')assert.ok(wake.includes('data-mode="asleep"'),'после ночного визита лиса просыпается на глазах');
   assert.ok(run('foxStageHtml(foxCurrent(),0,"x")').includes('poster'));
-  for(const old of ['feed','pet','happy','drink','listen','offended','quiet','sad','withdrawn','sleep','hungry','thirsty','lesson','stretch','yawn'])assert.ok(run(`FOX_V2_ROLE["${old}"]`),old);
+  assert.equal(run('foxMoodSet(0)'),'calm');assert.equal(run('foxMoodSet(1)'),'sad');assert.equal(run('foxMoodSet(2)'),'sad');assert.equal(run('foxMoodSet(3)'),'offended');
+  const sets=JSON.parse(run('JSON.stringify({calm:foxSet("calm"),sad:foxSet("sad"),offended:foxSet("offended")})'));
+  assert.equal(sets.calm.idle,'calm-idle');assert.ok(sets.calm.active.length>=4);assert.equal(sets.calm.touch,'touch');
+  assert.equal(sets.sad.idle,'sad-idle');assert.ok(sets.sad.active.includes('sad1'));assert.equal(sets.offended.idle,'offended-idle');assert.ok(sets.offended.active.includes('offended1'));
+  assert.ok(run('foxStageHtml(foxCurrent(),1,"x")').includes('data-set="sad"'));assert.ok(run('foxStageHtml(foxCurrent(),3,"x")').includes('data-set="offended"'));
+  assert.equal(run('companionCardHtml()').includes('id="foxFeed"'),false,'кнопок еды/воды/ласки больше нет');
 });
 test('выбор лисы и постоянное имя переживают сохранение, импорт и родную синхронизацию',()=>{
   const s=core.empty();s.companion=core.petEmpty();
