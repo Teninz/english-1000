@@ -14,6 +14,8 @@ body.fox-drawer-open #overlay .scrim{z-index:60}
 /* Сцена v2: лесной фон 16:9 показывается вырезом 4:5, лиса сидит в средней глубине перед световым пятном */
 .fox-stage{position:relative;width:100%;aspect-ratio:4/5;cursor:pointer;margin:2px 0 10px;border-radius:16px;overflow:hidden;background:#1a1d24;isolation:isolate}
 .fox-scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:66% 50%}
+/* второй <video> сцены до переключения пуст: Android WebView рисует пустое видео серым с кнопкой Play поверх фона — прячем */
+.fox-scene:not(.on){opacity:0;pointer-events:none}
 /* клипы 04 квадратные 768×768 в padded-кадре: лиса ~72 % высоты кадра, лапы на ~86 % */
 .fox-actor{position:absolute;left:50%;bottom:13%;height:65%;aspect-ratio:1;transform:translateX(-50%)}
 /* «Камера» чуть приближается, когда лиса ложится, и отдаляется при пробуждении; во сне фон остаётся приближенным.

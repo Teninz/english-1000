@@ -231,6 +231,7 @@ test('лисы v2: набор клипов, постеры и суточный �
   assert.deepEqual(core.petFoxes.filter(f=>f.available).map(f=>f.id),['04-boy-bold']);
   assert.ok(read('sw.js').includes('importScripts("./art/companion-v2/manifest.js")'));
   assert.ok(read('index.html').includes('<script src="art/companion-v2/manifest.js"></script>'));
+  assert.ok(read('companion.css').includes('.fox-scene:not(.on){opacity:0'),'пустое запасное видео сцены скрыто (серый прямоугольник в WebView)');
   assert.ok(read('tools/build-web.js').includes('"companion-references"'));
   // в APK клипов нет: их скачивает foxPackStore с GitHub Releases; сайт отдаёт файлы из репозитория
   assert.equal(manifest.bundled,true,'клипы упакованы в APK');assert.equal(read('tools/build-web.js').includes('src.endsWith(".webm")'),false,'webm не исключаются из APK');
