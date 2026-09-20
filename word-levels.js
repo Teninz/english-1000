@@ -1,7 +1,7 @@
 // Verified word/POS levels, not card positions. Sources and update procedure: docs/WORD_LEVELS.md.
 const WordLevels = (() => {
   const data = {
-  "checkedAt": "2026-09-20",
+  "checkedAt": "2026-09-21",
   "sources": {
     "oxford3000": {
       "title": "Oxford 3000",
@@ -15,11 +15,11 @@ const WordLevels = (() => {
     }
   },
   "entries": {
-    "academic|adj": {
-      "level": "B1",
+    "abroad|adv": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 1,
-      "entry": "academic adj.B1, n. B2"
+      "entry": "abroad adv. A2"
     },
     "accident|n": {
       "level": "A2",
@@ -39,41 +39,53 @@ const WordLevels = (() => {
       "page": 1,
       "entry": "accurate adj. B2"
     },
-    "accuse|v": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 1,
-      "entry": "accuse v. B2"
-    },
     "address|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 1,
       "entry": "address n. A1, v. B2"
     },
-    "affordable|adj": {
-      "level": "B2",
-      "source": "oxford5000",
+    "adventure|n": {
+      "level": "A2",
+      "source": "oxford3000",
       "page": 1,
-      "entry": "affordable adj. B2"
+      "entry": "adventure n. A2"
     },
-    "agreement|n": {
+    "advertisement|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 1,
+      "entry": "advertisement n. A2"
+    },
+    "advertise|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 1,
+      "entry": "advertise v. A2"
+    },
+    "afford|v": {
       "level": "B1",
       "source": "oxford3000",
       "page": 1,
-      "entry": "agreement n. B1"
+      "entry": "afford v. B1"
     },
-    "agriculture|n": {
-      "level": "B2",
-      "source": "oxford5000",
+    "airline|n": {
+      "level": "A2",
+      "source": "oxford3000",
       "page": 1,
-      "entry": "agriculture n. B2"
+      "entry": "airline n. A2"
     },
     "airport|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 1,
       "entry": "airport n. A1"
+    },
+    "air|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 1,
+      "entry": "air n. A1"
     },
     "alarm|n": {
       "level": "B1",
@@ -93,11 +105,23 @@ const WordLevels = (() => {
       "page": 1,
       "entry": "analyse v. B1"
     },
-    "announce|v": {
+    "analysis|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 1,
-      "entry": "announce v. B1"
+      "entry": "analysis n. B1"
+    },
+    "ancient|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 1,
+      "entry": "ancient adj. A2"
+    },
+    "animal|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 1,
+      "entry": "animal n. A1"
     },
     "answer|n": {
       "level": "A1",
@@ -105,23 +129,23 @@ const WordLevels = (() => {
       "page": 1,
       "entry": "answer n., v. A1"
     },
-    "anxiety|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 1,
-      "entry": "anxiety n. B2"
-    },
-    "appetite|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 1,
-      "entry": "appetite n. C1"
-    },
-    "approach|n": {
-      "level": "B2",
+    "apartment|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 1,
-      "entry": "approach n., v. B2"
+      "entry": "apartment n. A1"
+    },
+    "apple|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 1,
+      "entry": "apple n. A1"
+    },
+    "area|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 1,
+      "entry": "area n. A1"
     },
     "arrival|n": {
       "level": "B1",
@@ -129,11 +153,11 @@ const WordLevels = (() => {
       "page": 1,
       "entry": "arrival n. B1"
     },
-    "assessment|n": {
-      "level": "B2",
+    "arrive|v": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 1,
-      "entry": "assessment n. B2"
+      "entry": "arrive v. A1"
     },
     "atmosphere|n": {
       "level": "B1",
@@ -141,29 +165,35 @@ const WordLevels = (() => {
       "page": 1,
       "entry": "atmosphere n. B1"
     },
-    "attachment|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 1,
-      "entry": "attachment n. B2"
-    },
-    "auction|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 1,
-      "entry": "auction n. B2"
-    },
-    "backup|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 1,
-      "entry": "backup n. C1"
-    },
-    "bake|v": {
-      "level": "B1",
+    "autumn|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 1,
-      "entry": "bake v. B1"
+      "entry": "autumn n. A1"
+    },
+    "bacteria|n": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 1,
+      "entry": "bacteria n. B2"
+    },
+    "bag|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 1,
+      "entry": "bag n. A1"
+    },
+    "ball|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 1,
+      "entry": "ball n. A1"
+    },
+    "bargain|n": {
+      "level": "B2",
+      "source": "oxford5000",
+      "page": 1,
+      "entry": "bargain n. B2"
     },
     "basement|n": {
       "level": "B2",
@@ -182,6 +212,12 @@ const WordLevels = (() => {
       "source": "oxford3000",
       "page": 1,
       "entry": "bathroom n. A1"
+    },
+    "bath|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 1,
+      "entry": "bath n. A1"
     },
     "beach|n": {
       "level": "A1",
@@ -207,17 +243,29 @@ const WordLevels = (() => {
       "page": 1,
       "entry": "bee n. B1"
     },
-    "bitter|adj": {
-      "level": "B2",
+    "bill|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 2,
-      "entry": "bitter adj. B2"
+      "entry": "bill n. A1, v. B2"
     },
-    "blame|v": {
-      "level": "B2",
+    "bin|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 2,
-      "entry": "blame v., n. B2"
+      "entry": "bin n. A2"
+    },
+    "biology|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "biology n. A2"
+    },
+    "bird|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "bird n. A1"
     },
     "blanket|n": {
       "level": "B2",
@@ -231,6 +279,12 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "block n., v. B1"
     },
+    "blood|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "blood n. A2"
+    },
     "board|v": {
       "level": "B1",
       "source": "oxford3000",
@@ -243,17 +297,17 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "boat n. A1"
     },
-    "boil|v": {
-      "level": "A2",
-      "source": "oxford3000",
-      "page": 2,
-      "entry": "boil v. A2"
-    },
     "bone|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 2,
       "entry": "bone n. A2"
+    },
+    "book|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "book n. A1, v. A2"
     },
     "book|v": {
       "level": "A2",
@@ -267,6 +321,12 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "border n. B1, v. B2"
     },
+    "bowl|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "bowl n. A2"
+    },
     "brain|n": {
       "level": "A2",
       "source": "oxford3000",
@@ -279,11 +339,29 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "branch n. B1"
     },
-    "breakdown|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 1,
-      "entry": "breakdown n. C1"
+    "brand|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "brand n., v. B1"
+    },
+    "brave|adj": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "brave adj. B1"
+    },
+    "bread|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "bread n. A1"
+    },
+    "breathe|v": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "breathe v. B1"
     },
     "breathing|n": {
       "level": "B1",
@@ -297,11 +375,17 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "bridge n. A2"
     },
-    "browser|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 1,
-      "entry": "browser n. C1"
+    "broken|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "broken adj. A2"
+    },
+    "brush|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "brush v., n. A2"
     },
     "budget|n": {
       "level": "B2",
@@ -309,17 +393,17 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "budget n. B2"
     },
-    "bug|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 1,
-      "entry": "bug n. B2"
-    },
     "building|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 2,
       "entry": "building n. A1"
+    },
+    "build|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "build v. A1"
     },
     "burn|n": {
       "level": "B2",
@@ -333,11 +417,29 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "bush n. B2"
     },
+    "busy|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "busy adj. A1"
+    },
+    "bus|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "bus n. A1"
+    },
     "buy|v": {
       "level": "A1",
       "source": "oxford3000",
       "page": 2,
       "entry": "buy v. A1"
+    },
+    "cafe|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "cafe n. A1"
     },
     "calculate|v": {
       "level": "B2",
@@ -345,11 +447,35 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "calculate v. B2"
     },
-    "campaign|n": {
+    "call|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "call v., n. A1"
+    },
+    "calm|adj": {
       "level": "B1",
       "source": "oxford3000",
       "page": 2,
-      "entry": "campaign n., v. B1"
+      "entry": "calm adj., v., n. B1"
+    },
+    "camera|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "camera n. A1"
+    },
+    "camping|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "camping n. A2"
+    },
+    "camp|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "camp n., v. A2"
     },
     "camp|v": {
       "level": "A2",
@@ -357,11 +483,23 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "camp n., v. A2"
     },
-    "carbon|n": {
+    "cancel|v": {
       "level": "B2",
-      "source": "oxford5000",
-      "page": 1,
-      "entry": "carbon n. B2"
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "cancel v. B2"
+    },
+    "capital|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "capital n., adj. A1"
+    },
+    "captain|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "captain n. B1"
     },
     "card|n": {
       "level": "A1",
@@ -369,29 +507,47 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "card n. A1"
     },
+    "carpet|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "carpet n. A2"
+    },
+    "carry|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "carry v. A1"
+    },
+    "car|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "car n. A1"
+    },
     "cash|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 2,
       "entry": "cash n. A2"
     },
-    "casual|adj": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 2,
-      "entry": "casual adj. B2"
-    },
-    "catalogue|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 2,
-      "entry": "catalogue n. C1"
-    },
-    "category|n": {
-      "level": "B1",
+    "castle|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 2,
-      "entry": "category n. B1"
+      "entry": "castle n. A2"
+    },
+    "cat|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "cat n. A1"
+    },
+    "cause|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "cause n., v. A2"
     },
     "cave|n": {
       "level": "B2",
@@ -411,6 +567,12 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "cell n. B2"
     },
+    "centre|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "centre n. A1, v. B1"
+    },
     "chair|n": {
       "level": "A1",
       "source": "oxford3000",
@@ -429,11 +591,23 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "cheap adj. A1, adv. B1"
     },
+    "cheese|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "cheese n. A1"
+    },
     "chemical|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 2,
       "entry": "chemical adj., n. B1"
+    },
+    "chemistry|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "chemistry n. A2"
     },
     "chicken|n": {
       "level": "A1",
@@ -441,17 +615,35 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "chicken n. A1"
     },
-    "chop|v": {
-      "level": "B2",
-      "source": "oxford5000",
+    "choice|n": {
+      "level": "A2",
+      "source": "oxford3000",
       "page": 2,
-      "entry": "chop v. B2"
+      "entry": "choice n. A2"
     },
-    "chronic|adj": {
-      "level": "C1",
-      "source": "oxford5000",
+    "choose|v": {
+      "level": "A1",
+      "source": "oxford3000",
       "page": 2,
-      "entry": "chronic adj. C1"
+      "entry": "choose v. A1"
+    },
+    "church|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "church n. A2"
+    },
+    "cinema|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "cinema n. A1"
+    },
+    "circle|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "circle n., v. A2"
     },
     "citizen|n": {
       "level": "B2",
@@ -471,11 +663,29 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "clean adj., v. A1"
     },
-    "climate|n": {
+    "climb|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "climb v. A1, n. B1"
+    },
+    "clock|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "clock n. A1"
+    },
+    "closed|adj": {
       "level": "A2",
       "source": "oxford3000",
       "page": 2,
-      "entry": "climate n. A2"
+      "entry": "closed adj. A2"
+    },
+    "clothes|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "clothes n. A1"
     },
     "cloud|n": {
       "level": "A2",
@@ -489,6 +699,30 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "coast n. A2"
     },
+    "coin|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "coin n. B1"
+    },
+    "cold|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "cold adj., n. A1"
+    },
+    "collapse|v": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "collapse v., n. B2"
+    },
+    "collect|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "collect v. A2"
+    },
     "colour|n": {
       "level": "A1",
       "source": "oxford3000",
@@ -501,65 +735,47 @@ const WordLevels = (() => {
       "page": 2,
       "entry": "comfortable adj. A2"
     },
+    "community|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 2,
+      "entry": "community n. A2"
+    },
     "compare|v": {
       "level": "A1",
       "source": "oxford3000",
       "page": 2,
       "entry": "compare v. A1"
     },
-    "competitor|n": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 2,
-      "entry": "competitor n. B1"
-    },
-    "complaint|n": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 2,
-      "entry": "complaint n. B1"
-    },
-    "concept|n": {
-      "level": "B2",
+    "computer|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 3,
-      "entry": "concept n. B2"
+      "entry": "computer n. A1"
     },
-    "conclusion|n": {
-      "level": "B1",
+    "control|v": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 3,
-      "entry": "conclusion n. B1"
+      "entry": "control n., v. A2"
     },
-    "confess|v": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 2,
-      "entry": "confess v. B2"
-    },
-    "conservation|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 2,
-      "entry": "conservation n. B2"
-    },
-    "consumer|n": {
-      "level": "B1",
+    "cooker|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 3,
-      "entry": "consumer n. B1"
+      "entry": "cooker n. A2"
     },
-    "consume|v": {
-      "level": "B1",
+    "cook|v": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 3,
-      "entry": "consume v. B1"
+      "entry": "cook v. A1, n. A2"
     },
-    "consumption|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 2,
-      "entry": "consumption n. B2"
+    "cool|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "cool adj. A1, v. B1"
     },
     "cool|v": {
       "level": "B1",
@@ -579,17 +795,17 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "cost n., v. A1"
     },
-    "course|n": {
-      "level": "A1",
-      "source": "oxford3000",
-      "page": 3,
-      "entry": "course n. A1"
-    },
-    "court|n": {
+    "cottage|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 3,
-      "entry": "court n. B1"
+      "entry": "cottage n. B1"
+    },
+    "countryside|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "countryside n. B1"
     },
     "cow|n": {
       "level": "A1",
@@ -597,41 +813,29 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "cow n. A1"
     },
-    "crash|v": {
+    "crash|n": {
       "level": "B2",
       "source": "oxford3000",
       "page": 3,
       "entry": "crash n., v. B2"
+    },
+    "creature|n": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "creature n. B2"
+    },
+    "credit|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "credit n. A2, v. B2"
     },
     "crew|n": {
       "level": "B2",
       "source": "oxford3000",
       "page": 3,
       "entry": "crew n. B2"
-    },
-    "crime|n": {
-      "level": "A2",
-      "source": "oxford3000",
-      "page": 3,
-      "entry": "crime n. A2"
-    },
-    "criminal|n": {
-      "level": "A2",
-      "source": "oxford3000",
-      "page": 3,
-      "entry": "criminal n. A2, adj. B1"
-    },
-    "criticism|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 3,
-      "entry": "criticism n. B2"
-    },
-    "criticize|v": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 3,
-      "entry": "criticize v. B2"
     },
     "crop|n": {
       "level": "B2",
@@ -651,11 +855,23 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "crowded adj. A2"
     },
+    "crowd|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "crowd n. A2"
+    },
     "cruise|n": {
       "level": "B2",
       "source": "oxford5000",
       "page": 2,
       "entry": "cruise n., v. B2"
+    },
+    "cry|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "cry v. A2, n. B2"
     },
     "cupboard|n": {
       "level": "A2",
@@ -663,17 +879,29 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "cupboard n. A2"
     },
+    "cup|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "cup n. A1"
+    },
     "cure|n": {
       "level": "B2",
       "source": "oxford3000",
       "page": 3,
       "entry": "cure v., n. B2"
     },
-    "curriculum|n": {
+    "cure|v": {
       "level": "B2",
-      "source": "oxford5000",
-      "page": 2,
-      "entry": "curriculum n. B2"
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "cure v., n. B2"
+    },
+    "currency|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "currency n. B1"
     },
     "curtain|n": {
       "level": "B1",
@@ -687,11 +915,17 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "customer n. A1"
     },
-    "dairy|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 2,
-      "entry": "dairy n., adj. B2"
+    "damage|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "damage n., v. B1"
+    },
+    "dangerous|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "dangerous adj. A1"
     },
     "danger|n": {
       "level": "A2",
@@ -699,41 +933,23 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "danger n. A2"
     },
-    "database|n": {
+    "darkness|n": {
       "level": "B2",
       "source": "oxford5000",
       "page": 2,
-      "entry": "database n. B2"
+      "entry": "darkness n. B2"
+    },
+    "dark|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "dark adj. A1, n. A2"
     },
     "data|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 3,
       "entry": "data n. A2"
-    },
-    "deal|n": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 3,
-      "entry": "deal v. A2, n. B1"
-    },
-    "debate|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 3,
-      "entry": "debate n., v. B2"
-    },
-    "debt|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 3,
-      "entry": "debt n. B2"
-    },
-    "declare|v": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 3,
-      "entry": "declare v. B2"
     },
     "decorate|v": {
       "level": "B1",
@@ -747,23 +963,17 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "deep adj. A2, adv. B1"
     },
-    "define|v": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 3,
-      "entry": "define v. B1"
-    },
-    "definition|n": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 3,
-      "entry": "definition n. B1"
-    },
     "degree|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 3,
       "entry": "degree n. A2"
+    },
+    "delay|n": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "delay v., n. B2"
     },
     "delivery|n": {
       "level": "B2",
@@ -771,17 +981,17 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "delivery n. B2"
     },
-    "demand|n": {
-      "level": "B2",
+    "deliver|v": {
+      "level": "B1",
       "source": "oxford3000",
       "page": 3,
-      "entry": "demand n., v. B2"
+      "entry": "deliver v. B1"
     },
-    "democracy|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 2,
-      "entry": "democracy n. B2"
+    "department|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "department n. A2"
     },
     "departure|n": {
       "level": "B1",
@@ -789,11 +999,17 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "departure n. B1"
     },
-    "depression|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 2,
-      "entry": "depression n. B2"
+    "desert|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "desert n. A2, v. B2"
+    },
+    "desk|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "desk n. A1"
     },
     "destination|n": {
       "level": "B1",
@@ -807,23 +1023,17 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "destroy v. A2"
     },
-    "destruction|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 2,
-      "entry": "destruction n. B2"
-    },
-    "diagnosis|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 3,
-      "entry": "diagnosis n. C1"
-    },
-    "diet|n": {
-      "level": "A1",
+    "device|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 3,
-      "entry": "diet n. A1"
+      "entry": "device n. A2"
+    },
+    "diagram|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "diagram n. B1"
     },
     "dig|v": {
       "level": "B2",
@@ -831,17 +1041,17 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "dig v. B2"
     },
-    "disaster|n": {
+    "direction|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 3,
-      "entry": "disaster n. A2"
+      "entry": "direction n. A2"
     },
-    "discipline|n": {
-      "level": "B2",
+    "dirty|adj": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 3,
-      "entry": "discipline n. B2"
+      "entry": "dirty adj. A1"
     },
     "discount|n": {
       "level": "B1",
@@ -867,11 +1077,11 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "disease n. A2"
     },
-    "dish|n": {
-      "level": "A1",
+    "distance|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 3,
-      "entry": "dish n. A1"
+      "entry": "distance n. A2"
     },
     "distant|adj": {
       "level": "B2",
@@ -879,11 +1089,35 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "distant adj. B2"
     },
+    "district|n": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "district n. B2"
+    },
     "dive|v": {
       "level": "B2",
       "source": "oxford5000",
       "page": 3,
       "entry": "dive v., n. B2"
+    },
+    "doctor|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "doctor n. A1"
+    },
+    "dog|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "dog n. A1"
+    },
+    "dollar|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "dollar n. A1"
     },
     "door|n": {
       "level": "A1",
@@ -891,17 +1125,29 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "door n. A1"
     },
-    "dose|n": {
-      "level": "C1",
-      "source": "oxford5000",
+    "downstairs|adv": {
+      "level": "A1",
+      "source": "oxford3000",
       "page": 3,
-      "entry": "dose n. C1"
+      "entry": "downstairs adv. A1, adj. A2"
     },
-    "drought|n": {
-      "level": "B2",
-      "source": "oxford5000",
+    "dress|n": {
+      "level": "A1",
+      "source": "oxford3000",
       "page": 3,
-      "entry": "drought n. B2"
+      "entry": "dress n., v. A1"
+    },
+    "drink|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "drink n., v. A1"
+    },
+    "drive|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 3,
+      "entry": "drive v. A1, n. A2"
     },
     "earthquake|n": {
       "level": "B1",
@@ -915,17 +1161,35 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "earth n. A2"
     },
-    "economy|n": {
-      "level": "B1",
+    "effect|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 4,
-      "entry": "economy n. B1"
+      "entry": "effect n. A2"
     },
-    "election|n": {
+    "egg|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "egg n. A1"
+    },
+    "electricity|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "electricity n. A2"
+    },
+    "electric|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "electric adj. A2"
+    },
+    "element|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 4,
-      "entry": "election n. B1"
+      "entry": "element n. B1"
     },
     "embassy|n": {
       "level": "C1",
@@ -939,17 +1203,23 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "emergency n. B1"
     },
-    "emission|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 3,
-      "entry": "emission n. B2"
-    },
     "energy|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 4,
       "entry": "energy n. A2"
+    },
+    "engineer|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "engineer n. A2"
+    },
+    "engine|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "engine n. A2"
     },
     "environment|n": {
       "level": "A2",
@@ -957,11 +1227,23 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "environment n. A2"
     },
-    "essay|n": {
+    "equipment|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 4,
-      "entry": "essay n. A2"
+      "entry": "equipment n. A2"
+    },
+    "escape|v": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "escape v., n. B1"
+    },
+    "euro|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "euro n. A1"
     },
     "evacuate|v": {
       "level": "C1",
@@ -975,23 +1257,17 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "evidence n. A2"
     },
-    "exaggerate|v": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 3,
-      "entry": "exaggerate v. C1"
+    "exact|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "exact adj. A2"
     },
     "exchange|v": {
       "level": "B1",
       "source": "oxford3000",
       "page": 4,
       "entry": "exchange n., v. B1"
-    },
-    "excuse|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 4,
-      "entry": "excuse n., v. B2"
     },
     "exit|n": {
       "level": "B2",
@@ -1005,12 +1281,6 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "expedition n. B1"
     },
-    "expense|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 4,
-      "entry": "expense n. B2"
-    },
     "expensive|adj": {
       "level": "A1",
       "source": "oxford3000",
@@ -1023,23 +1293,53 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "experiment n. A2, v. B1"
     },
+    "experiment|v": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "experiment n. A2, v. B1"
+    },
+    "exploration|n": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "exploration n. B2"
+    },
     "explore|v": {
       "level": "B1",
       "source": "oxford3000",
       "page": 4,
       "entry": "explore v. B1"
     },
-    "express|v": {
+    "explosion|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "explosion n. B1"
+    },
+    "factory|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 4,
-      "entry": "express v. A2"
+      "entry": "factory n. A2"
+    },
+    "factor|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "factor n. A2"
     },
     "fact|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 4,
       "entry": "fact n. A1"
+    },
+    "family|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "family n., adj. A1"
     },
     "fare|n": {
       "level": "B2",
@@ -1053,17 +1353,23 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "farmer n. A1"
     },
+    "farming|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "farming n. A2"
+    },
     "farm|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 4,
       "entry": "farm n. A1, v.A2"
     },
-    "fashionable|adj": {
-      "level": "B1",
+    "far|adv": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 4,
-      "entry": "fashionable adj. B1"
+      "entry": "far adv. A1, adj. B1"
     },
     "feed|v": {
       "level": "A2",
@@ -1077,11 +1383,23 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "fence n. B1"
     },
+    "fever|n": {
+      "level": "B2",
+      "source": "oxford5000",
+      "page": 3,
+      "entry": "fever n. B2"
+    },
     "field|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 4,
       "entry": "field n. A2"
+    },
+    "find|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "find v. A1"
     },
     "firefighter|n": {
       "level": "B2",
@@ -1095,11 +1413,17 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "fire n. A1, v. B1"
     },
-    "fitness|n": {
-      "level": "B1",
+    "fishing|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 4,
-      "entry": "fitness n. B1"
+      "entry": "fishing n. A2"
+    },
+    "fish|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "fish n. A1, v. A2"
     },
     "fit|v": {
       "level": "A2",
@@ -1113,11 +1437,11 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "fix v. A2, n. B2"
     },
-    "flavour|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 3,
-      "entry": "flavour n. B2"
+    "flat|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "flat n. A1, adj. A2"
     },
     "flight|n": {
       "level": "A1",
@@ -1143,17 +1467,41 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "floor n. A1"
     },
+    "flower|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "flower n. A1"
+    },
+    "fly|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "fly v. A1, n. A2"
+    },
+    "food|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "food n. A1"
+    },
+    "foreign|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 4,
+      "entry": "foreign adj. A2"
+    },
     "forest|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 4,
       "entry": "forest n. A2"
     },
-    "formal|adj": {
+    "fork|n": {
       "level": "A2",
       "source": "oxford3000",
-      "page": 5,
-      "entry": "formal adj. A2"
+      "page": 4,
+      "entry": "fork n. A2"
     },
     "formula|n": {
       "level": "C1",
@@ -1161,11 +1509,17 @@ const WordLevels = (() => {
       "page": 3,
       "entry": "formula n. C1"
     },
-    "freeze|v": {
-      "level": "B1",
+    "free|adj": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 5,
-      "entry": "freeze v. B1"
+      "entry": "free adj. A1, adv. A2, v. B2"
+    },
+    "fresh|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "fresh adj. A2"
     },
     "fridge|n": {
       "level": "A2",
@@ -1173,11 +1527,11 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "fridge n. A2"
     },
-    "fry|v": {
-      "level": "B1",
+    "fruit|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 5,
-      "entry": "fry v. B1"
+      "entry": "fruit n. A1"
     },
     "fuel|n": {
       "level": "B1",
@@ -1191,6 +1545,24 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "furniture n. A2"
     },
+    "fur|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "fur n. B1"
+    },
+    "gallery|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "gallery n. A2"
+    },
+    "game|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "game n. A1"
+    },
     "garage|n": {
       "level": "B1",
       "source": "oxford3000",
@@ -1203,23 +1575,47 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "garden n. A1"
     },
+    "gas|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "gas n. A2"
+    },
     "gate|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 5,
       "entry": "gate n. A2"
     },
-    "government|n": {
+    "gene|n": {
+      "level": "B2",
+      "source": "oxford5000",
+      "page": 4,
+      "entry": "gene n. B2"
+    },
+    "gift|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 5,
-      "entry": "government n. A2"
+      "entry": "gift n. A2"
     },
-    "graduate|v": {
+    "glass|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "glass n. A1"
+    },
+    "goods|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 5,
-      "entry": "graduate n., v. B1"
+      "entry": "goods n. B1"
+    },
+    "grain|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "grain n. B1"
     },
     "grass|n": {
       "level": "A2",
@@ -1233,19 +1629,13 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "gravity n. C1"
     },
-    "greenhouse|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "greenhouse n. B2"
-    },
     "grow|v": {
       "level": "A1",
       "source": "oxford3000",
       "page": 5,
       "entry": "grow v. A1"
     },
-    "guarantee|v": {
+    "guarantee|n": {
       "level": "B2",
       "source": "oxford3000",
       "page": 5,
@@ -1257,17 +1647,11 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "guide n., v. A2"
     },
-    "guilty|adj": {
-      "level": "B1",
+    "hall|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 5,
-      "entry": "guilty adj. B1"
-    },
-    "habitat|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "habitat n. B2"
+      "entry": "hall n. A2"
     },
     "harbour|n": {
       "level": "B2",
@@ -1275,17 +1659,29 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "harbour n. B2"
     },
-    "hardware|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "hardware n. C1"
-    },
     "harvest|n": {
       "level": "C1",
       "source": "oxford5000",
       "page": 4,
       "entry": "harvest n., v. C1"
+    },
+    "heart|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "heart n. A2"
+    },
+    "heating|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "heating n. B1"
+    },
+    "heat|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "heat n., v. A2"
     },
     "heat|v": {
       "level": "A2",
@@ -1293,23 +1689,59 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "heat n., v. A2"
     },
+    "height|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "height n. A2"
+    },
+    "helicopter|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "helicopter n. B1"
+    },
     "help|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 5,
       "entry": "help v., n. A1"
     },
-    "herb|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "herb n. B2"
+    "hero|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "hero n. A2"
     },
-    "hint|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "hint n., v. C1"
+    "hide|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "hide v. A2"
+    },
+    "hill|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "hill n. A2"
+    },
+    "historic|adj": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "historic adj. B1"
+    },
+    "hold|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "hold v. A2, n. B2"
+    },
+    "holiday|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "holiday n. A1"
     },
     "home|n": {
       "level": "A1",
@@ -1323,6 +1755,12 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "horizon n. C1"
     },
+    "horse|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "horse n. A1"
+    },
     "hospital|n": {
       "level": "A1",
       "source": "oxford3000",
@@ -1335,11 +1773,23 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "hotel n. A1"
     },
-    "household|n": {
-      "level": "B2",
+    "hot|adj": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 5,
-      "entry": "household n. B2"
+      "entry": "hot adj. A1"
+    },
+    "house|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "house n. A1, v. B2"
+    },
+    "hunt|v": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "hunt v. B1, n. B2"
     },
     "hurricane|n": {
       "level": "B1",
@@ -1347,11 +1797,23 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "hurricane n. B1"
     },
+    "hurt|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "hurt v., adj. A2, n. B2"
+    },
     "hypothesis|n": {
       "level": "B2",
       "source": "oxford5000",
       "page": 4,
       "entry": "hypothesis n. B2"
+    },
+    "ice cream|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "ice cream n. A1"
     },
     "idea|n": {
       "level": "A1",
@@ -1359,35 +1821,23 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "idea n. A1"
     },
-    "illegal|adj": {
-      "level": "B1",
+    "image|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 5,
-      "entry": "illegal adj. B1"
+      "entry": "image n. A2"
     },
-    "immigration|n": {
-      "level": "B2",
+    "immediately|adv": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 5,
+      "entry": "immediately adv. A2"
+    },
+    "injection|n": {
+      "level": "C1",
       "source": "oxford5000",
       "page": 4,
-      "entry": "immigration n. B2"
-    },
-    "immune|adj": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "immune adj. B2"
-    },
-    "infection|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 5,
-      "entry": "infection n. B2"
-    },
-    "ingredient|n": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 5,
-      "entry": "ingredient n. B1"
+      "entry": "injection n. C1"
     },
     "injured|adj": {
       "level": "B1",
@@ -1401,47 +1851,23 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "injury n. A2"
     },
-    "innocent|adj": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 6,
-      "entry": "innocent adj. B1"
-    },
-    "innovation|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "innovation n. B2"
-    },
     "insect|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 6,
       "entry": "insect n. A2"
     },
-    "install|v": {
-      "level": "B2",
+    "instrument|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 6,
-      "entry": "install v. B2"
+      "entry": "instrument n. A2"
     },
     "insurance|n": {
       "level": "B2",
       "source": "oxford3000",
       "page": 6,
       "entry": "insurance n. B2"
-    },
-    "interest|n": {
-      "level": "A1",
-      "source": "oxford3000",
-      "page": 6,
-      "entry": "interest n., v. A1"
-    },
-    "interrupt|v": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 6,
-      "entry": "interrupt v. B2"
     },
     "invention|n": {
       "level": "A2",
@@ -1455,18 +1881,6 @@ const WordLevels = (() => {
       "page": 6,
       "entry": "invent v. A2"
     },
-    "investment|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 6,
-      "entry": "investment n. B2"
-    },
-    "invest|v": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 6,
-      "entry": "invest v. B1"
-    },
     "iron|v": {
       "level": "B1",
       "source": "oxford3000",
@@ -1479,23 +1893,35 @@ const WordLevels = (() => {
       "page": 6,
       "entry": "island n. A1"
     },
-    "joint|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "joint adj., n. B2"
-    },
-    "junction|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "junction n. C1"
-    },
-    "justice|n": {
-      "level": "B2",
+    "item|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 6,
-      "entry": "justice n. B2"
+      "entry": "item n. A2"
+    },
+    "jacket|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "jacket n. A1"
+    },
+    "jeans|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "jeans n. A1"
+    },
+    "journey|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "journey n. A1"
+    },
+    "jump|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "jump v., n. A2"
     },
     "key|n": {
       "level": "A1",
@@ -1503,17 +1929,17 @@ const WordLevels = (() => {
       "page": 6,
       "entry": "key n., adj. A1, v. B1"
     },
-    "kidney|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "kidney n. C1"
-    },
     "kitchen|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 6,
       "entry": "kitchen n. A1"
+    },
+    "knife|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "knife n. A2"
     },
     "label|n": {
       "level": "B1",
@@ -1533,6 +1959,18 @@ const WordLevels = (() => {
       "page": 6,
       "entry": "lab n. A2"
     },
+    "ladder|n": {
+      "level": "B2",
+      "source": "oxford5000",
+      "page": 4,
+      "entry": "ladder n. B2"
+    },
+    "lake|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "lake n. A2"
+    },
     "lamp|n": {
       "level": "A2",
       "source": "oxford3000",
@@ -1551,6 +1989,12 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "landmark n. C1"
     },
+    "land|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "land n. A1, v. A2"
+    },
     "land|v": {
       "level": "A2",
       "source": "oxford3000",
@@ -1563,23 +2007,23 @@ const WordLevels = (() => {
       "page": 4,
       "entry": "lane n. B2"
     },
+    "language|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "language n. A1"
+    },
+    "large|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "large adj. A1"
+    },
     "launch|n": {
       "level": "B2",
       "source": "oxford3000",
       "page": 6,
       "entry": "launch v., n. B2"
-    },
-    "launch|v": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 6,
-      "entry": "launch v., n. B2"
-    },
-    "lawn|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "lawn n. C1"
     },
     "leaf|n": {
       "level": "B1",
@@ -1587,23 +2031,11 @@ const WordLevels = (() => {
       "page": 6,
       "entry": "leaf n. B1"
     },
-    "leak|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "leak v., n. C1"
-    },
-    "lecture|n": {
-      "level": "A2",
+    "leave|v": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 6,
-      "entry": "lecture n., v. A2"
-    },
-    "legal|adj": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 6,
-      "entry": "legal adj. B1"
+      "entry": "leave v. A1, n. B2"
     },
     "length|n": {
       "level": "B1",
@@ -1617,35 +2049,29 @@ const WordLevels = (() => {
       "page": 6,
       "entry": "library n. A1"
     },
-    "licence|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 6,
-      "entry": "licence n. B2"
-    },
-    "link|n": {
+    "lift|v": {
       "level": "A2",
       "source": "oxford3000",
       "page": 6,
-      "entry": "link n., v. A2"
+      "entry": "lift v., n. A2"
     },
-    "literature|n": {
+    "liquid|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 6,
-      "entry": "literature n. B1"
+      "entry": "liquid n., adj. B1"
     },
-    "liver|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 4,
-      "entry": "liver n. C1"
-    },
-    "loan|n": {
-      "level": "B2",
+    "local|adj": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 6,
-      "entry": "loan n. B2"
+      "entry": "local adj. A1, n. B1"
+    },
+    "lock|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "lock v., n. A2"
     },
     "log|n": {
       "level": "C1",
@@ -1653,29 +2079,23 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "log n., v. C1"
     },
-    "loss|n": {
+    "lost|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "lost adj. A2"
+    },
+    "machine|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "machine n. A1"
+    },
+    "mall|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 6,
-      "entry": "loss n. B1"
-    },
-    "lung|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 6,
-      "entry": "lung n. B2"
-    },
-    "luxury|n": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 6,
-      "entry": "luxury n. B1"
-    },
-    "maintenance|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 5,
-      "entry": "maintenance n. C1"
+      "entry": "mall n. B1"
     },
     "map|n": {
       "level": "A1",
@@ -1683,23 +2103,53 @@ const WordLevels = (() => {
       "page": 6,
       "entry": "map n. A1, v. B2"
     },
+    "market|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "market n. A1, v. B1"
+    },
+    "material|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "material n. A2, adj. B2"
+    },
+    "mathematics|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "mathematics n. A2"
+    },
+    "measurement|n": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "measurement n. B2"
+    },
     "measure|v": {
       "level": "B1",
       "source": "oxford3000",
       "page": 6,
       "entry": "measure v., n. B1"
     },
-    "mental|adj": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 6,
-      "entry": "mental adj. B1"
-    },
-    "mention|v": {
+    "medicine|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 6,
-      "entry": "mention v. A2, n. B1"
+      "entry": "medicine n. A2"
+    },
+    "medium|adj": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "medium adj. B1, n. B2"
+    },
+    "memory|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "memory n. A2"
     },
     "mess|n": {
       "level": "B1",
@@ -1707,17 +2157,35 @@ const WordLevels = (() => {
       "page": 6,
       "entry": "mess n., v. B1"
     },
+    "metal|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 6,
+      "entry": "metal n. A2"
+    },
     "method|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 6,
       "entry": "method n. A2"
     },
-    "mild|adj": {
-      "level": "B1",
+    "milk|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 6,
-      "entry": "mild adj. B1"
+      "entry": "milk n. A1"
+    },
+    "mirror|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "mirror n. A2"
+    },
+    "mission|n": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "mission n. B2"
     },
     "mix|v": {
       "level": "B1",
@@ -1731,6 +2199,12 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "model n. A1, v. B2"
     },
+    "modern|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "modern adj. A1"
+    },
     "money|n": {
       "level": "A1",
       "source": "oxford3000",
@@ -1743,17 +2217,17 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "moon n. A2"
     },
-    "mortgage|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 5,
-      "entry": "mortgage n. B2"
+    "mountain|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "mountain n. A1"
     },
-    "muscle|n": {
+    "mud|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 7,
-      "entry": "muscle n. B1"
+      "entry": "mud n. B1"
     },
     "museum|n": {
       "level": "A1",
@@ -1761,11 +2235,29 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "museum n. A1"
     },
+    "natural|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "natural adj. A1"
+    },
+    "nature|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "nature n. A2"
+    },
     "nearby|adv": {
       "level": "B2",
       "source": "oxford5000",
       "page": 5,
       "entry": "nearby adj., adv. B2"
+    },
+    "near|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "near prep., adj., adv. A1"
     },
     "neighbourhood|n": {
       "level": "B1",
@@ -1773,11 +2265,11 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "neighbourhood n. B1"
     },
-    "nerve|n": {
-      "level": "B2",
+    "neighbour|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 7,
-      "entry": "nerve n. B2"
+      "entry": "neighbour n. A1"
     },
     "nest|n": {
       "level": "C1",
@@ -1785,23 +2277,47 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "nest n. C1"
     },
+    "noise|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "noise n. A2"
+    },
+    "noisy|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "noisy adj. A2"
+    },
+    "note|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "note n. A1, v. B1"
+    },
     "number|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 7,
       "entry": "number n. A1, v. A2"
     },
-    "nutrition|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 5,
-      "entry": "nutrition n. B2"
+    "nurse|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "nurse n. A1"
     },
-    "obesity|n": {
+    "observation|n": {
       "level": "B2",
-      "source": "oxford5000",
-      "page": 5,
-      "entry": "obesity n. B2"
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "observation n. B2"
+    },
+    "observe|v": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "observe v. B2"
     },
     "ocean|n": {
       "level": "A2",
@@ -1809,23 +2325,47 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "ocean n. A2"
     },
-    "organic|adj": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 5,
-      "entry": "organic adj. B2"
+    "offer|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "offer v., n. A2"
     },
-    "outcome|n": {
+    "officer|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "officer n. A2"
+    },
+    "office|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "office n. A1"
+    },
+    "online|adv": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "online adj., adv. A1"
+    },
+    "opening|n": {
       "level": "B2",
       "source": "oxford3000",
       "page": 7,
-      "entry": "outcome n. B2"
+      "entry": "opening n. B2"
     },
-    "outlet|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 5,
-      "entry": "outlet n. C1"
+    "open|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "open adj., v. A1"
+    },
+    "order|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "order n., v. A1"
     },
     "oven|n": {
       "level": "A2",
@@ -1833,11 +2373,47 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "oven n. A2"
     },
+    "oxygen|n": {
+      "level": "B2",
+      "source": "oxford5000",
+      "page": 5,
+      "entry": "oxygen n. B2"
+    },
     "pack|v": {
       "level": "A2",
       "source": "oxford3000",
       "page": 7,
       "entry": "pack v. A2, n. B1"
+    },
+    "paint|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "paint v., n. A1"
+    },
+    "pain|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "pain n. A2"
+    },
+    "palace|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "palace n. A2"
+    },
+    "panic|n": {
+      "level": "B2",
+      "source": "oxford5000",
+      "page": 5,
+      "entry": "panic n. B2"
+    },
+    "parking|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "parking n. A2"
     },
     "park|n": {
       "level": "A1",
@@ -1845,17 +2421,23 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "park n., v. A1"
     },
-    "parliament|n": {
-      "level": "B2",
+    "passenger|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 7,
-      "entry": "parliament n. B2"
+      "entry": "passenger n. A2"
     },
     "passport|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 7,
       "entry": "passport n. A1"
+    },
+    "path|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "path n. B1"
     },
     "patient|n": {
       "level": "A2",
@@ -1869,23 +2451,41 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "pay v. A1, n. A2"
     },
-    "persuade|v": {
+    "peaceful|adj": {
       "level": "B1",
       "source": "oxford3000",
       "page": 7,
-      "entry": "persuade v. B1"
+      "entry": "peaceful adj. B1"
     },
-    "petrol|n": {
+    "penny|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 7,
-      "entry": "petrol n. A2"
+      "entry": "penny n. A2"
     },
-    "phenomenon|n": {
-      "level": "B2",
+    "percentage|n": {
+      "level": "B1",
       "source": "oxford3000",
       "page": 7,
-      "entry": "phenomenon n. B2"
+      "entry": "percentage n. B1"
+    },
+    "pet|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "pet n. A2"
+    },
+    "phone|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 7,
+      "entry": "phone n., v. A1"
+    },
+    "photo|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "photo n. A1"
     },
     "physical|adj": {
       "level": "A2",
@@ -1893,11 +2493,65 @@ const WordLevels = (() => {
       "page": 8,
       "entry": "physical adj. A2"
     },
+    "physics|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "physics n. A2"
+    },
+    "pick|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "pick v. A2, n. B2"
+    },
+    "pig|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "pig n. A1"
+    },
+    "pill|n": {
+      "level": "B2",
+      "source": "oxford5000",
+      "page": 5,
+      "entry": "pill n. B2"
+    },
+    "pilot|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "pilot n. A2"
+    },
     "planet|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 8,
       "entry": "planet n. A2"
+    },
+    "plane|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "plane n. A1"
+    },
+    "plant|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "plant n. A1, v. A2"
+    },
+    "plant|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "plant n. A1, v. A2"
+    },
+    "plate|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "plate n. A2"
     },
     "platform|n": {
       "level": "A2",
@@ -1905,23 +2559,11 @@ const WordLevels = (() => {
       "page": 8,
       "entry": "platform n. A2"
     },
-    "policy|n": {
-      "level": "B1",
+    "police|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 8,
-      "entry": "policy n. B1"
-    },
-    "politician|n": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 8,
-      "entry": "politician n. B1"
-    },
-    "pollution|n": {
-      "level": "A2",
-      "source": "oxford3000",
-      "page": 8,
-      "entry": "pollution n. A2"
+      "entry": "police n. A1"
     },
     "pond|n": {
       "level": "C1",
@@ -1929,41 +2571,35 @@ const WordLevels = (() => {
       "page": 5,
       "entry": "pond n. C1"
     },
-    "portion|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 5,
-      "entry": "portion n. B2"
+    "population|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "population n. A2"
     },
-    "pour|v": {
+    "port|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 8,
-      "entry": "pour v. B1"
+      "entry": "port n. B1"
     },
-    "praise|v": {
-      "level": "B2",
+    "potato|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 8,
-      "entry": "praise n., v. B2"
+      "entry": "potato n. A1"
     },
-    "precise|adj": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 5,
-      "entry": "precise adj. B2"
-    },
-    "prescription|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 6,
-      "entry": "prescription n. C1"
-    },
-    "preserve|v": {
-      "level": "B2",
+    "pound|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 8,
-      "entry": "preserve v. B2"
+      "entry": "pound n. A1"
+    },
+    "power|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "power n. A2, v. B2"
     },
     "price|n": {
       "level": "A1",
@@ -1971,35 +2607,35 @@ const WordLevels = (() => {
       "page": 8,
       "entry": "price n. A1, v. B2"
     },
-    "principle|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 8,
-      "entry": "principle n. B2"
-    },
-    "prison|n": {
+    "process|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 8,
-      "entry": "prison n. A2"
+      "entry": "process n. A2, v. B2"
     },
-    "profit|n": {
-      "level": "B1",
+    "product|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 8,
-      "entry": "profit n. B1"
+      "entry": "product n. A1"
     },
-    "property|n": {
-      "level": "B1",
+    "proof|n": {
+      "level": "B2",
       "source": "oxford3000",
       "page": 8,
-      "entry": "property n. B1"
+      "entry": "proof n. B2"
     },
-    "protest|n": {
-      "level": "B1",
+    "protection|n": {
+      "level": "B2",
       "source": "oxford3000",
       "page": 8,
-      "entry": "protest n., v. B1"
+      "entry": "protection n. B2"
+    },
+    "protect|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "protect v. A2"
     },
     "prove|v": {
       "level": "B1",
@@ -2007,17 +2643,29 @@ const WordLevels = (() => {
       "page": 8,
       "entry": "prove v. B1"
     },
-    "punishment|n": {
-      "level": "B1",
+    "public|adj": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 8,
-      "entry": "punishment n. B1"
+      "entry": "public adj., n. A2"
     },
-    "purchase|n": {
-      "level": "B2",
+    "pull|v": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 8,
-      "entry": "purchase n., v. B2"
+      "entry": "pull v. A2, n. B1"
+    },
+    "push|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "push v. A2, n. B1"
+    },
+    "quality|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "quality n. A2"
     },
     "quantity|n": {
       "level": "A2",
@@ -2037,11 +2685,41 @@ const WordLevels = (() => {
       "page": 8,
       "entry": "queue n., v. B1"
     },
-    "raw|adj": {
-      "level": "B2",
+    "quickly|adv": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 8,
-      "entry": "raw adj. B2"
+      "entry": "quickly adv. A1"
+    },
+    "quick|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "quick adj. A1"
+    },
+    "quiet|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "quiet adj. A1"
+    },
+    "radio|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "radio n. A1"
+    },
+    "railway|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "railway n. A2"
+    },
+    "rain|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 8,
+      "entry": "rain n., v. A1"
     },
     "reaction|n": {
       "level": "B1",
@@ -2049,23 +2727,11 @@ const WordLevels = (() => {
       "page": 8,
       "entry": "reaction n. B1"
     },
-    "reasonable|adj": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 8,
-      "entry": "reasonable adj. B2"
-    },
     "receipt|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 8,
       "entry": "receipt n. B1"
-    },
-    "recipe|n": {
-      "level": "A2",
-      "source": "oxford3000",
-      "page": 8,
-      "entry": "recipe n. A2"
     },
     "record|v": {
       "level": "A2",
@@ -2073,29 +2739,11 @@ const WordLevels = (() => {
       "page": 8,
       "entry": "record n., v. A2"
     },
-    "recovery|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 6,
-      "entry": "recovery n. B2"
-    },
     "recover|v": {
       "level": "B2",
       "source": "oxford3000",
       "page": 8,
       "entry": "recover v. B2"
-    },
-    "recycle|v": {
-      "level": "A2",
-      "source": "oxford3000",
-      "page": 8,
-      "entry": "recycle v. A2"
-    },
-    "refugee|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 6,
-      "entry": "refugee n. B2"
     },
     "relax|v": {
       "level": "A1",
@@ -2103,19 +2751,13 @@ const WordLevels = (() => {
       "page": 8,
       "entry": "relax v. A1"
     },
-    "remark|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 8,
-      "entry": "remark n., v. B2"
-    },
-    "remote|adj": {
+    "rent|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 8,
-      "entry": "remote adj. B1"
+      "entry": "rent n., v. B1"
     },
-    "rent|n": {
+    "rent|v": {
       "level": "B1",
       "source": "oxford3000",
       "page": 8,
@@ -2133,6 +2775,12 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "rescue v., n. B2"
     },
+    "researcher|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "researcher n. A2"
+    },
     "research|n": {
       "level": "A2",
       "source": "oxford3000",
@@ -2145,17 +2793,23 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "reservation n. B1"
     },
+    "resident|n": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "resident n., adj. B2"
+    },
     "resort|n": {
       "level": "B2",
       "source": "oxford3000",
       "page": 9,
       "entry": "resort n. B2"
     },
-    "resource|n": {
-      "level": "B1",
+    "restaurant|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 9,
-      "entry": "resource n. B1"
+      "entry": "restaurant n. A1"
     },
     "result|n": {
       "level": "A1",
@@ -2163,29 +2817,47 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "result n. A1, v. B1"
     },
-    "retail|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 6,
-      "entry": "retail n. B2"
+    "return|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "return v., n. A1"
     },
-    "revenue|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 6,
-      "entry": "revenue n. B2"
-    },
-    "revise|v": {
+    "risk|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 9,
-      "entry": "revise v. B1"
+      "entry": "risk n., v. B1"
+    },
+    "river|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "river n. A1"
+    },
+    "road|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "road n. A1"
+    },
+    "robot|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "robot n. B1"
     },
     "rocket|n": {
       "level": "B2",
       "source": "oxford5000",
       "page": 6,
       "entry": "rocket n. B2"
+    },
+    "roof|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "roof n. A2"
     },
     "room|n": {
       "level": "A1",
@@ -2198,6 +2870,12 @@ const WordLevels = (() => {
       "source": "oxford3000",
       "page": 9,
       "entry": "root n. B2"
+    },
+    "rope|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "rope n. B1"
     },
     "rotate|v": {
       "level": "C1",
@@ -2217,17 +2895,17 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "rubbish n. A2"
     },
-    "rumour|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 6,
-      "entry": "rumour n. C1"
-    },
     "rural|adj": {
       "level": "B2",
       "source": "oxford3000",
       "page": 9,
       "entry": "rural adj. B2"
+    },
+    "safety|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "safety n. B1"
     },
     "safe|adj": {
       "level": "A2",
@@ -2235,11 +2913,29 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "safe adj. A2"
     },
+    "sailing|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "sailing n. A2"
+    },
+    "sail|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "sail v. A2, n. B1"
+    },
     "sale|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 9,
       "entry": "sale n. A2"
+    },
+    "salt|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "salt n. A1"
     },
     "sample|n": {
       "level": "B1",
@@ -2259,17 +2955,17 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "satellite n. B2"
     },
-    "sauce|n": {
+    "save|v": {
       "level": "A2",
       "source": "oxford3000",
       "page": 9,
-      "entry": "sauce n. A2"
+      "entry": "save v. A2"
     },
-    "scholarship|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 6,
-      "entry": "scholarship n. B2"
+    "school|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "school n. A1"
     },
     "science|n": {
       "level": "A1",
@@ -2277,11 +2973,47 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "science n. A1"
     },
+    "scientific|adj": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "scientific adj. B1"
+    },
     "scientist|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 9,
       "entry": "scientist n. A1"
+    },
+    "scream|v": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "scream v., n. B2"
+    },
+    "screen|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "screen n. A2, v. B2"
+    },
+    "search|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "search n., v. A2"
+    },
+    "season|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "season n. A2"
+    },
+    "seat|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "seat n. A2, v. B2"
     },
     "sea|n": {
       "level": "A1",
@@ -2301,17 +3033,11 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "sell v. A1"
     },
-    "seminar|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 6,
-      "entry": "seminar n. B2"
-    },
-    "severe|adj": {
-      "level": "B2",
+    "service|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 9,
-      "entry": "severe adj. B2"
+      "entry": "service n. A2"
     },
     "shade|n": {
       "level": "B2",
@@ -2331,18 +3057,6 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "shallow adj. B2"
     },
-    "shareholder|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 6,
-      "entry": "shareholder n. C1"
-    },
-    "share|n": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 9,
-      "entry": "share v. A1, n. B1"
-    },
     "sheep|n": {
       "level": "A1",
       "source": "oxford3000",
@@ -2361,6 +3075,36 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "shell n. B1"
     },
+    "ship|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "ship n. A2, v. B2"
+    },
+    "shirt|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "shirt n. A1"
+    },
+    "shock|n": {
+      "level": "B2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "shock n., v. B2"
+    },
+    "shoe|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "shoe n. A1"
+    },
+    "shopping|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "shopping n. A1"
+    },
     "shop|n": {
       "level": "A1",
       "source": "oxford3000",
@@ -2373,11 +3117,41 @@ const WordLevels = (() => {
       "page": 6,
       "entry": "shore n. B2"
     },
-    "shortage|n": {
+    "shout|v": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "shout v., n. A2"
+    },
+    "shower|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "shower n. A1"
+    },
+    "signal|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "signal n., v. B1"
+    },
+    "sign|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "sign n., v. A2"
+    },
+    "silence|n": {
       "level": "B2",
-      "source": "oxford5000",
-      "page": 6,
-      "entry": "shortage n. B2"
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "silence n. B2"
+    },
+    "simple|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "simple adj. A2"
     },
     "size|n": {
       "level": "A2",
@@ -2391,11 +3165,23 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "sky n. A2"
     },
-    "slice|v": {
-      "level": "B1",
+    "sleep|v": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 9,
-      "entry": "slice n., v. B1"
+      "entry": "sleep v. A1, n. A2"
+    },
+    "slow|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "slow adj. A1, v. B1"
+    },
+    "small|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 9,
+      "entry": "small adj. A1"
     },
     "smoke|n": {
       "level": "A2",
@@ -2409,11 +3195,11 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "snake n. A1"
     },
-    "software|n": {
-      "level": "B1",
+    "soap|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 9,
-      "entry": "software n. B1"
+      "entry": "soap n. A2"
     },
     "soil|n": {
       "level": "B1",
@@ -2421,11 +3207,17 @@ const WordLevels = (() => {
       "page": 9,
       "entry": "soil n. B1"
     },
-    "solar|adj": {
-      "level": "B2",
+    "solid|adj": {
+      "level": "B1",
       "source": "oxford3000",
       "page": 9,
-      "entry": "solar adj. B2"
+      "entry": "solid adj., n. B1"
+    },
+    "sound|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "sound n., v. A1"
     },
     "space|n": {
       "level": "A1",
@@ -2433,11 +3225,11 @@ const WordLevels = (() => {
       "page": 10,
       "entry": "space n. A1"
     },
-    "spam|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 7,
-      "entry": "spam n. C1"
+    "special|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "special adj. A1"
     },
     "species|n": {
       "level": "B2",
@@ -2445,23 +3237,29 @@ const WordLevels = (() => {
       "page": 10,
       "entry": "species n. B2"
     },
-    "spice|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 7,
-      "entry": "spice n. B2"
-    },
-    "spicy|adj": {
-      "level": "B1",
+    "speed|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 10,
-      "entry": "spicy adj. B1"
+      "entry": "speed n. A2, v. B2"
     },
-    "spread|v": {
-      "level": "B1",
+    "spend|v": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 10,
-      "entry": "spread v. B1, n. B2"
+      "entry": "spend v. A1"
+    },
+    "spoon|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "spoon n. A2"
+    },
+    "spring|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "spring n. A1, v. B1"
     },
     "square|n": {
       "level": "A2",
@@ -2469,17 +3267,23 @@ const WordLevels = (() => {
       "page": 10,
       "entry": "square adj., n. A2"
     },
+    "stadium|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "stadium n. B1"
+    },
+    "staff|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "staff n. B1"
+    },
     "star|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 10,
       "entry": "star n. A1, v. A2"
-    },
-    "statement|n": {
-      "level": "A1",
-      "source": "oxford3000",
-      "page": 10,
-      "entry": "statement n. A1"
     },
     "station|n": {
       "level": "A1",
@@ -2487,17 +3291,29 @@ const WordLevels = (() => {
       "page": 10,
       "entry": "station n. A1"
     },
-    "stir|v": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 7,
-      "entry": "stir v. C1"
+    "statistic|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "statistic n. B1"
     },
-    "storage|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 7,
-      "entry": "storage n. C1"
+    "stone|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "stone n. A2"
+    },
+    "store|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "store n. A2, v. B1"
+    },
+    "storm|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "storm n. A2"
     },
     "stream|n": {
       "level": "B2",
@@ -2511,17 +3327,17 @@ const WordLevels = (() => {
       "page": 10,
       "entry": "street n. A1"
     },
-    "stress|n": {
-      "level": "A2",
-      "source": "oxford3000",
-      "page": 10,
-      "entry": "stress n., v. A2"
-    },
-    "subject|n": {
+    "study|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 10,
-      "entry": "subject n. A1, adj. B2"
+      "entry": "study n., v. A1"
+    },
+    "substance|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "substance n. B1"
     },
     "suburb|n": {
       "level": "B2",
@@ -2529,11 +3345,17 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "suburb n.B2"
     },
-    "suit|v": {
-      "level": "B1",
+    "suit|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 10,
       "entry": "suit n. A2, v. B1"
+    },
+    "summer|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "summer n. A1"
     },
     "sun|n": {
       "level": "A1",
@@ -2541,29 +3363,35 @@ const WordLevels = (() => {
       "page": 10,
       "entry": "sun n. A1"
     },
-    "supply|n": {
+    "supermarket|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "supermarket n. A1"
+    },
+    "survive|v": {
       "level": "B1",
       "source": "oxford3000",
       "page": 10,
-      "entry": "supply n., v. B1"
+      "entry": "survive v. B1"
     },
-    "surgeon|n": {
+    "survivor|n": {
       "level": "B2",
       "source": "oxford5000",
       "page": 7,
-      "entry": "surgeon n. B2"
+      "entry": "survivor n. B2"
     },
-    "surgery|n": {
-      "level": "B2",
+    "sweater|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 10,
-      "entry": "surgery n. B2"
+      "entry": "sweater n. A1"
     },
-    "sustainable|adj": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 7,
-      "entry": "sustainable adj. B2"
+    "swimming|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "swimming n. A1"
     },
     "swim|v": {
       "level": "A1",
@@ -2571,17 +3399,17 @@ const WordLevels = (() => {
       "page": 10,
       "entry": "swim v. A1, n. B1"
     },
-    "symptom|n": {
-      "level": "B1",
-      "source": "oxford3000",
-      "page": 10,
-      "entry": "symptom n. B1"
-    },
     "table|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 10,
       "entry": "table n. A1"
+    },
+    "tail|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "tail n. B1"
     },
     "tap|n": {
       "level": "B2",
@@ -2589,11 +3417,17 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "tap v., n. B2"
     },
-    "tax|n": {
-      "level": "B1",
+    "taxi|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 10,
-      "entry": "tax n., v. B1"
+      "entry": "taxi n. A1"
+    },
+    "team|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "team n. A1"
     },
     "technique|n": {
       "level": "B1",
@@ -2601,29 +3435,29 @@ const WordLevels = (() => {
       "page": 10,
       "entry": "technique n. B1"
     },
+    "technology|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "technology n. A2"
+    },
+    "television|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "television n. A1"
+    },
     "temperature|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 10,
       "entry": "temperature n. A2"
     },
-    "tenant|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 7,
-      "entry": "tenant n. C1"
-    },
-    "tender|adj": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 7,
-      "entry": "tender adj. C1"
-    },
-    "term|n": {
-      "level": "A2",
+    "tent|n": {
+      "level": "B1",
       "source": "oxford3000",
       "page": 10,
-      "entry": "term n. A2, v. B2"
+      "entry": "tent n. B1"
     },
     "test|v": {
       "level": "A1",
@@ -2631,29 +3465,17 @@ const WordLevels = (() => {
       "page": 10,
       "entry": "test n., v. A1"
     },
+    "theatre|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "theatre n. A1"
+    },
     "theory|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 10,
       "entry": "theory n. B1"
-    },
-    "therapy|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 10,
-      "entry": "therapy n. B2"
-    },
-    "thesis|n": {
-      "level": "B2",
-      "source": "oxford5000",
-      "page": 7,
-      "entry": "thesis n. B2"
-    },
-    "threaten|v": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 10,
-      "entry": "threaten v. B2"
     },
     "ticket|n": {
       "level": "A1",
@@ -2673,11 +3495,17 @@ const WordLevels = (() => {
       "page": 10,
       "entry": "tidy adj., v. A2"
     },
-    "tip|n": {
+    "toilet|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "toilet n. A1"
+    },
+    "tool|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 10,
-      "entry": "tip n. A2, v. B1"
+      "entry": "tool n. A2"
     },
     "total|n": {
       "level": "B1",
@@ -2691,11 +3519,53 @@ const WordLevels = (() => {
       "page": 10,
       "entry": "tourist n. A1"
     },
+    "tour|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "tour n. A2, v. B1"
+    },
     "towel|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 10,
       "entry": "towel n. A2"
+    },
+    "tower|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "tower n. A2"
+    },
+    "town|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "town n. A1"
+    },
+    "toy|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "toy n., adj. A2"
+    },
+    "traditional|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "traditional adj. A2"
+    },
+    "tradition|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "tradition n. A2"
+    },
+    "traffic|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "traffic n. A1"
     },
     "trail|n": {
       "level": "C1",
@@ -2703,11 +3573,47 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "trail n., v. C1"
     },
+    "training|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "training n. A2"
+    },
     "train|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 10,
       "entry": "train n. A1, v. A2"
+    },
+    "translate|v": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "translate v. B1"
+    },
+    "transport|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "transport n. A2, v. B1"
+    },
+    "trap|v": {
+      "level": "B2",
+      "source": "oxford5000",
+      "page": 7,
+      "entry": "trap v., n. B2"
+    },
+    "traveller|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "traveller n. A2"
+    },
+    "travel|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 10,
+      "entry": "travel v., n. A1"
     },
     "treatment|n": {
       "level": "B1",
@@ -2726,12 +3632,6 @@ const WordLevels = (() => {
       "source": "oxford3000",
       "page": 10,
       "entry": "tree n. A1"
-    },
-    "trial|n": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 11,
-      "entry": "trial n. B2"
     },
     "trip|n": {
       "level": "A1",
@@ -2757,17 +3657,11 @@ const WordLevels = (() => {
       "page": 11,
       "entry": "universe n. B2"
     },
-    "update|n": {
-      "level": "B1",
+    "university|n": {
+      "level": "A1",
       "source": "oxford3000",
       "page": 11,
-      "entry": "update v., n. B1"
-    },
-    "upgrade|v": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 7,
-      "entry": "upgrade v., n. C1"
+      "entry": "university n. A1"
     },
     "upstairs|adv": {
       "level": "A1",
@@ -2787,6 +3681,12 @@ const WordLevels = (() => {
       "page": 7,
       "entry": "urgent adj. B2"
     },
+    "vacation|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "vacation n. A1"
+    },
     "vacuum|n": {
       "level": "C1",
       "source": "oxford5000",
@@ -2799,11 +3699,11 @@ const WordLevels = (() => {
       "page": 11,
       "entry": "valley n. A2"
     },
-    "variable|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 8,
-      "entry": "variable n., adj. C1"
+    "vegetable|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "vegetable n. A1"
     },
     "vehicle|n": {
       "level": "A2",
@@ -2811,17 +3711,17 @@ const WordLevels = (() => {
       "page": 11,
       "entry": "vehicle n. A2"
     },
-    "vibrant|adj": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 8,
-      "entry": "vibrant adj. C1"
-    },
     "victim|n": {
       "level": "B1",
       "source": "oxford3000",
       "page": 11,
       "entry": "victim n. B1"
+    },
+    "view|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "view n. A2, v. B1"
     },
     "village|n": {
       "level": "A1",
@@ -2829,17 +3729,59 @@ const WordLevels = (() => {
       "page": 11,
       "entry": "village n. A1"
     },
-    "vote|v": {
-      "level": "B1",
+    "virus|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 11,
-      "entry": "vote n., v. B1"
+      "entry": "virus n. A2"
+    },
+    "visa|n": {
+      "level": "B2",
+      "source": "oxford5000",
+      "page": 8,
+      "entry": "visa n. B2"
+    },
+    "visit|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "visit v., n. A1"
+    },
+    "wake|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "wake v. A1"
+    },
+    "walk|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "walk v., n. A1"
+    },
+    "walk|v": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "walk v., n. A1"
     },
     "wall|n": {
       "level": "A1",
       "source": "oxford3000",
       "page": 11,
       "entry": "wall n. A1"
+    },
+    "warm|adj": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "warm adj. A1, v. B1"
+    },
+    "warning|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "warning n. B1"
     },
     "warn|v": {
       "level": "B1",
@@ -2853,17 +3795,41 @@ const WordLevels = (() => {
       "page": 11,
       "entry": "wash v. A1, n. A2"
     },
-    "waste|n": {
+    "waste|v": {
       "level": "B1",
       "source": "oxford3000",
       "page": 11,
       "entry": "waste n., v., adj. B1"
+    },
+    "water|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "water n. A1, v. B1"
+    },
+    "water|v": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "water n. A1, v. B1"
     },
     "wave|n": {
       "level": "A2",
       "source": "oxford3000",
       "page": 11,
       "entry": "wave n. A2, v. B1"
+    },
+    "weather|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "weather n. A1"
+    },
+    "website|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "website n. A1"
     },
     "weight|n": {
       "level": "A2",
@@ -2889,17 +3855,17 @@ const WordLevels = (() => {
       "page": 8,
       "entry": "wheat n. B2"
     },
-    "whisper|v": {
-      "level": "B2",
-      "source": "oxford3000",
-      "page": 11,
-      "entry": "whisper v., n. B2"
-    },
     "wildlife|n": {
       "level": "B2",
       "source": "oxford3000",
       "page": 11,
       "entry": "wildlife n. B2"
+    },
+    "wild|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "wild adj. A2"
     },
     "window|n": {
       "level": "A1",
@@ -2907,23 +3873,59 @@ const WordLevels = (() => {
       "page": 11,
       "entry": "window n. A1"
     },
-    "witness|n": {
-      "level": "B2",
+    "wind|n": {
+      "level": "A2",
       "source": "oxford3000",
       "page": 11,
-      "entry": "witness n., v. B2"
+      "entry": "wind1 n. A2"
     },
-    "workout|n": {
-      "level": "C1",
-      "source": "oxford5000",
-      "page": 8,
-      "entry": "workout n. C1"
+    "wing|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "wing n. B1"
+    },
+    "winter|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "winter n. A1"
+    },
+    "wooden|adj": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "wooden adj. A2"
+    },
+    "wood|n": {
+      "level": "A2",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "wood n. A2"
+    },
+    "wool|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "wool n. B1"
+    },
+    "world|n": {
+      "level": "A1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "world n. A1"
     },
     "wound|n": {
       "level": "B2",
       "source": "oxford3000",
       "page": 11,
       "entry": "wound n., v. B2"
+    },
+    "yard|n": {
+      "level": "B1",
+      "source": "oxford3000",
+      "page": 11,
+      "entry": "yard n. B1"
     }
   }
 };

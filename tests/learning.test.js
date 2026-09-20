@@ -107,14 +107,18 @@ test('практика: сочетания и близкие пары ссыла
 });
 test('в каждом тематическом маршруте ровно 100 слов, уровни только из подтверждённого словаря',()=>{
   const ctx={};vm.createContext(ctx);
-  vm.runInContext(read('words-a.js')+read('words-b.js')+read('ex-ru.js')+read('word-levels.js')+read('thematic-data.js')+';this.data={meta:THEMATIC_META,words:THEMATIC_WORDS}',ctx);
+  vm.runInContext(['words-a.js','words-b.js','ex-ru.js','word-levels.js','oxford-a1.js','oxford-a2.js','oxford-b1.js','oxford-b2.js','words-extra.js','program.js','thematic-data.js'].map(read).join(';')+';this.data={meta:THEMATIC_META,words:THEMATIC_WORDS,pick:THEMATIC_PICK}',ctx);
   assert.equal(ctx.data.meta.length,10);
   for(const meta of ctx.data.meta){
     const words=ctx.data.words[meta.id];
     assert.equal(words.length,100,meta.id);assert.equal(new Set(words.map(w=>w[0])).size,100,meta.id);
     assert.equal(words.every(w=>w.length===6&&w.slice(0,5).every(Boolean)),true,meta.id);
     for(const w of words)assert.equal(w[5],require("../word-levels").lookup(w[0],w[2])?.level||null,meta.id+": "+w[0]);
+    // добор — только явные тематические ключи; чужие слова прежних срезов по индексам не попадают в маршрут
+    assert.ok(ctx.data.pick[meta.id].length>=20,meta.id);
+    for(const w of words)assert.equal(["browser","spam","hack","subscribe","gossip","rumour","whisper","parliament","democracy","mortgage","invoice"].includes(w[0]),false,meta.id+": "+w[0]);
   }
+  assert.equal(read('thematic-data.js').includes('THEMATIC_REUSE'),false);
 });
 test('копия не включает ключи или настройки голосов и не меняет оригинал',()=>{
   const s=core.empty();s.set.ttsKeys={google:'test-secret'};s.set.tts={en:{engine:'google'}};

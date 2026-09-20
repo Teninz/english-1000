@@ -1,5 +1,5 @@
-// Десять самостоятельных тематических маршрутов. Тематические слова заданы здесь,
-// более сложные записи переиспользуют вычитанные переводы и примеры основного словаря.
+// Десять самостоятельных тематических маршрутов. Базовые тематические слова заданы здесь,
+// остальные берутся по ключу из основной программы (THEMATIC_PICK), чтобы каждая тема учила своей лексике.
 const THEMATIC_META = [
   ["forest","Лес","🌲","Растения, животные, погода и безопасность","Лесной набор"],
   ["village","Деревня","🌾","Ферма, постройки, инструменты и быт","Деревенский набор"],
@@ -90,7 +90,14 @@ harvest time|время сбора урожая|n|Everyone helps at harvest time
 feed|кормить|v|I feed the chickens every morning.|Я кормлю кур каждое утро.
 milk|доить|v|She knows how to milk a cow.|Она умеет доить корову.
 dig|копать|v|We need to dig a deeper ditch.|Нам нужно выкопать канаву глубже.
-grow|выращивать|v|They grow potatoes behind the house.|Они выращивают картофель за домом.`,
+grow|выращивать|v|They grow potatoes behind the house.|Они выращивают картофель за домом.
+hen|курица (несушка)|n|The hen laid an egg this morning.|Курица снесла яйцо сегодня утром.
+honey|мёд|n|We buy honey from a local farmer.|Мы покупаем мёд у местного фермера.
+chimney|дымоход, труба|n|Smoke rose from the chimney.|Из трубы поднимался дым.
+fireplace|камин|n|We sat by the fireplace all evening.|Мы весь вечер сидели у камина.
+pond|пруд|n|Ducks swim on the village pond.|Утки плавают в деревенском пруду.
+sunrise|восход солнца|n|The farmer gets up at sunrise.|Фермер встаёт на восходе.
+sunset|закат|n|We watched the sunset from the hill.|Мы смотрели закат с холма.`,
 travel:`
 trip|поездка|n|Our trip begins on Monday.|Наша поездка начинается в понедельник.
 tourist|турист|n|A tourist asked me for directions.|Турист спросил у меня дорогу.
@@ -116,7 +123,11 @@ pack|собирать вещи|v|I always pack the night before a trip.|Я вс�
 miss the train|опоздать на поезд|v|Hurry or we will miss the train.|Поторопись, иначе мы опоздаем на поезд.
 ask for directions|спросить дорогу|v|We can ask for directions at the café.|Мы можем спросить дорогу в кафе.
 one-way ticket|билет в одну сторону|n|I need a one-way ticket to Oxford.|Мне нужен билет в одну сторону до Оксфорда.
-return ticket|билет туда и обратно|n|A return ticket is cheaper today.|Сегодня билет туда и обратно дешевле.`,
+return ticket|билет туда и обратно|n|A return ticket is cheaper today.|Сегодня билет туда и обратно дешевле.
+visa|виза|n|You need a visa to enter the country.|Для въезда в страну нужна виза.
+postcard|открытка|n|Send me a postcard from Rome!|Пришли мне открытку из Рима!
+sunny|солнечный|adj|It was a sunny day at the beach.|На пляже был солнечный день.
+phrasebook|разговорник|n|A phrasebook helps in a foreign country.|Разговорник помогает в чужой стране.`,
 city:`
 city|город|n|The city is quiet early in the morning.|Рано утром город тихий.
 street|улица|n|Their office is on King Street.|Их офис находится на Кинг-стрит.
@@ -142,7 +153,11 @@ cross|переходить|v|Cross the street at the lights.|Переходи у
 turn left|повернуть налево|v|Turn left after the bank.|Поверни налево после банка.
 go straight|идти прямо|v|Go straight until you see the bridge.|Иди прямо, пока не увидишь мост.
 crowded|многолюдный|adj|The centre is crowded on Saturdays.|По субботам в центре многолюдно.
-nearby|поблизости|adv|Is there a cash machine nearby?|Поблизости есть банкомат?`,
+nearby|поблизости|adv|Is there a cash machine nearby?|Поблизости есть банкомат?
+avenue|проспект|n|The hotel is on the main avenue.|Отель на главном проспекте.
+tram|трамвай|n|The tram stops near the museum.|Трамвай останавливается рядом с музеем.
+metro|метро|n|Take the metro to the centre.|Езжай в центр на метро.
+skyscraper|небоскрёб|n|The city is full of skyscrapers.|Город полон небоскрёбов.`,
 beach:`
 beach|пляж|n|The beach is empty at sunrise.|На рассвете пляж пуст.
 sea|море|n|The sea is calm today.|Сегодня море спокойное.
@@ -218,7 +233,9 @@ surf|заниматься сёрфингом|v|Beginners surf near the instructo
 wade|идти по мелководью|v|We waded through the shallow water.|Мы шли по мелководью.
 splash|плескаться|v|The children splashed in the sea.|Дети плескались в море.
 rinse|ополаскивать|v|Rinse the sand off your feet.|Ополосни ноги от песка.
-dry off|вытереться|v|Dry off before you enter the café.|Вытрись перед входом в кафе.`,
+dry off|вытереться|v|Dry off before you enter the café.|Вытрись перед входом в кафе.
+swimmer|пловец|n|She is a strong swimmer.|Она сильная пловчиха.
+picnic|пикник|n|We had a picnic on the beach.|Мы устроили пикник на пляже.`,
 space:`
 space|космос|n|Humans have always looked into space.|Люди всегда смотрели в космос.
 planet|планета|n|Mars is a rocky planet.|Марс — каменистая планета.
@@ -269,7 +286,9 @@ vacuum|вакуум|n|Sound cannot travel through a vacuum.|Звук не рас
 space radiation|космическая радиация|n|The shield reduces space radiation.|Экран снижает воздействие космической радиации.
 radio signal|радиосигнал|n|The radio signal took minutes to arrive.|Радиосигнал шёл несколько минут.
 dock|стыковаться|v|The spacecraft will dock with the station.|Корабль состыкуется со станцией.
-re-enter|войти в атмосферу|v|The capsule will re-enter the atmosphere tonight.|Капсула войдёт в атмосферу сегодня ночью.`,
+re-enter|войти в атмосферу|v|The capsule will re-enter the atmosphere tonight.|Капсула войдёт в атмосферу сегодня ночью.
+darkness|темнота|n|The rocket disappeared into the darkness.|Ракета исчезла в темноте.
+oxygen|кислород|n|Astronauts need oxygen to breathe.|Астронавтам нужен кислород, чтобы дышать.`,
 science:`
 science|наука|n|Science helps us test ideas.|Наука помогает нам проверять идеи.
 scientist|учёный|n|The scientist recorded every result.|Учёный записал каждый результат.
@@ -295,7 +314,10 @@ test|проверять|v|We need to test the material.|Нам нужно про
 mix|смешивать|v|Do not mix these chemicals.|Не смешивай эти вещества.
 heat|нагревать|v|Heat the water slowly.|Нагревай воду медленно.
 cool|охлаждать|v|Let the solution cool naturally.|Дай раствору остыть естественно.
-safe|безопасный|adj|This experiment is safe for students.|Этот эксперимент безопасен для учеников.`,
+safe|безопасный|adj|This experiment is safe for students.|Этот эксперимент безопасен для учеников.
+atom|атом|n|Everything is made of atoms.|Всё состоит из атомов.
+molecule|молекула|n|A water molecule has three atoms.|В молекуле воды три атома.
+gene|ген|n|Genes are passed from parents to children.|Гены передаются от родителей детям.`,
 rescue:`
 help|помощь|n|Call for help immediately.|Немедленно позови на помощь.
 fire|пожар|n|The fire started in the kitchen.|Пожар начался на кухне.
@@ -321,7 +343,15 @@ evacuate|эвакуировать|v|Police had to evacuate the area.|Полиц�
 rescue|спасать|v|The crew rescued three hikers.|Команда спасла трёх туристов.
 stay calm|сохранять спокойствие|v|Stay calm and answer the operator.|Сохраняй спокойствие и отвечай оператору.
 unconscious|без сознания|adj|The injured driver was unconscious.|Пострадавший водитель был без сознания.
-urgent|срочный|adj|This patient needs urgent care.|Этому пациенту нужна срочная помощь.`,
+urgent|срочный|adj|This patient needs urgent care.|Этому пациенту нужна срочная помощь.
+fever|жар, высокая температура|n|The child has a fever.|У ребёнка жар.
+pill|таблетка|n|Take one pill after dinner.|Прими одну таблетку после ужина.
+injection|укол, инъекция|n|The nurse gave him an injection.|Медсестра сделала ему укол.
+ladder|лестница (приставная)|n|The firefighter climbed the ladder.|Пожарный поднялся по лестнице.
+flashlight|фонарик|n|Take a flashlight, it is dark.|Возьми фонарик, темно.
+panic|паника|n|Do not panic, help is coming.|Без паники, помощь идёт.
+survivor|выживший|n|The survivors were taken to hospital.|Выживших отвезли в больницу.
+trap|поймать в ловушку, заблокировать|v|Two people were trapped in the lift.|Два человека застряли в лифте.`,
 shops:`
 shop|магазин|n|This shop sells local food.|Этот магазин продаёт местные продукты.
 price|цена|n|The price includes delivery.|Цена включает доставку.
@@ -347,7 +377,8 @@ cost|стоить|v|How much does this bag cost?|Сколько стоит эт�
 exchange|обменять|v|Can I exchange this shirt?|Можно обменять эту рубашку?
 fit|подходить по размеру|v|These shoes fit me well.|Эти туфли хорошо подходят мне по размеру.
 cheap|дешёвый|adj|The cheapest option is still reliable.|Самый дешёвый вариант всё ещё надёжный.
-expensive|дорогой|adj|That brand is too expensive for me.|Этот бренд слишком дорогой для меня.`,
+expensive|дорогой|adj|That brand is too expensive for me.|Этот бренд слишком дорогой для меня.
+opening hours|часы работы|n|Check the opening hours before you go.|Проверь часы работы, прежде чем идти.`,
 home:`
 home|дом|n|It is good to be home.|Хорошо быть дома.
 room|комната|n|This room gets plenty of light.|В этой комнате много света.
@@ -373,20 +404,22 @@ fix|чинить|v|Can you fix the broken handle?|Ты можешь почини
 move in|въехать|v|The new tenants move in tomorrow.|Новые жильцы въезжают завтра.
 move out|съехать|v|We must move out by Friday.|Мы должны съехать до пятницы.
 comfortable|удобный|adj|The armchair is old but comfortable.|Кресло старое, но удобное.
-upstairs|наверху|adv|The spare towels are upstairs.|Запасные полотенца наверху.`
+upstairs|наверху|adv|The spare towels are upstairs.|Запасные полотенца наверху.
+stairs|лестница (в доме)|n|The bedroom is up the stairs.|Спальня наверху по лестнице.`
 };
 
-const THEMATIC_REUSE = {
-  forest:[[350,50]],
-  village:[[550,50],[600,25]],
-  travel:[[500,50],[450,25]],
-  city:[[500,25],[250,25],[650,25]],
-  beach:[[350,25]],
-  space:[[150,25],[200,25]],
-  science:[[150,50],[200,25]],
-  rescue:[[300,50],[250,25]],
-  shops:[[650,50],[100,25]],
-  home:[[550,50],[625,25]],
+// Добор до 100 слов — явные тематические ключи основной программы (program.js), а не срезы по индексам.
+const THEMATIC_PICK = {
+  forest: ["animal|n","bird|n","wild|adj","hunt|v","wood|n","wooden|adj","plant|n","grow|v","flower|n","seed|n","soil|n","mud|n","hill|n","lake|n","river|n","path|n","climb|v","rain|n","wind|n","cloud|n","storm|n","fire|n","wildlife|n","species|n","creature|n","nature|n","environment|n","natural|adj","fresh|adj","air|n","quiet|adj","silence|n","dark|adj","light|n","shade|n","fur|n","tail|n","wing|n","fly|v","jump|v","hide|v","escape|v","dangerous|adj","danger|n","safe|adj","protect|v","explore|v","tent|n","camping|n","autumn|n"],
+  village: ["countryside|n","rural|adj","land|n","farming|n","crop|n","harvest|n","grain|n","vegetable|n","fruit|n","apple|n","potato|n","horse|n","pig|n","egg|n","cheese|n","bread|n","fence|n","gate|n","yard|n","cottage|n","roof|n","wood|n","stone|n","road|n","path|n","hill|n","river|n","bridge|n","church|n","market|n","neighbour|n","community|n","tradition|n","traditional|adj","quiet|adj","peaceful|adj","fresh|adj","air|n","weather|n","season|n","spring|n","summer|n","autumn|n","winter|n","plant|v","water|v","pick|v","collect|v","animal|n","bird|n","dog|n","cat|n","tool|n","repair|v","build|v","local|adj","wooden|adj","produce|n","sell|v","grass|n","tree|n","insect|n","wool|n","walk|n","simple|adj","slow|adj","cheap|adj","flower|n"],
+  travel: ["journey|n","travel|v","traveller|n","abroad|adv","holiday|n","vacation|n","destination|n","departure|n","arrival|n","arrive|v","leave|v","return|v","visit|v","tour|n","plane|n","fly|v","airline|n","pilot|n","passenger|n","seat|n","gate|n","board|v","delay|n","cancel|v","bus|n","taxi|n","ship|n","ferry|n","cruise|n","platform|n","timetable|n","fare|n","accommodation|n","apartment|n","camp|n","camping|n","tent|n","view|n","sightseeing|n","landmark|n","souvenir|n","currency|n","exchange|v","insurance|n","customs|n","embassy|n","foreign|adj","language|n","translate|v","adventure|n","expedition|n","explore|v","beach|n","mountain|n","island|n","coast|n","lake|n","forest|n","desert|n","weather|n","rain|n","photo|n","camera|n","memory|n","direction|n","distance|n","far|adv","near|prep","lost|adj","find|v","railway|n"],
+  city: ["town|n","capital|n","centre|n","area|n","district|n","neighbourhood|n","suburb|n","population|n","citizen|n","resident|n","crowd|n","traffic|n","road|n","lane|n","roundabout|n","crossing|n","pedestrian|n","vehicle|n","car|n","bus|n","taxi|n","station|n","platform|n","ticket|n","fare|n","queue|n","office|n","shop|n","mall|n","market|n","restaurant|n","cafe|n","cinema|n","theatre|n","gallery|n","stadium|n","university|n","school|n","church|n","castle|n","tower|n","palace|n","apartment|n","flat|n","rent|v","noise|n","noisy|adj","busy|adj","modern|adj","ancient|adj","historic|adj","urban|adj","public|adj","transport|n","parking|n","map|n","tourist|n","landmark|n","sign|n","direction|n","lost|adj","walk|v","drive|v","opposite|prep","near|adj","far|adv","around|prep","along|prep","through|prep","hotel|n","factory|n"],
+  beach: ["sun|n","hot|adj","warm|adj","cool|adj","cold|adj","swimming|n","summer|n","holiday|n","resort|n","hotel|n","view|n","fish|n","fishing|n","sail|v","sailing|n","ship|n","port|n","salt|n","ice cream|n","drink|n","game|n","ball|n","wind|n"],
+  space: ["earth|n","world|n","science|n","scientist|n","research|n","experiment|n","discover|v","discovery|n","exploration|n","mission|n","engine|n","fuel|n","speed|n","distance|n","light|n","dark|adj","temperature|n","cold|adj","heat|n","float|v","weight|n","signal|n","radio|n","screen|n","computer|n","data|n","measure|v","calculate|v","observe|v","image|n","photo|n","record|v","control|v","camera|n","pilot|n","captain|n","training|n","suit|n","atmosphere|n","flight|n","fly|v","height|n","circle|n","engineer|n","scientific|adj","robot|n","machine|n","technology|n"],
+  science: ["biology|n","chemistry|n","physics|n","mathematics|n","laboratory|n","experiment|v","research|n","physical|adj","researcher|n","study|n","theory|n","hypothesis|n","evidence|n","proof|n","prove|v","discover|v","discovery|n","invent|v","invention|n","observe|v","observation|n","measure|v","measurement|n","calculate|v","analyse|v","analysis|n","data|n","sample|n","method|n","process|n","technique|n","equipment|n","tool|n","instrument|n","device|n","machine|n","energy|n","power|n","electricity|n","electric|adj","gas|n","liquid|n","solid|adj","metal|n","material|n","substance|n","element|n","bacteria|n","virus|n","brain|n","blood|n","medicine|n","cure|n","vaccine|n","disease|n","planet|n","universe|n","space|n","light|n","sound|n","speed|n","effect|n","cause|n","factor|n","accurate|adj","exact|adj","scientific|adj","formula|n","degree|n","percentage|n","statistic|n","diagram|n"],
+  rescue: ["emergency|n","ambulance|n","hospital|n","doctor|n","nurse|n","patient|n","injury|n","injured|adj","wound|n","hurt|v","pain|n","blood|n","bone|n","broken|adj","heart|n","breathe|v","shock|n","treatment|n","treat|v","medicine|n","cure|v","recover|v","safe|adj","safety|n","risk|n","warn|v","warning|n","dangerous|adj","protect|v","protection|n","police|n","officer|n","helicopter|n","boat|n","rope|n","radio|n","phone|n","call|v","shout|v","scream|v","cry|v","calm|adj","brave|adj","hero|n","victim|n","survive|v","escape|v","flood|n","earthquake|n","storm|n","hurricane|n","explosion|n","crash|n","damage|n","destroy|v","collapse|v","search|v","team|n","find|v","carry|v","lift|v","pull|v","push|v","hold|v","quick|adj","quickly|adv","immediately|adv"],
+  shops: ["shopping|n","store|n","supermarket|n","market|n","mall|n","department|n","checkout|n","basket|n","trolley|n","bag|n","product|n","goods|n","item|n","brand|n","label|n","quality|n","quantity|n","choice|n","choose|v","compare|v","try on|v","medium|adj","large|adj","small|adj","clothes|n","shoe|n","dress|n","shirt|n","jeans|n","jacket|n","gift|n","toy|n","book|n","food|n","bread|n","milk|n","fruit|n","vegetable|n","offer|n","special|adj","bargain|n","free|adj","credit|n","bill|n","coin|n","note|n","penny|n","pound|n","dollar|n","euro|n","budget|n","afford|v","spend|v","save|v","waste|v","return|v","refund|n","guarantee|n","warranty|n","deliver|v","delivery|n","order|n","sweater|n","online|adv","website|n","queue|n","cashier|n","staff|n","service|n","open|adj","closed|adj","opening|n","advertisement|n","advertise|v"],
+  home: ["house|n","flat|n","apartment|n","building|n","garden|n","garage|n","hall|n","roof|n","ceiling|n","corner|n","furniture|n","cupboard|n","shelf|n","drawer|n","desk|n","mirror|n","carpet|n","curtain|n","blanket|n","pillow|n","towel|n","soap|n","shower|n","bath|n","toilet|n","sink|n","tap|n","fridge|n","oven|n","cooker|n","microwave|n","kettle|n","plate|n","bowl|n","cup|n","glass|n","knife|n","fork|n","spoon|n","clock|n","television|n","radio|n","computer|n","phone|n","light|n","heating|n","electricity|n","water|n","gas|n","bin|n","rubbish|n","tidy|v","attic|n","mess|n","dirty|adj","cook|v","iron|v","laundry|n","repair|v","paint|v","decorate|v","furnish|v","rent|n","basement|n","landlord|n","neighbour|n","family|n","pet|n","relax|v","sleep|v","wake|v","downstairs|adv","lock|v","brush|n"],
 };
 
 function thematicParseBasic(raw){
@@ -396,10 +429,9 @@ function thematicParseBasic(raw){
     return [en,ru,pos,example,exampleRu,null];
   });
 }
-const THEMATIC_SOURCE=[...WORDS_A,...WORDS_B];
 const THEMATIC_WORDS=Object.fromEntries(THEMATIC_META.map(meta=>{
   const basics=thematicParseBasic(THEMATIC_BASIC_RAW[meta.id]);
-  const reused=THEMATIC_REUSE[meta.id].flatMap(([start,count])=>THEMATIC_SOURCE.slice(start,start+count)).slice(0,100-basics.length).map(w=>[w[0],w[1],w[2],w[3],EX_RU[w[0]]||"",null]);
+  const reused=THEMATIC_PICK[meta.id].map(key=>{const i=KEY_INDEX[key];if(i===undefined)throw Error(`Маршрут ${meta.id}: нет слова ${key}`);const w=WORDS[i];return [w[0],w[1],w[2],w[3],w[4]||"",null];});
   const words=[...basics,...reused].map(w=>{w[5]=WordLevels.lookup(w[0],w[2])?.level||null;return w;});
   return [meta.id,words];
 }));

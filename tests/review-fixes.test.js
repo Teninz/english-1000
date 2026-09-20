@@ -168,8 +168,8 @@ test('перевод часов назад не даёт продолжить б
 
 test('CEFR одинаков для слова и части речи в разных маршрутах, неизвестные слова не получают метку',()=>{
   const {run}=app();
-  assert.equal(levels.lookup('carbon','n').level,'B2');assert.equal(levels.lookup('recycle','v').level,'A2');
-  assert.equal(levels.lookup('browser','n').level,'C1');assert.equal(levels.lookup('settings','n'),null);
+  assert.equal(levels.lookup('atmosphere','n').level,'B1');assert.equal(levels.lookup('bridge','n').level,'A2');
+  assert.equal(levels.lookup('gravity','n').level,'C1');assert.equal(levels.lookup('settings','n'),null);
   assert.equal(run('thematicLevelHtml(["settings","настройки","n"])'),'');
   assert.equal(run('(()=>{const seen=new Map();for(const words of Object.values(THEMATIC_WORDS))for(const w of words){const key=w[0]+"|"+w[2];if(seen.has(key)&&seen.get(key)!==w[5])return false;seen.set(key,w[5]);}return true;})()'),true);
   for(const [key,entry] of Object.entries(levels.entries)){
@@ -180,4 +180,13 @@ test('CEFR одинаков для слова и части речи в разн
 test('словарная разметка включена в HTML, офлайн-кэш и сборку APK',()=>{
   const html=read('index.html');assert.ok(html.indexOf('src="word-levels.js"')<html.indexOf('src="thematic-data.js"'));
   assert.ok(read('sw.js').includes('"./word-levels.js"'));assert.ok(read('tools/build-web.js').includes('"word-levels.js"'));
+});
+
+test('слова, выбывшие из маршрута, вычищаются из прогресса вместе с незавершённым блицем',()=>{
+  const {run}=app();
+  run('S.thematic.topics.space=LearningCore.thematicTopicEmpty();const t=S.thematic.topics.space;t.words.browser={box:2,due:today(),ok:1,bad:0};t.introduced.browser=1;t.words.planet={box:2,due:today(),ok:1,bad:0};t.introduced.planet=1;t.exam.active={attemptId:"x",order:["browser"],index:0,errors:0,correct:0,startedWall:1,questionWall:1,questionMono:1};');
+  const topic=run('JSON.stringify(thematicTopic("space"))');
+  const parsed=JSON.parse(topic);
+  assert.deepEqual(Object.keys(parsed.words),['planet']);assert.deepEqual(Object.keys(parsed.introduced),['planet']);assert.equal(parsed.exam.active,null);
+  assert.equal(run('thematicIntroduced("space")'),1);
 });

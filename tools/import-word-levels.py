@@ -52,7 +52,7 @@ def main():
     args = parser.parse_args()
     # Load only our lexical data; existing CEFR labels are not an input.
     script = '''const fs=require('fs'),vm=require('vm');const c={WordLevels:{lookup:()=>null}};vm.createContext(c);
-for(const f of ['words-a.js','words-b.js','ex-ru.js','thematic-data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),c);
+for(const f of ['words-a.js','words-b.js','ex-ru.js','oxford-a1.js','oxford-a2.js','oxford-b1.js','oxford-b2.js','words-extra.js','program.js','thematic-data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),c);
 console.log(vm.runInContext('JSON.stringify(THEMATIC_WORDS)',c));'''
     groups = json.loads(subprocess.check_output(['node', '-e', script], cwd=args.root, encoding='utf-8'))
     needed = {f'{w[0].lower()}|{w[2]}' for group in groups.values() for w in group}
