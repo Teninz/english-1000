@@ -1227,6 +1227,13 @@ practice:{
 "on|prep":{collocations:[["on Monday","в понедельник"],["on the table","на столе"],["on the phone","по телефону"]],examples:[["The lesson is on Tuesday.","Урок во вторник."]]},
 "at|prep":{collocations:[["at seven o’clock","в семь часов"],["at home","дома"],["at the weekend","на выходных"]],examples:[["The film starts at eight.","Фильм начинается в восемь."]]},
 "by|prep":{collocations:[["by bus","на автобусе"],["by email","по электронной почте"],["by the window","у окна"]],examples:[["Send me the photos by email.","Отправь мне фотографии по электронной почте."]]},
+"agree|v":{collocations:[["agree with","соглашаться с"],["agree to do","согласиться сделать"]],examples:[["She agreed to help us.","Она согласилась нам помочь."]]},
+"keep|v":{collocations:[["keep fit","держать себя в форме"],["keep a promise","сдержать обещание"],["keep quiet","молчать"]],examples:[["Keep quiet during the film.","Не разговаривай во время фильма."]]},
+"strong|adj":{collocations:[["strong wind","сильный ветер"],["strong coffee","крепкий кофе"]],examples:[["I like strong coffee in the morning.","Утром я люблю крепкий кофе."]]},
+"married|adj":{collocations:[["get married","пожениться"],["married to","замужем за, женат на"]],examples:[["They got married last year.","Они поженились в прошлом году."]]},
+"wrong|adj":{collocations:[["go wrong","пойти не так"],["the wrong way","не той дорогой"]],examples:[["Everything went wrong that day.","В тот день всё пошло не так."]]},
+"during|prep":{collocations:[["during the day","в течение дня"],["during the lesson","во время урока"]],examples:[["Phones are not allowed during the lesson.","Телефоны на уроке запрещены."]]},
+"in|adv":{collocations:[["come in","входить"],["fill in","заполнять"]],examples:[["Fill in the form.","Заполни форму."]]},
 "for|prep":{collocations:[["for breakfast","на завтрак"],["for two hours","в течение двух часов"],["a present for you","подарок для тебя"]],examples:[["We waited for two hours.","Мы ждали два часа."]]}
 },
 confusables:[

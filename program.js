@@ -29,7 +29,8 @@ const LEVEL_OF_BLOCK = b => PROGRAM_LEVELS[b.levelIdx];
 // Ни одно слово прежнего курса не попадает в значения, разделённые Oxford, поэтому уточнение не нужно.
 const LEGACY_KEYS = (typeof WORDS_A === "undefined" || typeof WORDS_B === "undefined") ? {} : Object.fromEntries([...WORDS_A, ...WORDS_B].map(w => [w[0], w[0] + "|" + w[2]]));
 // Близкие значения: пары слов, которые путают; задание «выбери нужное» появляется, когда оба начаты.
-const CONFUSABLES = PROGRAM_LEVELS.flatMap(L => L.data.confusables || []).filter(pair => pair.every(k => k in KEY_INDEX));
+// Пара может повторяться в файлах разных уровней — учитывается один раз.
+const CONFUSABLES = [...new Map(PROGRAM_LEVELS.flatMap(L => L.data.confusables || []).filter(pair => pair.every(k => k in KEY_INDEX)).map(pair => [[...pair].sort().join(" ~ "), pair])).values()];
 const CONFUSABLE_OF = {};
-for (const pair of CONFUSABLES) for (const k of pair) (CONFUSABLE_OF[k] = CONFUSABLE_OF[k] || []).push(...pair.filter(x => x !== k));
+for (const pair of CONFUSABLES) for (const k of pair) { const list = CONFUSABLE_OF[k] = CONFUSABLE_OF[k] || []; for (const x of pair) if (x !== k && !list.includes(x)) list.push(x); }
 if (typeof module !== "undefined") module.exports = {PROGRAM_LEVELS, PROGRAM_TOTAL, WORDS, BLOCKS, WORD_KEYS, KEY_INDEX, PRACTICE, CONFUSABLES, CONFUSABLE_OF, LEGACY_KEYS, wordKey, blockOf, levelOf};
