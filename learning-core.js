@@ -15,6 +15,26 @@ const LearningCore = (() => {
     const a = norm(answer).replace(/^(?:the word is|the answer is|it is|it's) /, "");
     return englishForms(word).includes(a);
   }
+  // Split meanings without losing qualifiers, e.g. «банк (финансы)».
+  function translationTerms(value) {
+    const terms = []; let part = "", depth = 0;
+    for (const ch of String(value)) {
+      if (ch === "(") depth++;
+      if (ch === ")") depth = Math.max(0, depth - 1);
+      if (!depth && (ch === "," || ch === ";")) { if (norm(part)) terms.push(norm(part)); part = ""; }
+      else part += ch;
+    }
+    if (norm(part)) terms.push(norm(part));
+    return [...new Set(terms)];
+  }
+  function sharesTranslation(a, b) {
+    if (a[2] !== b[2]) return false;
+    const meanings = translationTerms(a[1]);
+    return translationTerms(b[1]).some(value => meanings.includes(value));
+  }
+  function translationAnswers(words, target) {
+    return [...new Set(words.filter(w => sharesTranslation(target, w)).flatMap(w => englishForms(w[0])))];
+  }
   function schedule(previous, ok, day, addDays, assisted = false) {
     const r = {...(previous || {box:0,due:day,ok:0,bad:0})};
     if (ok) {
@@ -299,6 +319,6 @@ const LearningCore = (() => {
     o.set = JSON.parse(JSON.stringify(current.set || {auto:true}));
     return o;
   }
-  return {intervals,dateOK,norm,englishForms,englishMatch,schedule,empty,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
+  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,empty,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
 })();
 if (typeof module !== "undefined") module.exports = LearningCore;

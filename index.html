@@ -430,6 +430,7 @@ a.btn{text-decoration:none}
 <script src="words-a.js"></script>
 <script src="words-b.js"></script>
 <script src="ex-ru.js"></script>
+<script src="word-levels.js"></script>
 <script src="thematic-data.js"></script>
 <script src="scenes.js"></script>
 <script src="tts.js"></script>
@@ -594,8 +595,8 @@ function renderTabs(){
   $("#tabs").innerHTML = TABS.map(([k,l,ic]) => `<button class="tab ${tab===k?"active":""}" data-tab="${k}">${ICONS[ic]}<span>${l}</span></button>`).join("");
   $("#tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => { const leave = () => { endSession(); go(b.dataset.tab); }; if(typeof thematicExamRunning==="function"&&thematicExamRunning()&&b.dataset.tab!==tab)thematicRequestExamExit(b.dataset.tab);else if(inSession && b.dataset.tab !== tab) confirmSheet("Прервать сессию?", "Ответы, которые ты уже дал, сохранены.", "Прервать", leave); else leave(); });
 }
-function endSession(){ journeyRunning = false; if(optionKeys){document.removeEventListener("keydown",optionKeys);optionKeys=null;} inSession = false; hfStop(); stopListening(); TTS.stop(); }
-function go(t){ tab = t; renderTabs(); window.scrollTo(0,0); ({home:renderHome, learn:renderLearn, test:renderTest, road:renderRoad, words:renderWords, thematic:renderThematicCatalog})[t](); }
+function endSession(){ if(typeof thematicCancelLesson==="function")thematicCancelLesson(); journeyRunning = false; if(optionKeys){document.removeEventListener("keydown",optionKeys);optionKeys=null;} inSession = false; hfStop(); stopListening(); TTS.stop(); }
+function go(t){ if(typeof thematicCancelLesson==="function")thematicCancelLesson(); tab = t; renderTabs(); window.scrollTo(0,0); ({home:renderHome, learn:renderLearn, test:renderTest, road:renderRoad, words:renderWords, thematic:renderThematicCatalog})[t](); }
 const view = () => $("#view");
 
 /* ---------- Сегодня ---------- */
@@ -808,11 +809,13 @@ function feedback(box, ok, i, extra){
   box.appendChild(btn); btn.focus({preventScroll:true}); setTimeout(()=>btn.scrollIntoView({block:"nearest",behavior:"smooth"}),50);
   if(ok) setTimeout(()=>{ if(btn.isConnected) btn.click(); }, extra ? 1600 : 700);
 }
-function distractors(i, n, field){
-  const w = WORDS[i], samePos = allIdx().filter(j => j!==i && WORDS[j][2]===w[2] && WORDS[j][field]!==w[field]);
-  const other = allIdx().filter(j => j!==i && WORDS[j][field]!==w[field]);
-  let pick = sample(samePos, n); if(pick.length<n) pick = pick.concat(sample(other.filter(j=>!pick.includes(j)), n-pick.length));
-  const seen = new Set([w[field]]); return pick.filter(j => { const v = WORDS[j][field]; if(seen.has(v)) return false; seen.add(v); return true; }).slice(0,n);
+function distractors(i, n, field, byTranslation = false){
+  const w = WORDS[i], eligible = allIdx().filter(j => j!==i && WORDS[j][field]!==w[field] &&
+    !((byTranslation || field===1) && LearningCore.sharesTranslation(w, WORDS[j])));
+  const ordered = [...shuffle(eligible.filter(j=>WORDS[j][2]===w[2])), ...shuffle(eligible.filter(j=>WORDS[j][2]!==w[2]))];
+  const seen = new Set([w[field]]), result = [];
+  for(const j of ordered){ const value = WORDS[j][field]; if(!seen.has(value)){ seen.add(value); result.push(j); if(result.length===n)break; } }
+  return result;
 }
 function optionsHtml(items){ return `<div class="opts">${items.map((t,k)=>`<button class="opt" data-k="${k}"><span class="k">${k+1}</span><span>${esc(t)}</span></button>`).join("")}</div>`; }
 function wireOptions(box, correctIdx, onAnswer){
@@ -830,14 +833,14 @@ function qMC(box, it){
   wireOptions(box, all.indexOf(i), ok => { record(i, ok, "mc"); feedback(box, ok, i); });
 }
 function qRev(box, it){
-  const i = it.i, w = WORDS[i]; const ds = distractors(i,3,0); const all = shuffle([i,...ds]);
+  const i = it.i, w = WORDS[i]; const ds = distractors(i,3,0,true); const all = shuffle([i,...ds]);
   box.innerHTML = `<div class="q"><div class="ask">Как это по-английски?</div><div class="ru" style="font-size:26px">${esc(w[1])}</div><div class="pos">${POS[w[2]]||""}</div></div><div style="height:14px"></div>` + optionsHtml(all.map(j=>WORDS[j][0]));
   enStyle(box);
   wireOptions(box, all.indexOf(i), ok => { record(i, ok, "rev"); feedback(box, ok, i); });
 }
 function qType(box, it){
-  const i = it.i, w = WORDS[i]; let assisted=false;
-  box.innerHTML = `<div class="q"><div class="ask">Напиши по-английски</div><div class="ru" style="font-size:26px">${esc(w[1])}</div><div class="pos">${POS[w[2]]||""} · ${w[0].replace(/ /g,"").length} букв</div><p class="ex" id="hint" hidden></p></div><div style="height:14px"></div>
+  const i = it.i, w = WORDS[i], accepted = LearningCore.translationAnswers(WORDS,w); let assisted=false;
+  box.innerHTML = `<div class="q"><div class="ask">Напиши по-английски</div><div class="ru" style="font-size:26px">${esc(w[1])}</div><div class="pos">${POS[w[2]]||""} · ${accepted.some(a=>!LearningCore.englishForms(w[0]).includes(a))?"возможны синонимы":w[0].replace(/ /g,"").length+" букв"}</div><p class="ex" id="hint" hidden></p></div><div style="height:14px"></div>
     <input class="type-in" id="ti" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="…">
     <div class="grid2" style="margin-top:12px"><button class="btn ghost" id="hintB">Подсказка</button><button class="btn" id="chk">Проверить</button></div>`;
   const inp = $("#ti"); inp.focus();
@@ -845,9 +848,10 @@ function qType(box, it){
   const check = () => {
     if(inp.disabled) return;
     const a = norm(inp.value), t = norm(w[0]); if(!a) return;
-    const ok = LearningCore.englishForms(t).includes(a), near = !ok && t.length>=5 && lev(a,t)===1 && !WORDS.some(w=>norm(w[0])===a);
+    const exact = LearningCore.englishForms(t).includes(a), synonym = !exact && accepted.includes(a), ok = exact || synonym;
+    const near = !ok && t.length>=5 && lev(a,t)===1 && !WORDS.some(w=>norm(w[0])===a);
     inp.disabled = true; inp.classList.add(ok||near?"ok":"no"); $("#chk").disabled = true; $("#hintB").disabled = true;
-    record(i, ok||near, "type", assisted||near); if(near) checkAch("near"); feedback(box, ok||near, i, near ? "Почти — одна опечатка. Интервал пока не увеличен." : assisted ? "С подсказкой. Проверим самостоятельно в следующий раз." : null);
+    record(i, ok||near, "type", assisted||near||synonym); if(near) checkAch("near"); feedback(box, ok||near, i, synonym ? `Подходит: <b>${esc(inp.value.trim())}</b>. В этой карточке — <b>${esc(w[0])}</b>; повторим его отдельно.` : near ? "Почти — одна опечатка. Интервал пока не увеличен." : assisted ? "С подсказкой. Проверим самостоятельно в следующий раз." : null);
   };
   $("#chk").onclick = check; inp.onkeydown = e => { if(e.key==="Enter") check(); };
 }
@@ -878,7 +882,7 @@ function qPairs(box, it){
     b.classList.add("sel"); side==="L" ? selL=b : selR=b;
     if(selL && selR){
       const a=+selL.dataset.i, c=+selR.dataset.i; const L=selL, R=selR; selL=selR=null;
-      if(a===c){ L.classList.remove("sel"); R.classList.remove("sel"); L.classList.add("done","ok"); R.classList.add("done","ok"); speak(WORDS[a][0]); record(a, !wrong.has(a), "pairs"); done++;
+      if(a===c || (WORDS[a][2]===WORDS[c][2] && norm(WORDS[a][1])===norm(WORDS[c][1]))){ L.classList.remove("sel"); R.classList.remove("sel"); L.classList.add("done","ok"); R.classList.add("done","ok"); speak(WORDS[a][0]); record(a, !wrong.has(a), "pairs"); done++;
         if(done===g.length){ if(!wrong.size) checkAch("pairsClean"); const btn = el(`<button class="btn block" style="margin-top:14px">Дальше</button>`); btn.onclick=()=>{sess.k++;nextQ();}; box.appendChild(btn); setTimeout(()=>{ if(btn.isConnected) btn.click(); },600); } }
       else { wrong.add(a); wrong.add(c); L.classList.add("no","shake"); R.classList.add("no","shake"); setTimeout(()=>{ L.classList.remove("no","shake","sel"); R.classList.remove("no","shake","sel"); },450); }
     }
@@ -1073,10 +1077,11 @@ async function hfAnswer(i, ok, w, token, note){
   await sleep(600);
 }
 async function hfFinish(){
-  hf.on = false; inSession = false; if(hf.lock){ try{ hf.lock.release(); }catch(e){} hf.lock=null; }
+  hfStop(); inSession = false; const finishToken = hf.token;
   const n = hf.res.length, ok = hf.res.filter(x=>x.ok).length;
-  if(hfMode==="listen"){ await speakAsync("Порция закончена", "ru-RU"); go("road"); toast("Прослушано: "+plural(hf.queue.length,"слово","слова","слов")); return; }
-  await speakAsync(`Готово. Верно ${ok} из ${n}`, "ru-RU");
+  if(hfMode==="listen"){ await speakAsync("Порция закончена", "ru-RU").catch(()=>{}); if(hf.token!==finishToken)return; go("road"); toast("Прослушано: "+plural(hf.queue.length,"слово","слова","слов")); return; }
+  await speakAsync(`Готово. Верно ${ok} из ${n}`, "ru-RU").catch(()=>{});
+  if(hf.token!==finishToken)return;
   sess = {title: hfMode==="ru" ? "Голосом: перевод" : "Голосом: слово", items: hf.queue, mode: hfMode==="en"?"pron":"voice", k:0, res: hf.res.map(x=>({...x, kind: hfMode==="en"?"pron":"voice"})), after:"road"};
   showResults(); $("#rAgain").onclick = () => go("road");
 }

@@ -1,4 +1,4 @@
-// Десять самостоятельных тематических маршрутов. Базовые слова A1–A2 заданы здесь,
+// Десять самостоятельных тематических маршрутов. Тематические слова заданы здесь,
 // более сложные записи переиспользуют вычитанные переводы и примеры основного словаря.
 const THEMATIC_META = [
   ["forest","Лес","🌲","Растения, животные, погода и безопасность","Лесной набор"],
@@ -393,13 +393,13 @@ function thematicParseBasic(raw){
   return raw.trim().split(/\n+/).map((line,index)=>{
     const [en,ru,pos,example,exampleRu]=line.split("|");
     if(!exampleRu)throw Error(`Некорректная тематическая запись: ${line}`);
-    return [en,ru,pos,example,exampleRu,"A1"];
+    return [en,ru,pos,example,exampleRu,null];
   });
 }
 const THEMATIC_SOURCE=[...WORDS_A,...WORDS_B];
 const THEMATIC_WORDS=Object.fromEntries(THEMATIC_META.map(meta=>{
   const basics=thematicParseBasic(THEMATIC_BASIC_RAW[meta.id]);
-  const reused=THEMATIC_REUSE[meta.id].flatMap(([start,count])=>THEMATIC_SOURCE.slice(start,start+count)).slice(0,100-basics.length).map(w=>[w[0],w[1],w[2],w[3],EX_RU[w[0]]||"","C1"]);
-  const words=[...basics,...reused].map((w,index)=>{w[5]=index<12?"A1":index<25?"A2":index<50?"B1":index<80?"B2":"C1";return w;});
+  const reused=THEMATIC_REUSE[meta.id].flatMap(([start,count])=>THEMATIC_SOURCE.slice(start,start+count)).slice(0,100-basics.length).map(w=>[w[0],w[1],w[2],w[3],EX_RU[w[0]]||"",null]);
+  const words=[...basics,...reused].map(w=>{w[5]=WordLevels.lookup(w[0],w[2])?.level||null;return w;});
   return [meta.id,words];
 }));

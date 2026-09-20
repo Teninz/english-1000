@@ -10,7 +10,7 @@ function app(){
   const store=new Map();
   const ctx={console,Date,URLSearchParams,setTimeout:()=>0,clearTimeout(){},window:{},navigator:{},TTS:{stop(){}},document:{querySelector:()=>({}),querySelectorAll:()=>[],getElementById:()=>null,addEventListener(){}},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},checkAch(){},dailyEvent(){}};
   vm.createContext(ctx);
-  for(const f of ['learning-core.js','word-forms.js','progress-storage.js','journey.js','words-a.js','words-b.js','ex-ru.js','thematic-data.js'])vm.runInContext(read(f),ctx,{filename:f});
+  for(const f of ['learning-core.js','word-forms.js','progress-storage.js','journey.js','words-a.js','words-b.js','ex-ru.js','word-levels.js','thematic-data.js'])vm.runInContext(read(f),ctx,{filename:f});
   const script=read('index.html').match(/<script>([\s\S]*?)<\/script>/)[1];
   vm.runInContext(script.slice(0,script.indexOf('/* ---------- старт')),ctx);
   vm.runInContext('S=LearningCore.empty();save=()=>true;checkAch=()=>{};dailyEvent=()=>{};buzz=()=>{};',ctx);
@@ -51,15 +51,15 @@ test('1000 уникальных слов, все примеры переводя
   assert.equal(run('JSON.stringify(WORDS.filter(w=>!wordRegex(w[0]).test(w[3])).map(w=>w[0]))'),'[]');
   assert.equal(run('Object.entries(WORD_CONTEXT).filter(([w,c])=>!WORDS.some(x=>x[0]===w)||!c.ru||!wordRegex(w).test(c.example)).length'),0);
 });
-test('в каждом тематическом маршруте ровно 100 заполненных слов от A1 до C1',()=>{
+test('в каждом тематическом маршруте ровно 100 слов, уровни только из подтверждённого словаря',()=>{
   const ctx={};vm.createContext(ctx);
-  vm.runInContext(read('words-a.js')+read('words-b.js')+read('ex-ru.js')+read('thematic-data.js')+';this.data={meta:THEMATIC_META,words:THEMATIC_WORDS}',ctx);
+  vm.runInContext(read('words-a.js')+read('words-b.js')+read('ex-ru.js')+read('word-levels.js')+read('thematic-data.js')+';this.data={meta:THEMATIC_META,words:THEMATIC_WORDS}',ctx);
   assert.equal(ctx.data.meta.length,10);
   for(const meta of ctx.data.meta){
     const words=ctx.data.words[meta.id];
     assert.equal(words.length,100,meta.id);assert.equal(new Set(words.map(w=>w[0])).size,100,meta.id);
     assert.equal(words.every(w=>w.length===6&&w.slice(0,5).every(Boolean)),true,meta.id);
-    assert.deepEqual([...new Set(words.map(w=>w[5]))],["A1","A2","B1","B2","C1"],meta.id);
+    for(const w of words)assert.equal(w[5],require("../word-levels").lookup(w[0],w[2])?.level||null,meta.id+": "+w[0]);
   }
 });
 test('копия не включает ключи или настройки голосов и не меняет оригинал',()=>{
