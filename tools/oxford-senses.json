@@ -1,0 +1,20 @@
+{
+  "bank|n|money": "money",
+  "bank|n|river": "river",
+  "light|adj|from the sun/a lamp": "bright",
+  "light|adj|not heavy": "not-heavy",
+  "lie|v|1": "down",
+  "lie|v|tell a lie": "untruth",
+  "race|n|competition": "competition",
+  "race|n|people": "people",
+  "rest|n|remaining part": "remaining",
+  "rest|n|sleep/relax": "relax",
+  "ring|n|1": "jewellery",
+  "ring|n|2": "sound",
+  "rock|n|stone": "stone",
+  "rock|n|music": "music",
+  "tear|n|1": "drop",
+  "tear|n|2": "rip",
+  "used|adj|1": "accustomed",
+  "used|adj|2": "second-hand"
+}

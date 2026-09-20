@@ -121,11 +121,11 @@ if (NATIVE) {
   window.updateWidget = function (now) {
     clearTimeout(widgetTimer);
     const run = () => { try {
-      const pack = i => [WORDS[i][0], WORDS[i][1], WORDS[i][3], EX_RU[WORDS[i][0]] || "", levelOf(i) + 1];
+      const pack = i => [WORDS[i][0], WORDS[i][1], WORDS[i][3], WORDS[i][4] || "", blockLabel(i)];
       const due = dueList().sort((a, b) => (W(a).due < W(b).due ? -1 : 1)).slice(0, 30);
       let list, kind;
       if (due.length) { list = due; kind = "due"; }
-      else { const un = unstartedList(); const lvl = un.length ? levelOf(un[0]) : 0; list = un.filter(i => levelOf(i) === lvl).slice(0, 10); kind = "new"; }
+      else { const un = unstartedList(); list = un.length ? blockUnstarted(WORD_BLOCK[un[0]]).slice(0, 10) : []; kind = "new"; }
       NATIVE.P.Widget.update({ words: JSON.stringify(list.map(pack)), kind, total: dueList().length, theme: S.set.widgetTheme || "dark" }).catch(() => {});
     } catch (e) {} };
     if (now) run(); else widgetTimer = setTimeout(run, 1500);

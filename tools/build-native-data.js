@@ -2,7 +2,8 @@
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const root = path.join(__dirname, "..");
 const ctx = {}; vm.createContext(ctx);
-vm.runInContext(fs.readFileSync(path.join(root, "words-a.js"), "utf8") + fs.readFileSync(path.join(root, "words-b.js"), "utf8") + fs.readFileSync(path.join(root, "ex-ru.js"), "utf8") + ";this.out=[...WORDS_A,...WORDS_B].map(w=>[w[0],w[1],w[2],w[3],EX_RU[w[0]]||''])", ctx);
+for (const f of ["words-a.js", "words-b.js", "oxford-a1.js", "oxford-a2.js", "oxford-b1.js", "oxford-b2.js", "words-extra.js", "program.js"]) vm.runInContext(fs.readFileSync(path.join(root, f), "utf8"), ctx);
+vm.runInContext("this.out=WORDS.map(w=>[w[0],w[1],w[2],w[3],w[4]||''])", ctx);
 const out = path.join(root, "native/app/src/main/assets/words.json");
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, JSON.stringify(ctx.out));

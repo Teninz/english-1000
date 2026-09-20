@@ -6,8 +6,8 @@ const ACH = [
   { id:"ten",       icon:"🔟", title:"Десятка",             desc:"Начать 10 слов" },
   { id:"hundred",   icon:"💯", title:"Сотня",               desc:"Довести 100 слов до «знаю»" },
   { id:"half",      icon:"🌗", title:"Экватор",             desc:"500 слов в «знаю» или выше" },
-  { id:"thousand",  icon:"🏁", title:"Тысяча",              desc:"Начать все 1000 слов" },
-  { id:"master",    icon:"👑", title:"Мастер",              desc:"Закрепить все 1000 слов", hard:true },
+  { id:"thousand",  icon:"🏁", title:"Тысяча",              desc:"Начать 1000 слов" },
+  { id:"master",    icon:"👑", title:"Мастер",              desc:"Закрепить все слова программы", hard:true },
   // регулярность
   { id:"streak3",   icon:"🔥", title:"Три дня подряд",      desc:"Заниматься три дня без пропуска" },
   { id:"streak7",   icon:"📅", title:"Неделя",              desc:"Серия из 7 дней" },
@@ -55,7 +55,7 @@ const achCount = () => Object.keys(S.ach||{}).length;
 function checkAch(ev, p = {}){
   const st = achStats(); const started = startedList(), known = started.filter(i => status(i) >= 2), fixed = started.filter(i => status(i) === 3);
   if(started.length >= 1) unlock("first"); if(started.length >= 10) unlock("ten"); if(started.length >= 1000) unlock("thousand");
-  if(known.length >= 100) unlock("hundred"); if(known.length >= 500) unlock("half"); if(fixed.length >= 1000) unlock("master");
+  if(known.length >= 100) unlock("hundred"); if(known.length >= 500) unlock("half"); if(fixed.length >= WORDS.length) unlock("master");
   if(S.streak.n >= 3) unlock("streak3"); if(S.streak.n >= 7) unlock("streak7"); if(S.streak.n >= 30) unlock("streak30");
   if((dayRec().n||0) >= 100) unlock("hundredday");
   if(Object.keys(S.hard||{}).length >= 10) unlock("hard10");

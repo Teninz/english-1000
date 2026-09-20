@@ -3,7 +3,7 @@ const fs = require("fs"), path = require("path"), vm = require("vm");
 const root = path.join(__dirname, ".."), dist = path.join(root, "dist");
 fs.rmSync(dist, { recursive: true, force: true }); fs.mkdirSync(dist, { recursive: true });
 
-const files = ["index.html", "learning-core.js", "word-forms.js", "progress-storage.js", "fox-motion.js", "journey.js", "companion.css", "thematic.css", "thematic.js", "words-a.js", "words-b.js", "ex-ru.js", "thematic-data.js", "word-levels.js", "scenes.js", "tts.js", "ach.js", "daily.js", "about.js", "native.js", "manifest.json", "privacy.html"];
+const files = ["index.html", "learning-core.js", "word-forms.js", "progress-storage.js", "fox-motion.js", "journey.js", "companion.css", "thematic.css", "thematic.js", "words-a.js", "words-b.js", "ex-ru.js", "thematic-data.js", "word-levels.js", "oxford-a1.js", "oxford-a2.js", "oxford-b1.js", "oxford-b2.js", "words-extra.js", "program.js", "scenes.js", "tts.js", "ach.js", "daily.js", "about.js", "native.js", "manifest.json", "privacy.html"];
 const dirs = ["icons", "art", "lib"];
 for (const f of files) fs.copyFileSync(path.join(root, f), path.join(dist, f));
 for (const d of dirs) fs.cpSync(path.join(root, d), path.join(dist, d), {
@@ -18,8 +18,9 @@ let html = fs.readFileSync(path.join(dist, "index.html"), "utf8");
 html = html.replace('if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }', "");
 fs.writeFileSync(path.join(dist, "index.html"), html);
 
-// словарь для виджета «Слово дня»: [слово, перевод, пример, перевод примера, уровень]
+// словарь для виджета «Слово дня»: [слово, перевод, пример, перевод примера, уровень и блок]
 const ctx = {}; vm.createContext(ctx);
-vm.runInContext(fs.readFileSync(path.join(root, "words-a.js"), "utf8") + fs.readFileSync(path.join(root, "words-b.js"), "utf8") + fs.readFileSync(path.join(root, "ex-ru.js"), "utf8") + ";this.out=[...WORDS_A,...WORDS_B].map((w,i)=>[w[0],w[1],w[3],EX_RU[w[0]]||'',Math.floor(i/50)+1])", ctx);
+for (const f of ["words-a.js", "words-b.js", "oxford-a1.js", "oxford-a2.js", "oxford-b1.js", "oxford-b2.js", "words-extra.js", "program.js"]) vm.runInContext(fs.readFileSync(path.join(root, f), "utf8"), ctx);
+vm.runInContext("this.out=WORDS.map((w,i)=>[w[0],w[1],w[3],w[4]||'',PROGRAM_LEVELS[blockOf(i).levelIdx].title+' · '+blockOf(i).title])", ctx);
 fs.writeFileSync(path.join(dist, "widget-words.json"), JSON.stringify(ctx.out));
 console.log("dist готов:", fs.readdirSync(dist).length, "элементов, слов для виджета:", ctx.out.length);

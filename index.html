@@ -74,6 +74,12 @@ main > *:nth-child(2){animation-delay:.04s} main > *:nth-child(3){animation-dela
 .tile .tb i{display:block;height:100%;background:var(--accent)}
 .tile.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .tile.full{color:var(--amber)} .tile.full .tb i{background:var(--amber)}
+.colloc{color:var(--accent-deep);margin:0} .colloc b{font-weight:600}
+.practice{margin-top:10px;text-align:left} .practice .eyebrow{margin-bottom:4px} .practice ul{margin:0;padding-left:18px;font-size:14px;line-height:1.45} .practice li{margin:2px 0}
+.tiles.dense{grid-template-columns:repeat(6,1fr);gap:6px}
+.tiles.dense .tile{font-size:15px;border-radius:10px}
+.seg.levels{margin-bottom:10px}
+.lvl-group{margin-bottom:10px;min-width:0} .lvl-group .lvl-h .grow{min-width:0} .lvl-group>.lvl-h.top{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:8px} .lvl-h.top .n{width:auto;min-width:36px;font-size:15px} .lvl-group .lvl{margin:0 0 6px}
 .tile-name{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:10px}
 .tile-name b{font-weight:600}
 /* переворот карточки */
@@ -431,6 +437,12 @@ a.btn{text-decoration:none}
 <script src="words-b.js"></script>
 <script src="ex-ru.js"></script>
 <script src="word-levels.js"></script>
+<script src="oxford-a1.js"></script>
+<script src="oxford-a2.js"></script>
+<script src="oxford-b1.js"></script>
+<script src="oxford-b2.js"></script>
+<script src="words-extra.js"></script>
+<script src="program.js"></script>
 <script src="thematic-data.js"></script>
 <script src="scenes.js"></script>
 <script src="tts.js"></script>
@@ -440,13 +452,12 @@ a.btn{text-decoration:none}
 <script src="thematic.js"></script>
 <script>
 /* ---------- данные ---------- */
-const WORDS = [...WORDS_A, ...WORDS_B];
-const LEVEL_SIZE = 50;
-const LEVEL_NAMES = ["Мнение и мышление","Работа и карьера","Бизнес и финансы","Образование и наука","Технологии","Общество и право","Здоровье и медицина","Окружающая среда","Характер и отношения","Общение и аргументация","Путешествия и транспорт","Дом и быт","Еда и кухня","Покупки и услуги","Искусство и медиа","Прилагательные","Глаголы","Фразовые глаголы","Наречия и связки","Абстрактные понятия"];
-const POS = {n:"сущ.",v:"глаг.",adj:"прил.",adv:"нареч.",prep:"предлог",pron:"местоим.",conj:"союз",num:"числ.",det:"определитель",int:"междом."};
+// WORDS, BLOCKS, blockOf, levelOf, WORD_KEYS — из program.js (Oxford 3000 по уровням + дополнительный словарь)
+const POS = {n:"сущ.",v:"глаг.",adj:"прил.",adv:"нареч.",prep:"предлог",pron:"местоим.",conj:"союз",num:"числ.",det:"определитель",int:"междом.",modal:"модальный глаг.",aux:"вспомогат. глаг.",part:"частица"};
 const INTERVALS = [0,1,3,7,14,30,60]; // дни до следующего показа по ячейкам 0..6
-const levelOf = i => Math.floor(i / LEVEL_SIZE);
-const wk = i => WORDS[i][0]; // ключ прогресса — само слово, чтобы правки списка не ломали прогресс
+const wk = i => WORD_KEYS[i]; // ключ прогресса — слово и часть речи, чтобы правки списка не ломали прогресс
+const blockLabel = i => { const b = blockOf(i); return `${PROGRAM_LEVELS[b.levelIdx].title} · ${b.title}`; };
+const firstBlockToLearn = () => { const un = unstartedList(); return un.length ? WORD_BLOCK[un[0]] : 0; };
 
 /* ---------- состояние ---------- */
 const KEY = "shadowfox.v2";
@@ -488,7 +499,7 @@ const isHard = i => !!S.hard[wk(i)];
 const hardList = () => allIdx().filter(isHard);
 function toggleHard(i){ if(isHard(i)) delete S.hard[wk(i)]; else S.hard[wk(i)] = 1; save(); buzz(true); return isHard(i); }
 // сброс прогресса: всех слов или одного уровня; настройки, голоса и флажки не трогаем
-function resetProgress(level){ const ids = level==null ? allIdx() : allIdx().filter(i=>levelOf(i)===level); ids.forEach(i => delete S.w[wk(i)]); if(level==null){ S.days = {}; S.modes = {}; S.streak = {n:0,last:null}; } save(); }
+function resetProgress(block){ const ids = block==null ? allIdx() : BLOCKS[block].ids; ids.forEach(i => delete S.w[wk(i)]); if(level==null){ S.days = {}; S.modes = {}; S.streak = {n:0,last:null}; } save(); }
 
 /* ---------- утилиты ---------- */
 const $ = s => document.querySelector(s);
@@ -634,15 +645,36 @@ function renderHome(){
   $("#hReview").onclick = () => due.length ? startReview() : toast("Пока нечего повторять");
 }
 // сложность проверки растёт вместе с ячейкой: выбор → обратный выбор → слух/пропуск → письмо
-function kindForBox(b, i){ const hasGap = wordRegex(WORDS[i][0]).test(WORDS[i][3]); return b<=1 ? "mc" : b===2 ? "rev" : b===3 ? (canSpeak()?"listen":hasGap?"gap":"rev") : "type"; }
+// сочетания и близкие пары вплетаются с ячейки 2, когда у слова есть такие данные (пункт «содержательная практика»)
+function kindForBox(b, i){
+  const hasGap = wordRegex(WORDS[i][0]).test(WORDS[i][3]);
+  if(b>=2 && confusablePartners(i).length && Math.random()<0.3) return "cf";
+  if(b>=3 && hasCollocations(i) && Math.random()<0.35) return "col";
+  return b<=1 ? "mc" : b===2 ? "rev" : b===3 ? (canSpeak()?"listen":hasGap?"gap":"rev") : "type";
+}
+// дополнительная практика слова: устойчивые сочетания, запасные примеры, близкие по смыслу пары (program.js)
+const practiceOf = i => PRACTICE[wk(i)] || null;
+const hasCollocations = i => !!(practiceOf(i)?.collocations?.length);
+const confusablePartners = i => (CONFUSABLE_OF[wk(i)] || []).map(k => KEY_INDEX[k]).filter(j => j !== undefined && W(j));
+// примеры для пропуска: основной пример, после первого верного ответа и для сложных слов — запасные из практики
+function gapSentences(i){ const w = WORDS[i], extra = (practiceOf(i)?.examples || []).map(([en,ru])=>({en,ru})); const base = [{en:w[3], ru:w[4]||""}]; return (W(i)?.ok > 0 || isHard(i)) && extra.length ? base.concat(extra) : base; }
+// compact — только сочетания одной строкой (оборот карточки); полный вид с примерами — в карточке слова
+function practiceHtml(i, compact){
+  const p = practiceOf(i); if(!p) return "";
+  if(compact) return p.collocations?.length ? `<p class="small colloc">${p.collocations.map(([en])=>`<b>${esc(en)}</b>`).join(" · ")}</p>` : "";
+  const col = (p.collocations||[]).map(([en,ru])=>`<li><b>${esc(en)}</b> — ${esc(ru)}</li>`).join("");
+  const ex = (p.examples||[]).map(([en,ru])=>`<li>${hl(en, WORDS[i][0])}<br><span class="muted">${esc(ru)}</span></li>`).join("");
+  return `${col?`<div class="practice"><div class="eyebrow">Сочетания</div><ul>${col}</ul></div>`:""}${ex?`<div class="practice"><div class="eyebrow">Ещё примеры</div><ul>${ex}</ul></div>`:""}`;
+}
 function startReview(){ const due = dueList(); startSession({title:"Повторение", items: sample(due, 15).map(i=>({i, kind: kindForBox(W(i).box, i)})), mode:"review"}); }
 
 /* ---------- Учить ---------- */
-let learnLevel = null;
+let learnBlock = null;
+const blockUnstarted = b => BLOCKS[b].ids.filter(i=>!W(i));
 function renderLearn(){
   const un = unstartedList();
-  if(learnLevel===null || !un.some(i=>levelOf(i)===learnLevel)) learnLevel = un.length ? levelOf(un[0]) : 0;
-  const left = un.filter(i=>levelOf(i)===learnLevel).length, d = dayRec();
+  if(learnBlock===null || !blockUnstarted(learnBlock).length) learnBlock = firstBlockToLearn();
+  const left = blockUnstarted(learnBlock).length, d = dayRec(), pending = PROGRAM_LEVELS.filter(L=>!L.blocks.length&&L.total).map(L=>L.title);
   const batch = Math.min(5, left);
   view().innerHTML = `
     <section class="card">
@@ -651,24 +683,30 @@ function renderLearn(){
       <p class="small muted">Сначала карточки — слово, перевод, пример и озвучка. Потом сразу короткая проверка этой же порции: так слово попадает в память дважды.</p>
     </section>
     <section class="card">
-      <div class="eyebrow" style="margin-bottom:10px">Тема</div>
-      ${tilesHtml(learnLevel)}
+      <div class="eyebrow" style="margin-bottom:10px">Уровень и блок</div>
+      ${tilesHtml(learnBlock)}
     </section>
-    <button class="btn block huge" id="startLearn" ${left?"":"disabled"}>${left?"Начать порцию":"Тема пройдена"}</button>
+    <button class="btn block huge" id="startLearn" ${left?"":"disabled"}>${left?"Начать порцию":"Блок пройден"}</button>
     <p class="small muted" style="text-align:center">Сегодня начато ${d.n} новых слов. Дневная цель включает и повторения. Без рук — вкладка «В дороге».</p>
-    ${un.length===0?`<div class="empty">Все 1000 слов начаты. Дальше — только повторение и проверки.</div>`:""}
+    ${un.length===0?`<div class="empty">Все ${WORDS.length} доступных слов начаты. Дальше — только повторение и проверки.${pending.length?` Уровни ${pending.join(", ")} готовятся.`:""}</div>`:""}
   `;
-  wireTiles(l => { learnLevel = l; renderLearn(); });
-  $("#startLearn").onclick = () => startLearnBatch(un.filter(i=>levelOf(i)===learnLevel).slice(0,5));
+  wireTiles(l => { learnBlock = l; renderLearn(); });
+  $("#startLearn").onclick = () => startLearnBatch(blockUnstarted(learnBlock).slice(0,5));
 }
-// сетка из 20 уровней с полоской прогресса; под ней — название выбранного
+// сегменты уровней A1–B2 и «Доп.», под ними плитки блоков выбранного уровня с полоской прогресса и название выбранного блока
 function tilesHtml(cur){
-  const tiles = LEVEL_NAMES.map((n,l) => { const ids = allIdx().filter(i=>levelOf(i)===l); const kn = ids.filter(i=>status(i)>=2).length, st = ids.filter(i=>W(i)).length;
-    return `<button class="tile ${l===cur?"on":""} ${kn===LEVEL_SIZE?"full":""}" data-l="${l}" aria-label="Тема ${l+1}: ${n}">${l+1}<span class="tb"><i style="width:${st*2}%"></i></span></button>`; }).join("");
-  const ids = allIdx().filter(i=>levelOf(i)===cur); const kn = ids.filter(i=>status(i)>=2).length, st = ids.filter(i=>W(i)).length;
-  return `<div class="tiles" id="tiles">${tiles}</div><div class="tile-name"><b>${cur+1}. ${LEVEL_NAMES[cur]}</b><span class="small muted num">${st?`начато ${st} · знаю ${kn}`:"не начат"}</span></div>`;
+  const curBlock = BLOCKS[cur], level = PROGRAM_LEVELS[curBlock.levelIdx];
+  const seg = PROGRAM_LEVELS.map((L,k) => `<button data-lv="${k}" class="${k===curBlock.levelIdx?"on":""}" ${L.blocks.length?"":"disabled"} title="${esc(L.name)}${L.blocks.length?"":" — готовится"}">${L.title}</button>`).join("");
+  const tiles = level.blocks.map(b => { const n = BLOCKS.indexOf(b), kn = b.ids.filter(i=>status(i)>=2).length, st = b.ids.filter(i=>W(i)).length;
+    return `<button class="tile ${n===cur?"on":""} ${kn===b.ids.length?"full":""}" data-l="${n}" aria-label="${esc(b.title)}">${b.n}<span class="tb"><i style="width:${Math.round(st/b.ids.length*100)}%"></i></span></button>`; }).join("");
+  const kn = curBlock.ids.filter(i=>status(i)>=2).length, st = curBlock.ids.filter(i=>W(i)).length;
+  return `<div class="seg levels" id="levelSeg">${seg}</div><div class="tiles ${level.blocks.length>20?"dense":""}" id="tiles">${tiles}</div><div class="tile-name"><b>${curBlock.n}. ${esc(curBlock.title)}</b><span class="small muted num">${st?`начато ${st} · знаю ${kn} · всего ${curBlock.ids.length}`:`${curBlock.ids.length} слов · не начат`}</span></div>`;
 }
-function wireTiles(onPick){ document.querySelectorAll("#tiles .tile").forEach(b => b.onclick = () => { if(b.classList.contains("on")) return; onPick(+b.dataset.l); }); }
+// уровень выбирается первым блоком с неначатыми словами, иначе первым блоком уровня
+function wireTiles(onPick){
+  document.querySelectorAll("#tiles .tile").forEach(b => b.onclick = () => { if(b.classList.contains("on")) return; onPick(+b.dataset.l); });
+  document.querySelectorAll("#levelSeg button").forEach(b => b.onclick = () => { if(b.classList.contains("on")) return; const L = PROGRAM_LEVELS[+b.dataset.lv]; const first = L.blocks.find(x=>x.ids.some(i=>!W(i))) || L.blocks[0]; onPick(BLOCKS.indexOf(first)); });
+}
 function startLearnBatch(items, onComplete){
   inSession = true; let k = 0; const shown = [];
   const step = () => {
@@ -679,7 +717,7 @@ function startLearnBatch(items, onComplete){
       <div class="sess-top"><button class="icon-btn" id="sx" aria-label="Выйти">${ICONS.close}</button><div class="bar"><i style="width:${(k/items.length)*100}%"></i></div><span class="small muted num">${k+1}/${items.length}</span></div>
       <div class="flip-wrap"><div class="flash" id="flash">
         <div class="face front">
-          <div class="pos">${POS[w[2]]||w[2]} · тема ${levelOf(i)+1}</div>
+          <div class="pos">${POS[w[2]]||w[2]} · ${esc(blockLabel(i))}</div>
           <div class="word">${esc(w[0])}</div>
           <button class="speak" id="spk" aria-label="Озвучить">${ICONS.sound}</button>
           <div class="tap">нажми, чтобы перевернуть</div>
@@ -688,14 +726,15 @@ function startLearnBatch(items, onComplete){
           <div class="word md">${esc(w[0])}</div>
           <div class="ru">${esc(w[1])}</div>
           <p class="ex">${hl(w[3], w[0])}</p>
-          <p class="ex-ru">${esc(EX_RU[w[0]]||"")}</p>
+          <p class="ex-ru">${esc(w[4]||"")}</p>
           ${WORD_CONTEXT[w[0]]?`<p class="small" style="color:var(--accent-deep)">${esc(WORD_CONTEXT[w[0]].phrase)}</p>`:""}
+          ${practiceHtml(i, true)}
           <div class="row" style="gap:14px"><button class="speak" id="spk2" aria-label="Озвучить пример">${ICONS.sound}</button>${flagBtn(i,"big")}</div>
         </div>
       </div></div>
       <div class="grid2"><button class="btn secondary" id="known">Уже знаю</button><button class="btn" id="nextW">Дальше</button></div>
     `;
-    const reveal = () => { if(open) return; open = true; $("#flash").classList.add("flipped"); };
+    const reveal = () => { if(open) return; open = true; const back = $("#flash .face.back"); $("#flash").style.minHeight = Math.max(320, back.scrollHeight) + "px"; $("#flash").classList.add("flipped"); };
     $("#flash").onclick = reveal;
     $("#spk").onclick = e => { e.stopPropagation(); speak(w[0]); };
     $("#spk2").onclick = e => { e.stopPropagation(); speak(w[3]); }; wireFlags();
@@ -730,42 +769,48 @@ const MODE_META = {
   pron:  {title:"Произношение",     short:"Речь",       desc:"Скажи слово в микрофон — приложение проверит, узнаваемо ли оно", icon:"mic"},
   pairs: {title:"Пары",             short:"Пары",       desc:"Соедини пять английских слов с их переводами",           icon:"pairs"},
   gap:   {title:"Пропуск в предложении", short:"Пропуск", desc:"Вставь слово в реальный пример из карточки",          icon:"gap"},
+  col:   {title:"Устойчивые сочетания", short:"Сочетание", desc:"Вставь слово в частое сочетание: make a mistake, on time", icon:"gap"},
+  cf:    {title:"Близкие значения",  short:"Близкие",    desc:"Выбери нужное слово из пары, которую часто путают: say/tell, make/do", icon:"rev"},
   exam:  {title:"Экзамен",          short:"Экзамен",    desc:"20 вопросов, все режимы вперемешку. Итог в процентах",  icon:"exam"},
   voice: {title:"Голосом (перевод)", short:"Голос",     desc:"", icon:"mic"},
 };
-let testScope = "due", testLevel = 0;
+let testScope = "due", testBlock = null;
 function renderTest(){
   const due = dueList(), started = startedList();
-  const scopes = [["due",`Повтор · ${due.length}`],["all",`Начатые · ${started.length}`],["hard",`Сложные · ${hardList().length}`],["level","Тема"]];
+  if(testBlock===null) testBlock = firstBlockToLearn();
+  const scopes = [["due",`Повтор · ${due.length}`],["all",`Начатые · ${started.length}`],["hard",`Сложные · ${hardList().length}`],["level","Блок"]];
   view().innerHTML = `
     <section class="card">
       <div class="eyebrow" style="margin-bottom:10px">Какие слова проверяем</div>
       <div class="seg" id="scope">${scopes.map(([k,l])=>`<button class="${testScope===k?"on":""}" data-k="${k}">${l}</button>`).join("")}</div>
-      <div style="margin-top:12px" ${testScope==="level"?"":"hidden"}>${tilesHtml(testLevel)}</div>
+      <div style="margin-top:12px" ${testScope==="level"?"":"hidden"}>${tilesHtml(testBlock)}</div>
     </section>
     <div class="modes">${Object.entries(MODE_META).filter(([k])=>k!=="voice").map(([k,m])=>`<button class="mode ${(k==="pron"&&!canListen())?"off":""}" data-mode="${k}"><span class="ic-zone"><span class="ic">${ICONS[m.icon]}</span></span><span class="grow"><b>${m.title}</b><span>${m.desc}</span></span></button>`).join("")}</div>
   `;
   $("#scope").querySelectorAll("button").forEach(b => b.onclick = () => { testScope = b.dataset.k; renderTest(); });
-  wireTiles(l => { testLevel = l; renderTest(); });
+  wireTiles(l => { testBlock = l; renderTest(); });
   document.querySelectorAll(".mode").forEach(b => b.onclick = () => launchTest(b.dataset.mode));
 }
-function scopeItems(scope = testScope, level = testLevel){
+function scopeItems(scope = testScope, block = testBlock){
   if(scope==="due") return dueList();
   if(scope==="all") return startedList();
   if(scope==="hard") return hardList();
-  return allIdx().filter(i=>levelOf(i)===level);
+  return BLOCKS[block ?? firstBlockToLearn()].ids.slice();
 }
 function launchTest(mode){
   let pool = scopeItems();
   if((mode==="listen") && !canSpeak()){ toast("В этом браузере нет озвучки"); return; }
   if(mode==="pron" && !canListen()){ toast(REC_ERRORS.unsupported); return; }
   if(mode==="gap") pool = pool.filter(i => wordRegex(WORDS[i][0]).test(WORDS[i][3]));
+  if(mode==="col") pool = pool.filter(hasCollocations);
+  if(mode==="cf") pool = pool.filter(i => confusablePartners(i).length);
+  if(pool.length < 4 && (mode==="col"||mode==="cf")){ toast(mode==="col" ? "В этой выборке мало слов с сочетаниями" : "Начни оба слова из пары — тогда задание откроется"); return; }
   if(pool.length < 4){ toast(testScope==="hard" ? "Пометь флажком хотя бы 4 слова" : "Слишком мало слов в этой выборке — сначала выучи хотя бы 5"); return; }
   const n = mode==="exam" ? 20 : 10;
   const picked = sample(pool, Math.min(n, pool.length));
   let items;
   if(mode==="pairs"){ items = []; for(let k=0;k<picked.length;k+=5){ const g = picked.slice(k,k+5); if(g.length>=2) items.push({group:g, kind:"pairs"}); } }
-  else if(mode==="exam"){ const kinds = ["mc","rev","type","gap"].concat(canSpeak()?["listen"]:[]); items = picked.map((i,k)=>{ let kd = kinds[k%kinds.length]; if(kd==="gap" && !wordRegex(WORDS[i][0]).test(WORDS[i][3])) kd="mc"; return {i, kind:kd}; }); }
+  else if(mode==="exam"){ const kinds = ["mc","rev","type","gap","col","cf"].concat(canSpeak()?["listen"]:[]); items = picked.map((i,k)=>{ let kd = kinds[k%kinds.length]; if(kd==="gap" && !wordRegex(WORDS[i][0]).test(WORDS[i][3])) kd="mc"; if(kd==="col" && !hasCollocations(i)) kd="rev"; if(kd==="cf" && !confusablePartners(i).length) kd="type"; return {i, kind:kd}; }); }
   else items = picked.map(i=>({i, kind:mode}));
   startSession({title: MODE_META[mode].title, items, mode});
 }
@@ -784,7 +829,7 @@ function nextQ(){
   view().innerHTML = head + `<div id="qbox"></div>`;
   $("#sx").onclick = () => { const leave = () => { endSession(); go(sess.after || tab); }; if(sess.res.length) confirmSheet("Прервать проверку?", "Ответы уже учтены.", "Прервать", leave); else leave(); };
   const box = $("#qbox");
-  ({mc:qMC, rev:qRev, type:qType, listen:qListen, gap:qGap, pairs:qPairs, pron:qPron})[it.kind](box, it);
+  ({mc:qMC, rev:qRev, type:qType, listen:qListen, gap:qGap, pairs:qPairs, pron:qPron, col:qCol, cf:qCf})[it.kind](box, it);
 }
 const flagBtn = (i, cls="") => `<button class="flagb ${isHard(i)?"on":""} ${cls}" data-flag="${i}" aria-label="Сложное слово" title="Пометить как сложное">${isHard(i)?ICONS.flagOn:ICONS.flag}</button>`;
 function wireFlags(root){ (root||document).querySelectorAll("[data-flag]").forEach(b => b.onclick = e => { e.stopPropagation(); const i = +b.dataset.flag; const on = toggleHard(i); b.classList.toggle("on", on); b.innerHTML = on ? ICONS.flagOn : ICONS.flag; toast(on ? "Помечено как сложное" : "Пометка снята"); }); }
@@ -864,12 +909,30 @@ function qListen(box, it){
 }
 function qGap(box, it){
   const i = it.i, w = WORDS[i]; const ds = distractors(i,3,0); const all = shuffle([i,...ds]);
-  const context = WORD_CONTEXT[w[0]], sentence = W(i)?.ok > 0 && context ? context.example : w[3];
+  const context = WORD_CONTEXT[w[0]], sentence = W(i)?.ok > 0 && context ? context.example : sample(gapSentences(i),1)[0].en;
   const m = sentence.match(wordRegex(w[0]));
   const sent = m ? esc(sentence.slice(0,m.index)) + "<u>&nbsp;</u>" + esc(sentence.slice(m.index+m[0].length)) : esc(sentence);
   box.innerHTML = `<div class="q"><div class="ask">Какое слово пропущено?</div><p class="gap">${sent}</p><div class="pos">${esc(w[1])}</div></div><div style="height:14px"></div>` + optionsHtml(all.map(j=>WORDS[j][0]));
   enStyle(box);
   wireOptions(box, all.indexOf(i), ok => { record(i, ok, "gap"); feedback(box, ok, i, m && m[0].toLowerCase()!==w[0].toLowerCase() ? `В предложении форма: <b>${esc(m[0])}</b>` : null); });
+}
+// сочетание с пропуском: «make a ___» + значение сочетания; варианты — слова той же части речи
+function qCol(box, it){
+  const i = it.i, w = WORDS[i], [phrase, ru] = sample(practiceOf(i).collocations,1)[0]; const ds = distractors(i,3,0); const all = shuffle([i,...ds]);
+  const m = phrase.match(wordRegex(w[0]));
+  const sent = m ? esc(phrase.slice(0,m.index)) + "<u>&nbsp;</u>" + esc(phrase.slice(m.index+m[0].length)) : esc(phrase);
+  box.innerHTML = `<div class="q"><div class="ask">Какое слово в сочетании?</div><p class="gap">${sent}</p><div class="pos">${esc(ru)}</div></div><div style="height:14px"></div>` + optionsHtml(all.map(j=>WORDS[j][0]));
+  enStyle(box);
+  wireOptions(box, all.indexOf(i), ok => { record(i, ok, "col"); feedback(box, ok, i, `<b>${esc(phrase)}</b> — ${esc(ru)}`); });
+}
+// близкие значения: предложение с пропуском и два слова из пары, которую путают; перевод предложения — подсказка по смыслу
+function qCf(box, it){
+  const i = it.i, w = WORDS[i], j = sample(confusablePartners(i),1)[0], pick = sample(gapSentences(i),1)[0];
+  const m = pick.en.match(wordRegex(w[0]));
+  const sent = m ? esc(pick.en.slice(0,m.index)) + "<u>&nbsp;</u>" + esc(pick.en.slice(m.index+m[0].length)) : esc(pick.en);
+  const all = shuffle([i,j]);
+  box.innerHTML = `<div class="q"><div class="ask">Какое слово подходит?</div><p class="gap">${sent}</p><div class="pos">${esc(pick.ru)}</div></div><div style="height:14px"></div>` + optionsHtml(all.map(k=>`${WORDS[k][0]} — ${WORDS[k][1]}`));
+  wireOptions(box, all.indexOf(i), ok => { record(i, ok, "cf"); feedback(box, ok, i, `<b>${esc(WORDS[j][0])}</b> — ${esc(WORDS[j][1])}`); });
 }
 function qPairs(box, it){
   const g = it.group; const left = shuffle(g), right = shuffle(g); const wrong = new Set(); let selL = null, selR = null, done = 0;
@@ -935,7 +998,7 @@ function showResults(){
 }
 
 /* ---------- В дороге: голосовой режим без рук ---------- */
-let hfMode = "listen", hfScope = "new", hfLevel = 0;
+let hfMode = "listen", hfScope = "new", hfBlock = null;
 const hf = { on:false, paused:false, token:0, queue:[], k:0, res:[], lock:null };
 const CMD = {
   ru: { skip:["дальше","далее","пропустить","пропуск","следующее","следующий","не знаю","незнаю"], repeat:["повтори","повторить","ещё раз","еще раз","повтор"], stop:["стоп","пауза","хватит","остановись","остановить"], example:["пример"], hint:["перевод","подсказка"] },
@@ -946,9 +1009,9 @@ function findCmd(alts, lang){
 }
 function renderRoad(){
   const due = dueList(), started = startedList(), un = unstartedList();
-  const newLvl = un.length ? levelOf(un[0]) : 0;
+  const newBlock = BLOCKS[firstBlockToLearn()]; if(hfBlock===null) hfBlock = firstBlockToLearn();
   const modes = [["listen","Слушать","Читает слово, перевод и пример. Руки и глаза свободны"],["ru","Отвечать по-русски","Слышишь английское слово — говоришь перевод"],["en","Отвечать по-английски","Слышишь перевод — говоришь слово. Заодно тренирует произношение"]];
-  const scopes = [["new",`Новые слова (тема ${newLvl+1})`],["due",`На повторение · ${due.length}`],["hard",`Сложные · ${hardList().length}`],["all",`Все начатые · ${started.length}`],["level","Уровень по выбору"]];
+  const scopes = [["new",`Новые слова (${newBlock.title})`],["due",`На повторение · ${due.length}`],["hard",`Сложные · ${hardList().length}`],["all",`Все начатые · ${started.length}`],["level","Уровень по выбору"]];
   const needMic = hfMode !== "listen";
   view().innerHTML = `
     <section class="card">
@@ -960,7 +1023,7 @@ function renderRoad(){
     <section class="card">
       <div class="eyebrow" style="margin-bottom:10px">Какие слова</div>
       <select class="sel" id="hfScope">${scopes.map(([k,l])=>`<option value="${k}" ${hfScope===k?"selected":""}>${l}</option>`).join("")}</select>
-      <div style="margin-top:12px" ${hfScope==="level"?"":"hidden"}>${tilesHtml(hfLevel)}</div>
+      <div style="margin-top:12px" ${hfScope==="level"?"":"hidden"}>${tilesHtml(hfBlock)}</div>
     </section>
     ${needMic && !canListen() ? `<div class="note">${REC_ERRORS.unsupported} Режим «Слушать» работает везде.</div>` : ""}
     ${!canSpeak() ? `<div class="note">В этом браузере нет озвучки — режим не заработает.</div>` : ""}
@@ -982,15 +1045,15 @@ function renderRoad(){
   `;
   document.querySelectorAll(".mode").forEach(b => b.onclick = () => { hfMode = b.dataset.m; renderRoad(); });
   $("#hfScope").onchange = e => { hfScope = e.target.value; renderRoad(); };
-  wireTiles(l => { hfLevel = l; renderRoad(); });
+  wireTiles(l => { hfBlock = l; renderRoad(); });
   $("#hfStart").onclick = hfStart;
 }
 function hfPool(){
-  if(hfScope==="new"){ const un = unstartedList(); if(!un.length) return []; const l = levelOf(un[0]); return un.filter(i=>levelOf(i)===l).slice(0, 10); }
+  if(hfScope==="new"){ const un = unstartedList(); if(!un.length) return []; return blockUnstarted(WORD_BLOCK[un[0]]).slice(0, 10); }
   if(hfScope==="due") return sample(dueList(), 20);
   if(hfScope==="hard") return sample(hardList(), 20);
   if(hfScope==="all") return sample(startedList(), 20);
-  return sample(allIdx().filter(i=>levelOf(i)===hfLevel), 20);
+  return sample(BLOCKS[hfBlock].ids, 20);
 }
 async function hfStart(){
   const pool = hfPool(); if(!pool.length){ toast("В этой выборке нет слов"); return; }
@@ -1087,7 +1150,7 @@ async function hfFinish(){
 }
 
 /* ---------- Слова ---------- */
-let openLevel = null, query = "", wordsFilter = "all";
+let openBlock = null, openLevelIdx = null, query = "", wordsFilter = "all";
 function renderWords(){
   view().innerHTML = `<input class="search" id="q" placeholder="Поиск по английскому или русскому" value="${esc(query)}"><div class="seg" id="wfilter"><button class="${wordsFilter==="all"?"on":""}" data-f="all">Все темы</button><button class="${wordsFilter==="hard"?"on":""}" data-f="hard">${ICONS.flagOn.replace("<svg","<svg width=12 height=12 style='vertical-align:-1px'")} Сложные · ${hardList().length}</button></div><div id="wlist" style="display:grid;gap:10px"></div>`;
   $("#q").oninput = e => { query = e.target.value; drawWords(); };
@@ -1101,11 +1164,14 @@ function drawWords(){
     const hits = base.filter(i => !q || norm(WORDS[i][0]).includes(q) || norm(WORDS[i][1]).includes(q)).slice(0,120);
     box.innerHTML = hits.length ? `<div class="lvl"><div class="wl">${hits.map(rowHtml).join("")}</div></div>` : `<div class="empty">${wordsFilter==="hard"&&!q ? "Сложных слов пока нет — флажок есть на обороте карточки, в карточке слова и после ошибки в проверке" : "Ничего не найдено"}</div>`;
   } else {
-    box.innerHTML = LEVEL_NAMES.map((n,l)=>{ const ids = allIdx().filter(i=>levelOf(i)===l); const kn = ids.filter(i=>status(i)>=2).length;
-      const st = ids.filter(i=>W(i)).length;
-      return `<div class="lvl"><button class="lvl-h" data-l="${l}"><span class="n">${l+1}</span><span class="grow"><b>${n}</b><div class="bar"><i style="width:${kn*2}%"></i></div></span><span class="cnt">${kn}/50</span></button>${openLevel===l?`<div class="wl">${st?`<div class="row between" style="padding:8px 16px;border-bottom:1px solid var(--line)"><span class="small muted">Начато ${st} · знаю ${kn}</span><button class="btn ghost small" data-lreset="${l}" style="color:var(--bad)">${ICONS.reset.replace("<svg","<svg width=14 height=14")} Сбросить уровень</button></div>`:""}${ids.map(rowHtml).join("")}</div>`:""}</div>`; }).join("");
-    box.querySelectorAll(".lvl-h").forEach(b => b.onclick = () => { openLevel = openLevel===+b.dataset.l ? null : +b.dataset.l; drawWords(); });
-    box.querySelectorAll("[data-lreset]").forEach(b => b.onclick = () => { const l = +b.dataset.lreset; confirmSheet(`Сбросить тема ${l+1}?`, "Все 50 слов вернутся в «не начато». Пометки «сложное» останутся.", "Сбросить", () => { resetProgress(l); drawWords(); toast("Уровень сброшен"); }, true); });
+    if(openLevelIdx===null) openLevelIdx = BLOCKS[firstBlockToLearn()].levelIdx;
+    box.innerHTML = PROGRAM_LEVELS.map((L,k)=>{ const ids = L.blocks.flatMap(b=>b.ids), kn = ids.filter(i=>status(i)>=2).length, total = L.total || ids.length;
+      const blocks = L.blocks.map(b=>{ const l = BLOCKS.indexOf(b), bk = b.ids.filter(i=>status(i)>=2).length, st = b.ids.filter(i=>W(i)).length;
+        return `<div class="lvl"><button class="lvl-h" data-l="${l}"><span class="n">${b.n}</span><span class="grow"><b>${esc(b.title)}</b><div class="bar"><i style="width:${Math.round(bk/b.ids.length*100)}%"></i></div></span><span class="cnt">${bk}/${b.ids.length}</span></button>${openBlock===l?`<div class="wl">${st?`<div class="row between" style="padding:8px 16px;border-bottom:1px solid var(--line)"><span class="small muted">Начато ${st} · знаю ${bk}</span><button class="btn ghost small" data-lreset="${l}" style="color:var(--bad)">${ICONS.reset.replace("<svg","<svg width=14 height=14")} Сбросить блок</button></div>`:""}${b.ids.map(rowHtml).join("")}</div>`:""}</div>`; }).join("");
+      return `<div class="lvl-group"><button class="lvl-h top" data-lv="${k}"><span class="n">${L.title}</span><span class="grow"><b>${esc(L.name)}</b><div class="bar"><i style="width:${Math.round(kn/total*100)}%"></i></div></span><span class="cnt">${L.blocks.length?`${kn}/${total}`:"готовится"}</span></button>${openLevelIdx===k?blocks:""}</div>`; }).join("");
+    box.querySelectorAll(".lvl-h.top").forEach(b => b.onclick = () => { openLevelIdx = openLevelIdx===+b.dataset.lv ? -1 : +b.dataset.lv; drawWords(); });
+    box.querySelectorAll(".lvl-h:not(.top)").forEach(b => b.onclick = () => { openBlock = openBlock===+b.dataset.l ? null : +b.dataset.l; drawWords(); });
+    box.querySelectorAll("[data-lreset]").forEach(b => b.onclick = () => { const l = +b.dataset.lreset; confirmSheet(`Сбросить блок «${BLOCKS[l].title}»?`, `Все ${BLOCKS[l].ids.length} слов вернутся в «не начато». Пометки «сложное» останутся.`, "Сбросить", () => { resetProgress(l); drawWords(); toast("Блок сброшен"); }, true); });
   }
   box.querySelectorAll(".wrow").forEach(b => b.onclick = () => wordSheet(+b.dataset.i));
 }
@@ -1113,12 +1179,13 @@ const rowHtml = i => `<button class="wrow" data-i="${i}"><i class="dot s${status
 function wordSheet(i){
   const w = WORDS[i], r = W(i);
   sheet(`
-    <div class="row between"><div class="pos">${POS[w[2]]||""} · тема ${levelOf(i)+1} · <span class="chip ${status(i)===3?"good":status(i)===2?"accent":status(i)===1?"warn":""}">${STATUS_LABEL[status(i)]}</span></div><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
+    <div class="row between"><div class="pos">${POS[w[2]]||""} · ${esc(blockLabel(i))} · <span class="chip ${status(i)===3?"good":status(i)===2?"accent":status(i)===1?"warn":""}">${STATUS_LABEL[status(i)]}</span></div><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
     <div class="row"><div class="word md grow">${esc(w[0])}</div><button class="speak" id="ssp" aria-label="Озвучить">${ICONS.sound}</button></div>
     <div class="ru">${esc(w[1])}</div>
     <p class="ex">${hl(w[3], w[0])}</p>
-    <p class="ex-ru">${esc(EX_RU[w[0]]||"")}</p>
+    <p class="ex-ru">${esc(w[4]||"")}</p>
           ${WORD_CONTEXT[w[0]]?`<p class="small" style="color:var(--accent-deep)">${esc(WORD_CONTEXT[w[0]].phrase)}</p>`:""}
+    ${practiceHtml(i)}
     ${r?`<p class="small muted num">Верно ${r.ok} · ошибок ${r.bad} · следующий показ ${r.box>=6?"— закреплено":r.due<=today()?"сегодня":r.due}</p>`:""}
     <div class="row" style="gap:10px"><button class="btn secondary grow" id="sReset">${r?"Сбросить":"В изучение"}</button><button class="btn grow" id="sKnow">Уже знаю</button>${flagBtn(i,"big")}</div>
   `);
@@ -1199,16 +1266,16 @@ if(qsDemo.get("zoom")) document.documentElement.style.zoom = qsDemo.get("zoom");
 if(qsDemo.get("demo")){ save = () => {}; document.head.appendChild(Object.assign(document.createElement("style"),{textContent:"*{transition:none!important;animation:none!important}"})); S.set.scene = qsDemo.get("scene") || "town"; S.set.theme = qsDemo.get("theme") || "dark"; S.set.motion = false;
   const d = dayRec(); d.n = 6; d.q = 18; d.ok = 16; S.streak.n = 4; S.streak.last = today();
   [3,5,2,7,9,4,6,8,5,7,10,6,9,8].forEach((v,k) => { S.days[addDays(today(),k-13)] = {n:v,q:v*2,ok:v*2-1,bad:1}; }); S.days[today()] = d;
-  allIdx().filter(i=>levelOf(i)<3).forEach((i,k) => { S.w[wk(i)] = {box:(k*5)%7,due:today(),ok:2,bad:0}; });
-  allIdx().filter(i=>levelOf(i)===3).slice(0,20).forEach(i => { S.w[wk(i)] = {box:1,due:today(),ok:1,bad:1}; });
+  allIdx().filter(i=>WORD_BLOCK[i]<3).forEach((i,k) => { S.w[wk(i)] = {box:(k*5)%7,due:today(),ok:2,bad:0}; });
+  allIdx().filter(i=>WORD_BLOCK[i]===3).slice(0,20).forEach(i => { S.w[wk(i)] = {box:1,due:today(),ok:1,bad:1}; });
   [4,9,15,22,31].forEach(i => S.hard[wk(i)] = 1); }
 applyTheme(); applyScene(); pickVoices(); go("home");
 if(qsDemo.get("demo")){ const sc = qsDemo.get("screen"); setTimeout(() => {
-  if(sc==="card"){ go("learn"); learnLevel = 13; startLearnBatch(allIdx().filter(i=>levelOf(i)===13).slice(0,5)); setTimeout(()=>$("#flash").classList.add("flipped"), 300); }
-  else if(sc==="quiz"){ go("test"); testScope = "level"; testLevel = 0; launchTest("mc"); }
-  else if(sc==="gap"){ go("test"); testScope = "level"; testLevel = 17; launchTest("gap"); }
+  if(sc==="card"){ go("learn"); learnBlock = 13; startLearnBatch(BLOCKS[13].ids.slice(0,5)); setTimeout(()=>$("#flash").classList.add("flipped"), 300); }
+  else if(sc==="quiz"){ go("test"); testScope = "level"; testBlock = 0; launchTest("mc"); }
+  else if(sc==="gap"){ go("test"); testScope = "level"; testBlock = 17; launchTest("gap"); }
   else if(sc==="road"){ go("road"); }
-  else if(sc==="words"){ go("words"); openLevel = 0; drawWords(); }
+  else if(sc==="words"){ go("words"); openLevelIdx = 0; openBlock = 0; drawWords(); }
   else if(sc==="settings"){ settingsSheet(); }
   else if(sc==="companion"||sc==="choose"){ journeyState(); if(sc==="companion"){ S.companion.fox="04-boy-bold"; S.companion.adopted=today(); S.companion.identity=LearningCore.petIdentity({sex:"male",name:"Фокс"}); S.companion.completed[today()]=1; S.journey.completed[today()]=1; S.journey.foxSeen={day:today(),period:foxPeriod()}; } openCompanion(); }
   else if(sc==="thematic"){ go("thematic"); }

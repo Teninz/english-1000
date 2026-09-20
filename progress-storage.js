@@ -8,9 +8,10 @@ function storageWarning(message){
 function clearStorageWarning(){ document.getElementById("storageWarning")?.remove(); storageErrorShown=false; }
 function load(){
   try {
-    const raw=localStorage.getItem(KEY);
-    S=raw ? LearningCore.validate(JSON.parse(raw)) : LearningCore.empty();
+    const raw=localStorage.getItem(KEY), parsed=raw?JSON.parse(raw):null;
+    S=parsed ? LearningCore.validate(parsed, LEGACY_KEYS) : LearningCore.empty();
     storageBlocked=false;
+    if(parsed && parsed.v!==S.v) save(); // прогресс прежнего курса перенесён на новые ключи
   } catch(e) {
     S=LearningCore.empty(); storageBlocked=true;
     storageWarning("Не удалось прочитать прогресс. Исходные данные сохранены. Восстанови резервную копию в настройках; новые ответы пока не сохраняются.");
@@ -28,7 +29,7 @@ function parseProgress(text){
 }
 function requestProgressImport(text){
   let candidate;
-  try {candidate=LearningCore.prepareImport(parseProgress(text),S);} catch(e){toast("Не удалось прочитать копию: "+e.message);return;}
+  try {candidate=LearningCore.prepareImport(parseProgress(text),S,LEGACY_KEYS);} catch(e){toast("Не удалось прочитать копию: "+e.message);return;}
   confirmSheet("Загрузить прогресс?",`В копии ${Object.keys(candidate.w).length} начатых слов. Текущий прогресс будет сохранён для отмены. Голоса и ключи этого устройства останутся.`,"Загрузить",()=>{
     try {
       const previous=localStorage.getItem(KEY);

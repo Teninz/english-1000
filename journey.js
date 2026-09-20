@@ -423,8 +423,8 @@ function progressAccordionHtml(){
   const max=Math.max(1,...recent.map(x=>x.value));
   const modeRows=Object.entries(S.modes).map(([key,m])=>{const total=m.ok+m.bad,pct=total?Math.round(100*m.ok/total):0;return `<div class="progress-row"><span>${esc(MODE_META[key]?.short||key)}</span><i><b style="width:${pct}%"></b></i><strong>${pct}%</strong></div>`;}).join("");
   const next7=Array.from({length:7},(_,i)=>{const day=addDays(today(),i),count=started.filter(index=>W(index).due===day).length;return {day,count};});
-  return `<details class="card progress-accordion"><summary><span><span class="eyebrow">Инфографика</span><b>Пройденный материал</b></span><strong class="num">${learned} / 1000</strong></summary><div class="progress-body">
-    <div class="progress-overview"><div class="progress-donut" style="--done:${learned/1000*360}deg"><span><b>${Math.round(learned/10)}%</b><small>изучено</small></span></div><div class="progress-legend"><span><i class="s1"></i>Учу <b>${statuses[1]}</b></span><span><i class="s2"></i>Знаю <b>${statuses[2]}</b></span><span><i class="s3"></i>Закреплено <b>${statuses[3]}</b></span><span><i></i>Впереди <b>${statuses[0]}</b></span></div></div>
+  return `<details class="card progress-accordion"><summary><span><span class="eyebrow">Инфографика</span><b>Пройденный материал</b></span><strong class="num">${learned} / ${WORDS.length}</strong></summary><div class="progress-body">
+    <div class="progress-overview"><div class="progress-donut" style="--done:${learned/WORDS.length*360}deg"><span><b>${Math.round(learned/WORDS.length*100)}%</b><small>изучено</small></span></div><div class="progress-legend"><span><i class="s1"></i>Учу <b>${statuses[1]}</b></span><span><i class="s2"></i>Знаю <b>${statuses[2]}</b></span><span><i class="s3"></i>Закреплено <b>${statuses[3]}</b></span><span><i></i>Впереди <b>${statuses[0]}</b></span></div></div>
     <div><div class="row between"><b>Активность за 14 дней</b><span class="small muted">слова</span></div><div class="progress-bars">${recent.map((x,i)=>`<i class="${x.value?"on":""} ${i===13?"today":""}" style="height:${Math.max(5,Math.round(x.value/max*100))}%" title="${x.day}: ${x.value}"></i>`).join("")}</div></div>
     <div><b>Повторения на неделю</b><div class="due-week">${next7.map((x,i)=>`<span class="${x.count?"has":""}"><small>${i?new Date(x.day+"T12:00:00").toLocaleDateString("ru-RU",{weekday:"short"}):"сегодня"}</small><b>${x.count}</b></span>`).join("")}</div></div>
     ${modeRows?`<div><b>Точность по режимам</b><div class="progress-modes">${modeRows}</div></div>`:""}
@@ -473,8 +473,8 @@ let journeyRunning = false;
 function journeyPlan(){
   const j = journeyState();
   if(!j.plan || j.plan.day !== today()) {
-    const un = unstartedList(), level = learnLevel !== null && un.some(i=>levelOf(i)===learnLevel) ? learnLevel : un.length ? levelOf(un[0]) : 0;
-    j.plan = {day:today(),review:dueList().sort((a,b)=>W(a).due.localeCompare(W(b).due)).slice(0,8).map(wk),fresh:un.filter(i=>levelOf(i)===level).slice(0,5).map(wk),reviewed:{},checked:{},errors:{},repaired:{},done:false};
+    const block = learnBlock !== null && blockUnstarted(learnBlock).length ? learnBlock : firstBlockToLearn();
+    j.plan = {day:today(),review:dueList().sort((a,b)=>W(a).due.localeCompare(W(b).due)).slice(0,8).map(wk),fresh:blockUnstarted(block).slice(0,5).map(wk),reviewed:{},checked:{},errors:{},repaired:{},done:false};
     // Если новых и плановых слов нет, предлагаем короткую практику без изменения будущих интервалов.
     if(!j.plan.review.length && !j.plan.fresh.length) j.plan.review=sample(startedList(),5).map(wk);
     save();

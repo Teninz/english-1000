@@ -36,7 +36,7 @@ function dailyEvent(ev, p = {}){
   if(ev === "review") L.review++;
   if(ev === "heard") L.heard++;
   if(ev === "pronOk") L.pronOk++;
-  if(ev === "session"){ const n = p.res.length, ok = p.res.filter(x=>x.ok).length; L.sessions.push({ mode:p.mode, scope:testScope, level:testLevel, n, pct: n ? ok/n : 0, road: !!p.road }); if(p.road) L.roadAnswers += n; }
+  if(ev === "session"){ const n = p.res.length, ok = p.res.filter(x=>x.ok).length; L.sessions.push({ mode:p.mode, scope:testScope, block:testBlock, n, pct: n ? ok/n : 0, road: !!p.road }); if(p.road) L.roadAnswers += n; }
   dailyRefresh();
 }
 function dailyProgress(t){
@@ -44,7 +44,6 @@ function dailyProgress(t){
   if(t.id === "lesson") return [S.companion?.completed[today()]?1:0,1];
   if(t.id === "learn") return [L.learn, t.target];
   if(t.id === "review") return [Math.min(L.review, t.target), t.target];
-  if(t.id === "level") return [L.sessions.some(s => s.scope === "level" && s.level === t.level && s.mode !== "review" && s.mode !== "learn" && s.n >= 10 && s.pct >= .8) ? 1 : 0, 1];
   if(t.id === "hard") return [L.sessions.some(s => s.scope === "hard" && s.n >= 4 && s.pct >= .8) ? 1 : 0, 1];
   const m = DAILY_POOL[t.key];
   if(m.count) return [Math.min(L.pronOk, m.count), m.count];
@@ -61,9 +60,8 @@ function dailyRefresh(){
 }
 function dailyTitle(t){
   if(t.id === "lesson") return ["Встреча с лисой", "Короткое занятие и угощение для компаньона", "learn"];
-  if(t.id === "learn") return ["Выучить новые слова", `${t.target} ${plural(t.target,"слово","слова","слов").replace(/^\d+ /,"")} из текущего уровня`, "learn"];
+  if(t.id === "learn") return ["Выучить новые слова", `${t.target} ${plural(t.target,"слово","слова","слов").replace(/^\d+ /,"")} из текущего блока`, "learn"];
   if(t.id === "review") return ["Повторить слова", `${t.target} из очереди на сегодня`, "rev"];
-  if(t.id === "level") return ["Проверка по уровню", `${t.level+1}. ${LEVEL_NAMES[t.level]} — любой режим, 10 вопросов на 80%`, "test"];
   if(t.id === "hard") return ["Сложные слова", "Любая проверка по сложным на 80%", "flag"];
   const m = DAILY_POOL[t.key]; return [m.title, m.desc, m.icon];
 }
@@ -71,7 +69,6 @@ function dailyStart(t){
   if(t.id === "lesson"){journeyStart();return;}
   if(t.id === "learn"){ go("learn"); return; }
   if(t.id === "review"){ dueList().length ? startReview() : go("home"); return; }
-  if(t.id === "level"){ testScope = "level"; testLevel = t.level; go("test"); return; }
   if(t.id === "hard"){ testScope = "hard"; go("test"); return; }
   const m = DAILY_POOL[t.key];
   if(m.heard || m.roadAnswers){ hfMode = m.heard ? "listen" : "ru"; go("road"); return; }

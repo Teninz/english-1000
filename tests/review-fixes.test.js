@@ -17,7 +17,7 @@ function app(){
     localStorage:{getItem:()=>null,setItem(){}},TTS:{stop(){}},checkAch(){},dailyEvent(){}};
   ctx.window=ctx;ctx.scrollTo=()=>{};
   vm.createContext(ctx);
-  for(const f of ['learning-core.js','word-forms.js','progress-storage.js','journey.js','words-a.js','words-b.js','ex-ru.js','word-levels.js','thematic-data.js','thematic.js'])vm.runInContext(read(f),ctx,{filename:f});
+  for(const f of ['learning-core.js','word-forms.js','progress-storage.js','journey.js','words-a.js','words-b.js','ex-ru.js','word-levels.js','oxford-a1.js','oxford-a2.js','oxford-b1.js','oxford-b2.js','words-extra.js','program.js','thematic-data.js','thematic.js'])vm.runInContext(read(f),ctx,{filename:f});
   const inline=read('index.html').match(/<script>([\s\S]*?)<\/script>/)[1];
   vm.runInContext(inline.slice(0,inline.indexOf('/* ---------- старт')),ctx);
   const run=code=>vm.runInContext(code,ctx);
@@ -28,7 +28,10 @@ function app(){
 
 test('обратный выбор не предлагает второй правильный синоним, варианты остаются уникальны',()=>{
   const {run}=app();
-  for(const word of ['evident','obvious','rarely','seldom','enormous','massive','postpone']){
+  // пары с общим переводом внутри одной части речи есть и в A1 (flat/apartment), и в дополнительном словаре (evident/seldom)
+  const words=JSON.parse(run('JSON.stringify(WORDS.filter((w,i)=>WORDS.some((x,j)=>j!==i&&LearningCore.sharesTranslation(w,x))).map(w=>w[0]).slice(0,12))'));
+  assert.ok(words.length>=6,'есть слова с синонимами');
+  for(const word of words){
     assert.equal(run(`(()=>{const i=WORDS.findIndex(w=>w[0]===${JSON.stringify(word)});for(let n=0;n<30;n++){const ds=distractors(i,3,0,true);if(ds.length!==3||new Set(ds.map(j=>WORDS[j][0])).size!==3||ds.some(j=>LearningCore.sharesTranslation(WORDS[i],WORDS[j])))return false;}return true;})()`),true,word);
   }
 });
@@ -36,8 +39,8 @@ test('обратный выбор не предлагает второй пра�
 test('письменный синоним засчитывается без штрафа и без повышения интервала исходного слова',()=>{
   const {run,node,element,ctx}=app();
   ctx.box=element();ctx.captured=[];
-  run('record=(...args)=>captured.push(args);feedback=(...args)=>{window.note=args[4]};const target=WORDS.findIndex(w=>w[0]==="evident");qType(box,{i:target});');
-  node('#ti').value='obvious';node('#chk').onclick();
+  run('record=(...args)=>captured.push(args);feedback=(...args)=>{window.note=args[4]};const target=WORDS.findIndex(w=>w[0]==="apartment");qType(box,{i:target});');
+  node('#ti').value='flat';node('#chk').onclick();
   assert.equal(ctx.captured[0][1],true);assert.equal(ctx.captured[0][3],true);
   assert.match(ctx.box.innerHTML,/возможны синонимы/);
   const record=core.schedule({box:2,due:'2026-09-20',ok:2,bad:0},true,'2026-09-20',add,ctx.captured[0][3]);
@@ -45,9 +48,9 @@ test('письменный синоним засчитывается без шт
 });
 
 test('точное написание повышает интервал, неправильное слово остаётся ошибкой',()=>{
-  for(const [answer,ok,assisted] of [['evident',true,false],['elephant',false,false],['evidnt',true,true]]){
+  for(const [answer,ok,assisted] of [['apartment',true,false],['elephant',false,false],['apartmen',true,true]]){
     const {run,node,element,ctx}=app();ctx.box=element();ctx.captured=[];
-    run('record=(...args)=>captured.push(args);feedback=()=>{};qType(box,{i:WORDS.findIndex(w=>w[0]==="evident")});');
+    run('record=(...args)=>captured.push(args);feedback=()=>{};qType(box,{i:WORDS.findIndex(w=>w[0]==="apartment")});');
     node('#ti').value=answer;node('#chk').onclick();
     assert.equal(ctx.captured[0][1],ok,answer);assert.equal(ctx.captured[0][3],assisted,answer);
   }
@@ -66,7 +69,7 @@ test('одинаковые подписи в парах взаимозаменя
   const left=[element(),element()],right=[element(),element()];
   ctx.box.querySelectorAll=s=>s==='#L .opt'?left:right;
   ctx.left=left;ctx.right=right;
-  run('const pair=[WORDS.findIndex(w=>w[0]==="evident"),WORDS.findIndex(w=>w[0]==="obvious")];left.forEach((x,n)=>x.dataset.i=pair[n]);right.forEach((x,n)=>x.dataset.i=pair[n]);record=(...a)=>captured.push(a);qPairs(box,{group:pair});');
+  run('const pair=[WORDS.findIndex(w=>w[0]==="flat"),WORDS.findIndex(w=>w[0]==="apartment")];left.forEach((x,n)=>x.dataset.i=pair[n]);right.forEach((x,n)=>x.dataset.i=pair[n]);record=(...a)=>captured.push(a);qPairs(box,{group:pair});');
   left[0].onclick();right[1].onclick();
   assert.equal(ctx.captured.length,1);assert.equal(ctx.captured[0][1],true);
 });

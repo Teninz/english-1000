@@ -57,7 +57,21 @@ const LearningCore = (() => {
     r.lastAttempt = day;
     return r;
   }
-  const empty = () => ({v:2,goal:10,streak:{n:0,last:null},days:{},w:{},modes:{},hard:{},set:{auto:true},thematic:thematicEmpty()});
+  const empty = () => ({v:3,goal:10,streak:{n:0,last:null},days:{},w:{},modes:{},hard:{},set:{auto:true},thematic:thematicEmpty()});
+  // Перенос прогресса прежнего курса (v2, ключ — слово) на ключи программы (v3, «слово|часть речи»).
+  // legacyKeys: {слово: новый ключ}; слово без соответствия сохраняет прежний ключ, чтобы ничего не потерять.
+  function migrate(o, legacyKeys = {}) {
+    if (o.v !== 2) return o;
+    const key = k => legacyKeys[k] || k;
+    const rename = obj => { const out = {}; for (const [k,v] of Object.entries(obj)) out[key(k)] = v; return out; };
+    o.w = rename(o.w); o.hard = rename(o.hard || {});
+    for (const r of Object.values(o.days)) { if (r.words) r.words = rename(r.words); if (r.remembered) r.remembered = rename(r.remembered); }
+    if (o.stats) { if (o.stats.solvedSet) o.stats.solvedSet = rename(o.stats.solvedSet); if (o.stats.heard && o.stats.heard.w) o.stats.heard.w = rename(o.stats.heard.w); }
+    if (o.journey && o.journey.plan) { const p = o.journey.plan; for (const k of ["review","fresh"]) p[k] = p[k].map(key); for (const k of ["reviewed","checked","errors","repaired"]) p[k] = rename(p[k]); }
+    if (o.daily) o.daily.tasks = o.daily.tasks.filter(t => t.id !== "level");
+    o.v = 3;
+    return o;
+  }
   const petFormKeys = ["nom","gen","dat","acc","ins","prep"];
   const petIdentityEmpty = () => ({sex:"female",name:"",decline:true,forms:{nom:"",gen:"",dat:"",acc:"",ins:"",prep:""}});
   function petNameForms(value, sex="female", decline=true) {
@@ -207,13 +221,13 @@ const LearningCore = (() => {
     if(!topic.exam.active)return {status:"inactive"};
     return thematicExamFinish(topic,false,nowWall,"aborted");
   }
-  function validate(input) {
+  function validate(input, legacyKeys = {}) {
     // Ограничиваем размер и запрещаем ключи, опасные для последующего объединения объектов.
     const raw = JSON.stringify(input);
     if (!raw || raw.length > 4000000) throw Error("Слишком большой файл прогресса");
     const o = JSON.parse(raw, (k,v) => { if (["__proto__","constructor","prototype"].includes(k)) throw Error("Недопустимый ключ данных"); return v; });
     const fail = () => { throw Error("Структура прогресса повреждена"); };
-    if (!object(o) || o.v !== 2 || ![5,10,15,20].includes(o.goal)) fail();
+    if (!object(o) || ![2,3].includes(o.v) || ![5,10,15,20].includes(o.goal)) fail();
     for (const k of ["w","days","modes","streak"]) if (!object(o[k])) fail();
     if (!count(o.streak.n) || !(o.streak.last === null || dateOK(o.streak.last))) fail();
     for (const [word,r] of Object.entries(o.w)) {
@@ -297,28 +311,28 @@ const LearningCore = (() => {
       for(const t of d.tasks){
         if(!object(t)||!["learn","review","level","hard","mode","lesson"].includes(t.id)||typeof t.done!=="boolean"||typeof t.swapped!=="boolean")fail();
         if(t.id==="mode"&&!["mc","rev","type","listen","gap","pairs","exam","pron","roadL","roadA"].includes(t.key))fail();
-        if(t.id==="level"&&(!count(t.level)||t.level>19))fail();
+        if(t.id==="level"&&(o.v!==2||!count(t.level)||t.level>19))fail();
         if(t.target!==undefined&&!count(t.target))fail();
       }
       for(const k of ["learn","review","heard","pronOk"])if(!count(d.log[k]))fail();
       if(!Array.isArray(d.log.sessions)||!d.log.sessions.every(s=>object(s)&&typeof s.mode==="string"&&count(s.n)&&typeof s.pct==="number"&&s.pct>=0&&s.pct<=1))fail();
     }
-    return o;
+    return migrate(o, legacyKeys);
   }
-  function portable(state) {
-    const o = validate(state), result = {format:"shadowfox-progress",exportedAt:new Date().toISOString()};
+  function portable(state, legacyKeys) {
+    const o = validate(state, legacyKeys), result = {format:"shadowfox-progress",exportedAt:new Date().toISOString()};
     for (const k of ["v","goal","streak","days","w","modes","hard","ach","stats","journey","companion","thematic"]) if (o[k] !== undefined) result[k] = o[k];
     if(result.journey)delete result.journey.plan;
     return result;
   }
-  function prepareImport(input, current) {
-    const o = validate(input);
+  function prepareImport(input, current, legacyKeys) {
+    const o = validate(input, legacyKeys);
     delete o.daily;
     if(o.journey)delete o.journey.plan;
     // Даже старый код с ключами не заменяет настройки голосов на этом устройстве.
     o.set = JSON.parse(JSON.stringify(current.set || {auto:true}));
     return o;
   }
-  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,empty,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
+  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,empty,migrate,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
 })();
 if (typeof module !== "undefined") module.exports = LearningCore;
