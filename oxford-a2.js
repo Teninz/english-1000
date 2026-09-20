@@ -1101,6 +1101,7 @@ practice:{
 "likely|adj":{collocations:[["likely to","вероятно (сделает)"],["most likely","скорее всего"]],examples:[["She is likely to win.","Она, вероятно, победит."]]},
 "since|prep":{collocations:[["since morning","с утра"],["since then","с тех пор"]],examples:[["I have been here since morning.","Я здесь с утра."]]},
 "among|prep":{collocations:[["among friends","среди друзей"],["popular among","популярный среди"]],examples:[["The song is popular among teenagers.","Песня популярна среди подростков."]]},
+"habit|n":{collocations:[["a bad habit","вредная привычка"],["get into the habit of","привыкнуть к"]],examples:[["Get into the habit of reading every day.","Заведи привычку читать каждый день."]]},
 "instead|adv":{collocations:[["instead of","вместо"]],examples:[["Walk instead of taking the bus.","Иди пешком вместо автобуса."]]},
 },
 confusables:[
