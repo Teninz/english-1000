@@ -53,7 +53,8 @@ function unlock(id){
 const achCount = () => Object.keys(S.ach||{}).length;
 // проверки по событиям
 function checkAch(ev, p = {}){
-  const st = achStats(); const started = startedList(), known = started.filter(i => status(i) >= 2), fixed = started.filter(i => status(i) === 3);
+  // слова, отмеченные известными без проверки (стартовая проверка, «Уже знаю»), в достижения не идут, пока не подтверждены ответом
+  const st = achStats(); const started = startedList().filter(i => !W(i).known), known = started.filter(i => status(i) >= 2), fixed = started.filter(i => status(i) === 3);
   if(started.length >= 1) unlock("first"); if(started.length >= 10) unlock("ten"); if(started.length >= 1000) unlock("thousand");
   if(known.length >= 100) unlock("hundred"); if(known.length >= 500) unlock("half"); if(fixed.length >= WORDS.length) unlock("master");
   if(S.streak.n >= 3) unlock("streak3"); if(S.streak.n >= 7) unlock("streak7"); if(S.streak.n >= 30) unlock("streak30");

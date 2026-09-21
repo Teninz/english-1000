@@ -55,7 +55,21 @@ const LearningCore = (() => {
     // После ошибки повтор внутри сессии закрепляет ответ, завтра проверяем снова.
     if (ok && r.lastLapse === day) r.due = addDays(day, 1);
     r.lastAttempt = day;
+    if (!assisted) delete r.known; // условно известное слово проверено самостоятельным ответом
     return r;
+  }
+  // «Уже знаю»: слово считается известным условно — ячейка 5, проверка через две недели; верный ответ закрепит его.
+  const knownEntry = (day, addDays) => ({box:5, due:addDays(day,14), ok:0, bad:0, known:1});
+  // Стартовая проверка: слова уровней ниже выбранного помечаются известными без опроса, повторения размазаны на 30–120 дней,
+  // чтобы очередь не взорвалась; начатые слова не трогаются.
+  function assumeKnown(state, keys, day, addDays, rng = Math.random) {
+    let added = 0;
+    for (const key of keys) {
+      if (state.w[key]) continue;
+      state.w[key] = {box:6, due:addDays(day, 30 + Math.floor(rng()*90)), ok:0, bad:0, known:1};
+      added++;
+    }
+    return added;
   }
   const empty = () => ({v:3,goal:10,streak:{n:0,last:null},days:{},w:{},modes:{},hard:{},set:{auto:true},thematic:thematicEmpty()});
   // Перенос прогресса прежнего курса (v2, ключ — слово) на ключи программы (v3, «слово|часть речи»).
@@ -233,7 +247,9 @@ const LearningCore = (() => {
     for (const [word,r] of Object.entries(o.w)) {
       if (!word || word.length > 120 || !object(r) || !count(r.box) || r.box > 6 || !dateOK(r.due) || !count(r.ok) || !count(r.bad)) fail();
       for (const k of ["lastAttempt","lastScheduled","lastLapse"]) if (r[k] !== undefined && !dateOK(r[k])) fail();
+      if (r.known !== undefined && r.known !== 1) fail();
     }
+    if (o.placement !== undefined && (!object(o.placement) || !["A1","A2","B1","B2"].includes(o.placement.level) || !dateOK(o.placement.day) || !count(o.placement.score))) fail();
     for (const [d,r] of Object.entries(o.days)) {
       if (!dateOK(d) || !object(r) || !["n","q","ok","bad"].every(k => count(r[k]))) fail();
       if (r.words !== undefined && (!object(r.words) || !Object.values(r.words).every(v => v === 1))) fail();
@@ -321,7 +337,7 @@ const LearningCore = (() => {
   }
   function portable(state, legacyKeys) {
     const o = validate(state, legacyKeys), result = {format:"shadowfox-progress",exportedAt:new Date().toISOString()};
-    for (const k of ["v","goal","streak","days","w","modes","hard","ach","stats","journey","companion","thematic"]) if (o[k] !== undefined) result[k] = o[k];
+    for (const k of ["v","goal","streak","days","w","modes","hard","ach","stats","journey","companion","thematic","placement"]) if (o[k] !== undefined) result[k] = o[k];
     if(result.journey)delete result.journey.plan;
     return result;
   }
@@ -333,6 +349,6 @@ const LearningCore = (() => {
     o.set = JSON.parse(JSON.stringify(current.set || {auto:true}));
     return o;
   }
-  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,empty,migrate,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
+  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,knownEntry,assumeKnown,empty,migrate,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
 })();
 if (typeof module !== "undefined") module.exports = LearningCore;

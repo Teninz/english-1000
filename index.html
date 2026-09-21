@@ -486,8 +486,8 @@ function grade(i, ok, mode, assisted = false){
   touchStreak();save();checkAch("grade",{i});
 }
 function introduce(i, known){
-  if(!W(i)) { S.w[wk(i)] = {box: known?6:0, due: addDays(today(), known?60:0), ok:0, bad:0}; dayRec().n++; touchStreak(); }
-  else if(known){ W(i).box = 6; W(i).due = addDays(today(),60); }
+  if(!W(i)) { S.w[wk(i)] = known ? LearningCore.knownEntry(today(), addDays) : {box:0, due:today(), ok:0, bad:0}; dayRec().n++; touchStreak(); }
+  else if(known){ Object.assign(W(i), LearningCore.knownEntry(today(), addDays), {ok:W(i).ok, bad:W(i).bad}); }
   save(); checkAch("introduce", {i}); if(!known && typeof dailyEvent==="function") dailyEvent("learn");
 }
 const allIdx = () => WORDS.map((_,i)=>i);
@@ -682,6 +682,7 @@ function renderLearn(){
       <h2 style="font-size:20px;margin:4px 0 12px">Порция из ${batch||5} слов</h2>
       <p class="small muted">Сначала карточки — слово, перевод, пример и озвучка. Потом сразу короткая проверка этой же порции: так слово попадает в память дважды.</p>
     </section>
+    ${!S.placement && startedList().length < 60 ? `<section class="card"><div class="eyebrow">Уже знаешь английский?</div><p class="small muted" style="margin:6px 0 10px">Выбери стартовый уровень и пройди короткую проверку из 15 слов — простые уровни отметятся как известные, и начинать можно будет с нужного места.</p><button class="btn secondary block" id="placementBtn">Выбрать стартовый уровень</button></section>` : ""}
     <section class="card">
       <div class="eyebrow" style="margin-bottom:10px">Уровень и блок</div>
       ${tilesHtml(learnBlock)}
@@ -692,6 +693,47 @@ function renderLearn(){
   `;
   wireTiles(l => { learnBlock = l; renderLearn(); });
   $("#startLearn").onclick = () => startLearnBatch(blockUnstarted(learnBlock).slice(0,5));
+  if($("#placementBtn")) $("#placementBtn").onclick = placementSheet;
+}
+/* ---------- Стартовая проверка: выбор уровня и 15 вопросов ---------- */
+const placementLevels = () => PROGRAM_LEVELS.filter(L => L.total && L.blocks.length);
+function placementSheet(){
+  const cur = S.placement ? S.placement.level : null;
+  sheet(`<div class="row between"><h2>Стартовый уровень</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
+    <p class="small muted">Выбери уровень, с которого хочешь начать. Для A2 и выше будет проверка из 15 слов этого уровня: при 12 верных ответах все слова более простых уровней отметятся как известные (их всё равно проверим позже в повторениях).</p>
+    <div class="modes">${placementLevels().map((L,k) => `<button class="mode" data-lv="${k}"><span class="ic-zone"><span class="ic" style="font-family:var(--word);font-size:18px">${L.title}</span></span><span class="grow"><b>${esc(L.name)}</b><span>${k===0?"С самого начала, без проверки":`Проверка из 15 слов уровня ${L.title}`}${cur===L.id?" · выбран сейчас":""}</span></span></button>`).join("")}</div>`);
+  document.querySelectorAll("[data-lv]").forEach(b => b.onclick = () => { closeSheet(); startPlacement(+b.dataset.lv); });
+}
+function startPlacement(levelIdx){
+  if(levelIdx===0){ placementApply(0, 0, []); return; }
+  const pool = PROGRAM_LEVELS[levelIdx].blocks.flatMap(b=>b.ids), picked = sample(pool, 15);
+  startSession({title:`Стартовая проверка · ${PROGRAM_LEVELS[levelIdx].title}`, items: picked.map((i,k)=>({i, kind: k<10?"mc":"rev"})), mode:"placement"});
+  sess.placementLevel = levelIdx;
+}
+function placementFinish(){
+  inSession = false; const levelIdx = sess.placementLevel, L = PROGRAM_LEVELS[levelIdx], ok = sess.res.filter(x=>x.ok), pct = Math.round(100*ok.length/sess.res.length), passed = ok.length >= 12;
+  const wrong = sess.res.filter(x=>!x.ok);
+  view().innerHTML = `
+    <section class="card" style="text-align:center;padding:26px 16px"><div class="eyebrow">Стартовая проверка · ${L.title}</div>
+      <div style="font-family:var(--word);font-size:56px;font-weight:600;line-height:1;margin:10px 0 6px" class="num">${pct}%</div>
+      <p class="muted">${ok.length} из ${sess.res.length} · ${passed ? `уровень ${L.title} подтверждён` : `для уровня ${L.title} пока рано`}</p></section>
+    ${wrong.length?`<section class="card"><div class="eyebrow" style="margin-bottom:10px">Не узнал</div><div class="res-list">${wrong.map(x=>`<div class="res-item"><span class="w">${esc(WORDS[x.i][0])}</span><span class="grow small muted">${esc(WORDS[x.i][1])}</span></div>`).join("")}</div></section>`:""}
+    ${passed
+      ? `<p class="small muted" style="text-align:center">Слова уровней ${PROGRAM_LEVELS.slice(0,levelIdx).map(x=>x.title).join(", ")} отметятся как известные и будут понемногу проверяться в повторениях. Учить начнём с ${L.title}.</p><div class="grid2"><button class="btn secondary" id="plRetry">Другой уровень</button><button class="btn" id="plApply">Начать с ${L.title}</button></div>`
+      : `<p class="small muted" style="text-align:center">Можно начать с уровня ${PROGRAM_LEVELS[levelIdx-1].title}${levelIdx>1?` (уровни ниже отметятся как известные)`:""} или попробовать ещё раз с другими словами.</p><div class="grid2"><button class="btn secondary" id="plRetry">Ещё раз</button><button class="btn" id="plLower">Начать с ${PROGRAM_LEVELS[levelIdx-1].title}</button></div>`}`;
+  $("#plRetry").onclick = passed ? placementSheet : () => startPlacement(levelIdx);
+  if($("#plApply")) $("#plApply").onclick = () => placementApply(levelIdx, pct, ok.map(x=>x.i));
+  if($("#plLower")) $("#plLower").onclick = () => placementApply(levelIdx-1, pct, []);
+}
+// Отмечает известными все слова уровней ниже стартового и верно узнанные слова проверки; текущий блок — первый блок стартового уровня.
+function placementApply(levelIdx, score, knownIdx){
+  const keys = PROGRAM_LEVELS.slice(0, levelIdx).flatMap(L => L.blocks.flatMap(b => b.ids)).concat(knownIdx).map(wk);
+  const added = LearningCore.assumeKnown(S, keys, today(), addDays);
+  S.placement = {level: PROGRAM_LEVELS[levelIdx].id, day: today(), score};
+  const first = PROGRAM_LEVELS[levelIdx].blocks.find(b => b.ids.some(i=>!W(i))) || PROGRAM_LEVELS[levelIdx].blocks[0];
+  learnBlock = BLOCKS.indexOf(first); save();
+  toast(added ? `Отмечено известными: ${plural(added,"слово","слова","слов")}` : `Стартовый уровень: ${PROGRAM_LEVELS[levelIdx].title}`);
+  go("learn");
 }
 // сегменты уровней A1–B2 и «Доп.», под ними плитки блоков выбранного уровня с полоской прогресса и название выбранного блока
 function tilesHtml(cur){
@@ -836,6 +878,7 @@ function wireFlags(root){ (root||document).querySelectorAll("[data-flag]").forEa
 var buzz = ok => { try{ navigator.vibrate && navigator.vibrate(ok ? 12 : [40,40,40]); }catch(e){} };
 function record(i, ok, kind, assisted = false){
   const retry = !!sess.items[sess.k]?.retry;
+  if(sess.mode==="placement"){ sess.res.push({i,ok,kind,retry:false}); buzz(ok); return; } // стартовая проверка ничего не оценивает
   sess.res.push({i,ok,kind,retry}); grade(i,ok,kind,assisted); buzz(ok);
   if(!retry)journeyRecord(i,ok);
   if(!ok && !journeyRunning && kind!=="pairs" && !sess.retried[i]){
@@ -846,7 +889,7 @@ function record(i, ok, kind, assisted = false){
 }
 function feedback(box, ok, i, extra){
   const w = WORDS[i];
-  const fb = el(`<div class="fb ${ok?"ok":"no"}"><div class="grow"><b>${ok?"Верно":"Неверно"}</b><div class="ans">${esc(w[0])} <small>— ${esc(w[1])}</small></div>${extra?`<div class="small muted">${extra}</div>`:""}${ok?"":`<div class="small" style="margin-top:4px;color:var(--ink);opacity:.85">${hl(w[3], w[0])}<br><span class="muted">${esc(EX_RU[w[0]]||"")}</span></div>`}</div><div style="display:flex;flex-direction:column;gap:6px">${flagBtn(i)}<button class="speak" style="width:40px;height:40px" aria-label="Озвучить">${ICONS.sound.replace("<svg","<svg width=20 height=20")}</button></div></div>`);
+  const fb = el(`<div class="fb ${ok?"ok":"no"}"><div class="grow"><b>${ok?"Верно":"Неверно"}</b><div class="ans">${esc(w[0])} <small>— ${esc(w[1])}</small></div>${extra?`<div class="small muted">${extra}</div>`:""}${ok?"":`<div class="small" style="margin-top:4px;color:var(--ink);opacity:.85">${hl(w[3], w[0])}<br><span class="muted">${esc(w[4]||"")}</span></div>`}</div><div style="display:flex;flex-direction:column;gap:6px">${flagBtn(i)}<button class="speak" style="width:40px;height:40px" aria-label="Озвучить">${ICONS.sound.replace("<svg","<svg width=20 height=20")}</button></div></div>`);
   fb.querySelector(".speak").onclick = () => speak(w[0]); wireFlags(fb);
   box.appendChild(fb);
   const btn = el(`<button class="btn block" style="margin-top:12px">Дальше</button>`);
@@ -976,6 +1019,7 @@ function qPron(box, it){
   };
 }
 function showResults(){
+  if(sess.mode==="placement"){ placementFinish(); return; }
   inSession = false; const firstResults=sess.res.filter(x=>!x.retry); maybeCompleteLesson(firstResults); checkAch("session", {mode: sess.mode, res: firstResults, ms: Date.now() - (sess.t0||Date.now()), road: sess.after === "road"}); dailyEvent("session", {mode: sess.mode, res: firstResults, road: sess.after === "road"});
   const r = firstResults, ok = r.filter(x=>x.ok).length, pct = r.length ? Math.round(100*ok/r.length) : 0;
   const wrong = r.filter(x=>!x.ok);
@@ -1200,6 +1244,7 @@ function settingsSheet(){
   const started = startedList().length;
   sheet(`
     <div class="row between"><h2>Настройки</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
+    <div class="set-row"><span>Стартовый уровень</span><button class="btn ghost small" id="placementRow">${S.placement ? S.placement.level+" · изменить" : "не выбран"}</button></div>
     <div class="set-row"><span>Слов в практике за день</span><div class="seg" style="width:200px" id="goalSeg">${[5,10,15,20].map(g=>`<button class="${S.goal===g?"on":""}" data-g="${g}">${g}</button>`).join("")}</div></div>
     <div class="set-row"><span>Ежедневное напоминание</span><div class="row" style="gap:8px"><input type="time" id="remindTime" value="${S.set.remind||"19:00"}" class="sel" style="width:110px;padding:8px 10px" ${S.set.remind?"":"disabled"}><button class="toggle ${S.set.remind?"on":""}" id="tRemind" aria-label="Напоминание"></button></div></div>
     ${(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())?"":'<p class="small muted" style="margin-top:-6px">Напоминания работают только в установленном приложении.</p>'}
@@ -1219,6 +1264,7 @@ function settingsSheet(){
     <div class="set-row"><span>О приложении</span><button class="btn ghost" id="aboutBtn">Версия ${APP_VERSION} ›</button></div>
     <div class="set-row"><span class="small muted">Распознавание речи: ${canListen()?"есть":"нет"}.</span><button class="btn ghost" id="reset" style="color:var(--bad)">Сбросить всё</button></div>
   `);
+  $("#placementRow").onclick = () => { closeSheet(); placementSheet(); };
   $("#goalSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.goal=+b.dataset.g; save(); settingsSheet(); });
   $("#tAuto").onclick = () => { S.set.auto=!S.set.auto; save(); settingsSheet(); };
   $("#tRemind").onclick = () => { S.set.remind = S.set.remind ? null : ($("#remindTime").value || "19:00"); save(); if(window.scheduleReminder) scheduleReminder(); settingsSheet(); };

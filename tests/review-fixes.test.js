@@ -190,3 +190,29 @@ test('слова, выбывшие из маршрута, вычищаются �
   assert.deepEqual(Object.keys(parsed.words),['planet']);assert.deepEqual(Object.keys(parsed.introduced),['planet']);assert.equal(parsed.exam.active,null);
   assert.equal(run('thematicIntroduced("space")'),1);
 });
+
+test('стартовая проверка: ничего не оценивает, при 12 верных отмечает нижние уровни известными с разнесёнными датами',()=>{
+  const {run,ctx}=app();
+  assert.deepEqual(JSON.parse(run('JSON.stringify(LearningCore.knownEntry("2026-09-21",addDays))')),{box:5,due:'2026-10-05',ok:0,bad:0,known:1});
+  run('startPlacement(2)');
+  assert.equal(run('sess.mode'),'placement');assert.equal(run('sess.items.length'),15);
+  assert.equal(run('sess.items.every(it=>levelOf(it.i)===2)'),true,'слова только уровня B1');
+  run('record(sess.items[0].i,false,"mc")');
+  assert.equal(run('Object.keys(S.w).length'),0,'ответ не попадает в прогресс');assert.equal(run('sess.items.length'),15,'без повтора ошибки');
+  run('for(let k=1;k<15;k++)record(sess.items[k].i,k<13,"mc")');
+  run('toast=()=>{};go=()=>{};sess.k=15;showResults()');
+  assert.equal(run('sess.placementLevel'),2);assert.equal(run('inSession'),false);
+  assert.match(run('document.querySelector("#view").innerHTML'),/уровень B1 подтверждён/);
+  run('placementApply(2,80,sess.res.filter(x=>x.ok).map(x=>x.i))');
+  const below=run('PROGRAM_LEVELS[0].blocks.concat(PROGRAM_LEVELS[1].blocks).reduce((n,b)=>n+b.ids.length,0)');
+  assert.equal(run('Object.keys(S.w).length'),below+12);
+  assert.equal(run('Object.values(S.w).every(r=>r.box===6&&r.known===1&&r.due>=addDays(today(),30)&&r.due<=addDays(today(),120))'),true);
+  assert.equal(run('S.placement.level'),'B1');assert.equal(run('levelOf(BLOCKS[learnBlock].ids[0])'),2);
+  assert.equal(run('LearningCore.assumeKnown(S,[wk(0)],today(),addDays)'),0,'начатое слово не перезаписывается');
+  assert.doesNotThrow(()=>run('LearningCore.validate(JSON.parse(JSON.stringify(S)))'));
+  const confirmed=core.schedule({box:6,due:'2026-09-21',ok:0,bad:0,known:1},true,'2026-09-21',add);
+  assert.equal(confirmed.known,undefined,'самостоятельный ответ снимает пометку');
+  assert.equal(core.schedule({box:6,due:'2026-09-21',ok:0,bad:0,known:1},true,'2026-09-21',add,true).known,1,'ответ с подсказкой — нет');
+  assert.ok(JSON.parse(run('JSON.stringify(LearningCore.portable(S))')).placement);
+});
+
