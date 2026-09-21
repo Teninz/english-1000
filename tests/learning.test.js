@@ -373,7 +373,8 @@ test('домик показывает не больше трёх предмет�
   const html=run('foxStageHtml(foxCurrent(),0,"Фокс")');
   assert.ok(html.includes('fox-item-lamp')&&html.includes('fox-item-books')&&html.includes('fox-item-cushion'));
   assert.ok(html.indexOf('fox-item-cushion')<html.indexOf('fox-actor'),'подушка находится под лисом');
-  assert.ok(read('companion.css').includes('.fox-item-garland{left:-17%;top:-5%;width:134%}'),'края гирлянды уходят за сцену');
+  assert.ok(read('companion.css').includes('.fox-item-garland{left:-17%;top:-5%;width:134%;'),'края гирлянды уходят за сцену');
+  assert.ok(read('companion.css').includes('.fox-item-books{right:2%;bottom:12%;width:31%;--fox-item-blur:1.05px}'),'книги стоят дальше и размыты сильнее остальных');
   assert.ok(read('companion.css').includes('.fox-actor{position:absolute;left:50%;bottom:7%;z-index:3;height:74%'),'лис приближен к зрителю');
   const state=core.empty();state.companion=core.petEmpty();state.companion.decor={active:['lamp','books','cushion'],known:['lamp','books','blanket','cushion']};
   assert.deepEqual(core.prepareImport(core.portable(state),core.empty()).companion.decor,state.companion.decor);

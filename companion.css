@@ -26,18 +26,18 @@ body.fox-drawer-open #overlay .scrim{z-index:60}
 /* Предметы домика: фиксированные зоны сохраняют глубину и не дают вещам наезжать друг на друга. */
 .fox-items{position:absolute;inset:0;pointer-events:none;overflow:visible}
 .fox-items-back{z-index:1}.fox-items-front{z-index:4}
-.fox-item{position:absolute;display:block;width:auto;height:auto;max-width:none;object-fit:contain;filter:drop-shadow(0 5px 6px #09060466)}
-.fox-item-garland{left:-17%;top:-5%;width:134%}
-.fox-item-painting{left:-4%;top:10%;width:32%}
-.fox-item-lamp{left:-2%;bottom:9%;width:29%}
+.fox-item{--fox-item-blur:0px;position:absolute;display:block;width:auto;height:auto;max-width:none;object-fit:contain;filter:blur(var(--fox-item-blur)) drop-shadow(0 5px 6px #09060466)}
+.fox-items-back .fox-item{--fox-item-blur:.45px}
+.fox-item-garland{left:-17%;top:-5%;width:134%;--fox-item-blur:.55px}
+.fox-item-painting{left:2%;top:8%;width:23%;--fox-item-blur:.75px;transform:rotate(-4deg);opacity:.92}
+.fox-item-lamp{left:1%;bottom:15%;width:25%;--fox-item-blur:.65px}
 .fox-item-tea{left:2%;bottom:1%;width:27%}
-.fox-item-books{right:-1%;bottom:7%;width:36%}
-.fox-item-plant{right:-2%;bottom:15%;width:33%}
-.fox-item-blanket{left:8%;bottom:-5%;width:84%}
-.fox-item-cushion{left:5%;bottom:-12%;width:90%}
-.fox-stage.has-cushion .fox-actor{bottom:10%}
+.fox-item-books{right:2%;bottom:12%;width:31%;--fox-item-blur:1.05px}
+.fox-item-plant{right:-1%;bottom:17%;width:30%;--fox-item-blur:.75px}
+.fox-item-blanket{left:8%;bottom:-5%;width:84%;--fox-item-blur:.15px}
+.fox-item-cushion{left:25%;bottom:13%;width:58%;--fox-item-blur:.8px;opacity:.94}
 .fox-stage.has-blanket .fox-actor{bottom:8%}
-.fox-stage.has-cushion .fox-actor::before,.fox-stage.has-blanket .fox-actor::before{opacity:.55}
+.fox-stage.has-blanket .fox-actor::before{opacity:.55}
 /* без кроссфейда: два полупрозрачных края друг над другом дают ореол; переключение идёт жёстко на кадре покоя */
 .fox-clip{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;filter:sepia(.14) saturate(1.05) drop-shadow(0 5px 7px #0007);background:transparent;opacity:0}
 .fox-clip.on{opacity:1}
