@@ -251,3 +251,19 @@ test('нагрузка занятия по результатам и показ�
   assert.match(run('journeyHeroHtml()'),/повторить 12/);assert.match(run('journeyHeroHtml()'),/~4 мин/);
 });
 
+test('возвращение после перерыва раскладывает просроченные повторения по дням, ничего не теряя',()=>{
+  const w={};for(let k=0;k<40;k++)w['w'+k]={box:3,due:add('2026-09-01',k%10),ok:2,bad:0};
+  const r=core.spreadBacklog(w,'2026-09-21',add,15);
+  assert.deepEqual(r,{moved:25,days:3});
+  assert.equal(Object.values(w).filter(x=>x.due==='2026-09-21').length,15);
+  assert.equal(Object.values(w).filter(x=>x.due==='2026-09-22').length,15);
+  assert.equal(Object.values(w).filter(x=>x.due==='2026-09-23').length,10);
+  assert.ok(Object.values(w).every(x=>x.box===3&&x.ok===2),'ячейки и статистика не тронуты');
+  const {run}=app();
+  run('for(let k=0;k<40;k++)S.w[wk(k)]={box:3,due:"2026-08-01",ok:2,bad:0};S.days["2026-08-01"]={n:5,q:10,ok:9,bad:1};S.ach={fixed10:"2026-08-01"};S.streak={n:3,last:"2026-08-01"};');
+  run(read('index.html').slice(read('index.html').indexOf('function comebackCheck()'),read('index.html').indexOf('function comebackCardHtml()')));run('comebackCheck()');
+  assert.equal(run('dueList().length'),15,'сегодня посильная порция');assert.equal(run('S.stats.comeback.overdue'),40);
+  assert.equal(run('S.ach.fixed10'),'2026-08-01','награды на месте');
+  run('comebackCheck()');assert.equal(run('dueList().length'),15,'повторный вызов в тот же день ничего не меняет');
+});
+

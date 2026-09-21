@@ -84,6 +84,13 @@ const LearningCore = (() => {
   const lessonMinutes = (review, fresh, repair = 0) => Math.max(1, Math.ceil((review*20 + fresh*45 + repair*15) / 60));
   // Слова, которые регулярно забываются: не меньше трёх ошибок и ячейка не выше 2.
   const forgottenKeys = (w, limit = 5) => Object.entries(w).filter(([,r]) => r.bad >= 3 && r.box <= 2).sort((a,b) => b[1].bad - a[1].bad).slice(0, limit).map(([k]) => k);
+  // Возвращение после перерыва: просроченные повторения распределяются по ближайшим дням (perDay в день),
+  // самые давние — первыми; сегодня остаётся посильная порция. Ничего не удаляется и не сбрасывается.
+  function spreadBacklog(w, day, addDays, perDay = 15) {
+    const overdue = Object.entries(w).filter(([,r]) => r.due < day).sort((a,b) => a[1].due.localeCompare(b[1].due));
+    overdue.forEach(([,r], k) => { r.due = addDays(day, Math.floor(k / perDay)); });
+    return {moved: Math.max(0, overdue.length - perDay), days: overdue.length ? Math.ceil(overdue.length / perDay) : 0};
+  }
   const empty = () => ({v:3,goal:10,streak:{n:0,last:null},days:{},w:{},modes:{},hard:{},set:{auto:true},thematic:thematicEmpty()});
   // Перенос прогресса прежнего курса (v2, ключ — слово) на ключи программы (v3, «слово|часть речи»).
   // legacyKeys: {слово: новый ключ}; слово без соответствия сохраняет прежний ключ, чтобы ничего не потерять.
@@ -362,6 +369,6 @@ const LearningCore = (() => {
     o.set = JSON.parse(JSON.stringify(current.set || {auto:true}));
     return o;
   }
-  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,knownEntry,assumeKnown,dailyLoad,lessonMinutes,forgottenKeys,empty,migrate,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
+  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,knownEntry,assumeKnown,dailyLoad,lessonMinutes,forgottenKeys,spreadBacklog,empty,migrate,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
 })();
 if (typeof module !== "undefined") module.exports = LearningCore;

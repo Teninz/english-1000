@@ -630,6 +630,7 @@ function renderHome(){
         </div>
       </div>
     </section>
+    ${comebackCardHtml()}
     ${journeyHeroHtml()}
     ${loadCardHtml()}
     <div class="grid2">
@@ -1311,6 +1312,23 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&companionDrawerOpen
 
 /* ---------- старт ---------- */
 load();
+// Бережное возвращение: после перерыва от недели накопившиеся повторения раскладываются по дням, награды и настроение лисы не трогаем.
+function comebackCheck(){
+  const days = Object.keys(S.days).filter(d => (S.days[d].n||0)+(S.days[d].q||0) > 0).sort(), last = S.stats?.lastActive && (!days.length || S.stats.lastActive > days[days.length-1]) ? S.stats.lastActive : days[days.length-1];
+  if(!last) return;
+  const gap = Math.round((new Date(today()+"T12:00:00") - new Date(last+"T12:00:00")) / 864e5);
+  if(gap < 7 || S.stats?.comeback?.day === today()) return;
+  const overdue = dueList().filter(i => W(i).due < today()).length;
+  if(overdue <= 30) return;
+  const spread = LearningCore.spreadBacklog(S.w, today(), addDays, 15);
+  S.stats = S.stats || {}; S.stats.comeback = {day: today(), gap, overdue, days: spread.days};
+  save();
+}
+function comebackCardHtml(){
+  const c = S.stats?.comeback; if(!c || c.day !== today()) return "";
+  return `<section class="card" id="comebackCard"><div class="eyebrow">С возвращением</div><p style="margin:6px 0 0">Тебя не было ${plural(c.gap,"день","дня","дней")}, накопилось ${plural(c.overdue,"слово","слова","слов")} на повторение. Сегодня — короткое занятие с самыми давними, остальные разложены на ${plural(c.days,"день","дня","дней")}. Награды и прогресс на месте.</p></section>`;
+}
+comebackCheck();
 // демо-режим для скриншотов магазина: ?demo=1&screen=… — данные не сохраняются
 const qsDemo = new URLSearchParams(location.search);
 if(qsDemo.get("zoom")) document.documentElement.style.zoom = qsDemo.get("zoom");
