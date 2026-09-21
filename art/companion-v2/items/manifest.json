@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "style": "warm autumn forest, soft painterly 3D illustration",
+  "items": [
+    {
+      "id": "lamp",
+      "file": "lamp.png",
+      "title": "Лесной фонарь",
+      "achievement": "fixed10"
+    },
+    {
+      "id": "books",
+      "file": "books.png",
+      "title": "Книги",
+      "achievement": "fixed100"
+    },
+    {
+      "id": "blanket",
+      "file": "blanket.png",
+      "title": "Тёплый плед",
+      "achievement": "streak7"
+    },
+    {
+      "id": "plant",
+      "file": "plant.png",
+      "title": "Лесной папоротник",
+      "achievement": "levelA1"
+    },
+    {
+      "id": "garland",
+      "file": "garland.png",
+      "title": "Осенняя гирлянда",
+      "achievement": "weekly4"
+    },
+    {
+      "id": "painting",
+      "file": "painting.png",
+      "title": "Картина леса",
+      "achievement": "fixed300"
+    },
+    {
+      "id": "cushion",
+      "file": "cushion.png",
+      "title": "Подушка",
+      "achievement": "solved"
+    },
+    {
+      "id": "tea",
+      "file": "tea.png",
+      "title": "Вечерний чай",
+      "foxMark": "fourteen"
+    }
+  ]
+}
