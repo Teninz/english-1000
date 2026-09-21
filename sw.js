@@ -1,10 +1,11 @@
 // Новая версия активируется только после полной загрузки обязательных файлов.
-const CACHE = "shadowfox-v21";
+const CACHE = "shadowfox-v22";
 importScripts("./art/companion-v2/manifest.js");
 // В предзагрузку сайта идут только постеры и манифест; клипы (.webm) кэшируются при первом показе.
 const FOX_ASSETS = ["./art/companion-v2/handle.png","./art/companion-v2/manifest.js",
   ...Object.entries(FOX_PACK.foxes).flatMap(([fox,f])=>[`./art/companion-v2/${fox}/poster.webp`,...(f.clips.sleep?[`./art/companion-v2/${fox}/poster-sleep.webp`]:[])]),
-  ...Object.keys(FOX_PACK.scene.periods).map(period=>`./art/companion-v2/scene/${period}.webp`)];
+  ...Object.keys(FOX_PACK.scene.periods).map(period=>`./art/companion-v2/scene/${period}.webp`),
+  ...["lamp","books","blanket","plant","garland","painting","cushion","tea"].map(item=>`./art/companion-v2/items/${item}.png`)];
 const FILES = ["./", "./index.html", "./learning-core.js", "./word-forms.js", "./progress-storage.js", "./fox-motion.js", "./journey.js", "./companion.css", "./thematic.css", "./thematic.js", "./words-a.js", "./words-b.js", "./ex-ru.js", "./thematic-data.js", "./word-levels.js", "./oxford-a1.js", "./oxford-a2.js", "./oxford-b1.js", "./oxford-b2.js", "./words-extra.js", "./program.js", "./scenes.js", "./tts.js", "./ach.js", "./daily.js", "./about.js", "./native.js", "./manifest.json", "./privacy.html", "./icons/icon-192.png", "./icons/icon-512.png", "./art/logo.png", "./art/shadowfox.png", ...FOX_ASSETS];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(()=>self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("shadowfox-") && k !== CACHE).map(k => caches.delete(k)))).then(()=>self.clients.claim())); });

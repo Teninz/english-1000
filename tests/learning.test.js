@@ -347,8 +347,10 @@ test('выбор лисы и постоянное имя переживают с
   assert.throws(()=>core.prepareImport({...core.portable(s),companion:{...s.companion,fox:'05-unknown'}},core.empty()));
   const legacy=core.prepareImport({...core.portable(s),companion:{completed:{},fed:0,pets:0}},core.empty());
   assert.equal(legacy.companion.fox,null);assert.equal(legacy.companion.adopted,null);
+  s.companion.decor={active:['lamp'],known:['lamp']};
   const native={completed:{},fed:1,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null,identity:core.petIdentity({sex:'male',name:'Фокс'})};
   const kept=core.petKeepChoice(native,s.companion);assert.equal(kept.fox,'04-boy-bold');assert.equal(kept.adopted,'2026-09-16');
+  assert.deepEqual(kept.decor,{active:['lamp'],known:['lamp']},'старая родная синхронизация не удаляет оформление домика');
   assert.equal(core.petAction(s.companion,'pet','2026-09-16').state.fox,'04-boy-bold');
   const run=app();
   assert.equal(run('S.companion=LearningCore.petEmpty();foxReady()'),false);
@@ -359,7 +361,23 @@ test('выбор лисы и постоянное имя переживают с
   assert.equal(run('companionChooserHtml()').includes('fox-option locked'),false);
   assert.ok(run('companionChooserHtml()').includes('fox-sex male'));assert.ok(run('companionChooserHtml()').includes('id="foxChooseName"'));
   assert.equal(run('companionCardHtml()').includes('Бета-версия компаньона'),false);
-  assert.equal(read('journey.js').includes('HOUSE_ITEMS'),false,'предметы окружения рисует автор отдельно');
+  assert.ok(read('journey.js').includes('const FOX_ITEMS'),'предметы домика описаны как отдельные слои сцены');
+});
+test('домик показывает не больше трёх предметов и разводит конфликтующие вещи по зонам',()=>{
+  const run=app();
+  run('S.companion=LearningCore.petEmpty();S.companion.fox="04-boy-bold";S.companion.identity=LearningCore.petIdentity({sex:"male",name:"Фокс"});S.ach={fixed10:today(),fixed100:today(),streak7:today(),weekly4:today(),solved:today()};S.journey={completed:{},rewards:{fourteen:today()}};journeyState();');
+  assert.deepEqual(JSON.parse(run('JSON.stringify(foxDecorState().active)')),['lamp','books','blanket']);
+  assert.equal(run('foxToggleItem("garland")'),'limit','четвёртый предмет не добавляется');
+  assert.equal(run('foxToggleItem("cushion")'),'replaced','подушка заменяет плед в той же зоне');
+  assert.deepEqual(JSON.parse(run('JSON.stringify(foxDecorState().active)')),['lamp','books','cushion']);
+  const html=run('foxStageHtml(foxCurrent(),0,"Фокс")');
+  assert.ok(html.includes('fox-item-lamp')&&html.includes('fox-item-books')&&html.includes('fox-item-cushion'));
+  assert.ok(html.indexOf('fox-item-cushion')<html.indexOf('fox-actor'),'подушка находится под лисом');
+  assert.ok(read('companion.css').includes('.fox-item-garland{left:-17%;top:-5%;width:134%}'),'края гирлянды уходят за сцену');
+  assert.ok(read('companion.css').includes('.fox-actor{position:absolute;left:50%;bottom:7%;z-index:3;height:74%'),'лис приближен к зрителю');
+  const state=core.empty();state.companion=core.petEmpty();state.companion.decor={active:['lamp','books','cushion'],known:['lamp','books','blanket','cushion']};
+  assert.deepEqual(core.prepareImport(core.portable(state),core.empty()).companion.decor,state.companion.decor);
+  state.companion.decor.active.push('tea');assert.throws(()=>core.validate(state),/повреждена/,'сохранение не принимает больше трёх предметов');
 });
 test('эталонная цепочка имеет ровную абсолютную шкалу 20 FPS',()=>{
   const plan=JSON.parse(read('tools/companion-source/reference-chain-v1.motion.json'));

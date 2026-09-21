@@ -13,16 +13,31 @@ body.fox-drawer-open #overlay .scrim{z-index:60}
 .fox-drawer .fox-meeting{flex-direction:column;text-align:center;overflow:hidden}
 /* Сцена v2: лесной фон 16:9 показывается вырезом 4:5, лиса сидит в средней глубине перед световым пятном */
 .fox-stage{position:relative;width:100%;aspect-ratio:4/5;cursor:pointer;margin:2px 0 10px;border-radius:16px;overflow:hidden;background:#1a1d24;isolation:isolate}
-.fox-scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:66% 50%}
+.fox-scene{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;object-position:66% 50%}
 /* второй <video> сцены до переключения пуст: Android WebView рисует пустое видео серым с кнопкой Play поверх фона — прячем */
 .fox-scene:not(.on){opacity:0;pointer-events:none}
-/* клипы 04 квадратные 768×768 в padded-кадре: лиса ~72 % высоты кадра, лапы на ~86 % */
-.fox-actor{position:absolute;left:50%;bottom:13%;height:65%;aspect-ratio:1;transform:translateX(-50%)}
+/* Лис посажен ближе к зрителю; его лапы остаются на линии пола и крупных подстилок. */
+.fox-actor{position:absolute;left:50%;bottom:7%;z-index:3;height:74%;aspect-ratio:1;transform:translateX(-50%)}
 /* «Камера» чуть приближается, когда лиса ложится, и отдаляется при пробуждении; во сне фон остаётся приближенным.
    Длительность задаёт плеер через --fox-zoom-ms по длине клипа lie-down / wake-up. */
-.fox-scene{transform-origin:50% 78%;transition:transform var(--fox-zoom-ms,0ms) ease-in-out}
-.fox-stage[data-zoom="in"] .fox-scene{transform:scale(1.14)}
+.fox-scene,.fox-items{transform-origin:50% 78%;transition:transform var(--fox-zoom-ms,0ms) ease-in-out}
+.fox-stage[data-zoom="in"] .fox-scene,.fox-stage[data-zoom="in"] .fox-items{transform:scale(1.14)}
 .fox-actor::before{content:"";position:absolute;left:14%;right:12%;bottom:8%;height:8%;border-radius:50%;background:radial-gradient(closest-side,#0a0603aa,transparent);z-index:0}
+/* Предметы домика: фиксированные зоны сохраняют глубину и не дают вещам наезжать друг на друга. */
+.fox-items{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.fox-items-back{z-index:1}.fox-items-front{z-index:4}
+.fox-item{position:absolute;display:block;width:auto;height:auto;max-width:none;object-fit:contain;filter:drop-shadow(0 5px 6px #09060466)}
+.fox-item-garland{left:-17%;top:-5%;width:134%}
+.fox-item-painting{left:-4%;top:10%;width:32%}
+.fox-item-lamp{left:-2%;bottom:9%;width:29%}
+.fox-item-tea{left:2%;bottom:1%;width:27%}
+.fox-item-books{right:-1%;bottom:7%;width:36%}
+.fox-item-plant{right:-2%;bottom:15%;width:33%}
+.fox-item-blanket{left:8%;bottom:-5%;width:84%}
+.fox-item-cushion{left:5%;bottom:-12%;width:90%}
+.fox-stage.has-cushion .fox-actor{bottom:10%}
+.fox-stage.has-blanket .fox-actor{bottom:8%}
+.fox-stage.has-cushion .fox-actor::before,.fox-stage.has-blanket .fox-actor::before{opacity:.55}
 /* без кроссфейда: два полупрозрачных края друг над другом дают ореол; переключение идёт жёстко на кадре покоя */
 .fox-clip{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;filter:sepia(.14) saturate(1.05) drop-shadow(0 5px 7px #0007);background:transparent;opacity:0}
 .fox-clip.on{opacity:1}
@@ -73,6 +88,13 @@ body.fox-drawer-open #overlay .scrim{z-index:60}
 .fox-rewards .card{display:flex;flex-direction:column;gap:8px;border:1px dashed var(--line);opacity:.65}
 .fox-rewards .earned{border:1px solid var(--accent);opacity:1}
 .reward-icon{font-size:32px}
+.fox-items-title{margin:18px 0 10px}.fox-marks-title{margin:24px 0 4px}
+.fox-item-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fox-item-card{display:grid;grid-template-rows:auto auto 1fr;gap:6px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.fox-item-card.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.fox-item-card.locked{opacity:.52;cursor:default}.fox-item-card b{font-size:14px}.fox-item-card small{color:var(--muted);line-height:1.3}
+.fox-item-thumb{display:grid;place-items:center;height:92px;overflow:hidden;border-radius:10px;background:radial-gradient(circle at 65% 35%,#dca55a33,transparent 62%),#161a1d}
+.fox-item-thumb img{display:block;width:88%;height:88%;object-fit:contain;filter:drop-shadow(0 3px 4px #0008)}
 .fox-finish{width:160px;height:170px;align-self:center}
 .progress-accordion{padding:0;overflow:hidden}.progress-accordion summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;cursor:pointer;list-style:none}.progress-accordion summary::-webkit-details-marker{display:none}.progress-accordion summary>span{display:flex;flex-direction:column;gap:4px}.progress-accordion summary>strong{color:var(--accent)}
 .progress-accordion[open] summary{border-bottom:1px solid var(--line)}.progress-body{display:grid;gap:22px;padding:18px}.progress-overview{display:flex;align-items:center;gap:20px}.progress-donut{width:112px;aspect-ratio:1;border-radius:50%;background:conic-gradient(var(--accent) var(--done),var(--surface-2) 0);display:grid;place-items:center;position:relative;flex:none}.progress-donut:after{content:"";position:absolute;inset:12px;border-radius:50%;background:var(--surface)}.progress-donut span{position:relative;z-index:1;text-align:center;display:flex;flex-direction:column}.progress-donut b{font-size:23px}.progress-donut small{color:var(--muted)}

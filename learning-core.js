@@ -134,12 +134,14 @@ const LearningCore = (() => {
     {id:"02-girl-warm",sex:"female",title:"Тёплая",available:false}
   ];
   const petFox = id => petFoxes.find(f=>f.id===id) || null;
-  const petEmpty = () => ({completed:{},fed:0,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null,identity:petIdentityEmpty(),fox:null,adopted:null});
+  const petDecorIds = ["lamp","books","blanket","plant","garland","painting","cushion","tea"];
+  const petEmpty = () => ({completed:{},fed:0,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null,identity:petIdentityEmpty(),fox:null,adopted:null,decor:{active:[],known:[]}});
   // Родное хранилище Android возвращает только известные ему поля: выбор лисы и дата встречи переносятся из прежнего снимка.
   function petKeepChoice(next, previous) {
     if(!object(next))return next;
     if(next.fox===undefined&&previous?.fox)next.fox=previous.fox;
     if(next.adopted===undefined&&previous?.adopted)next.adopted=previous.adopted;
+    if(next.decor===undefined&&previous?.decor)next.decor=previous.decor;
     return next;
   }
   const petSex = pet => petIdentity(pet?.identity).sex;
@@ -318,6 +320,12 @@ const LearningCore = (() => {
       if(o.companion.adopted!==undefined&&o.companion.adopted!==null&&!dateOK(o.companion.adopted))fail();
       if(o.companion.fox===undefined)o.companion.fox=null;
       if(o.companion.adopted===undefined)o.companion.adopted=null;
+      const decor=o.companion.decor;
+      if(decor!==undefined){
+        if(!object(decor)||!Array.isArray(decor.active)||!Array.isArray(decor.known)||decor.active.length>3||decor.known.length>petDecorIds.length)fail();
+        for(const list of [decor.active,decor.known])if(new Set(list).size!==list.length||!list.every(id=>petDecorIds.includes(id)))fail();
+      }
+      o.companion.decor=decor||{active:[],known:[]};
     }
     o.thematic=o.thematic||thematicEmpty();
     if(!object(o.thematic)||!object(o.thematic.settings)||!object(o.thematic.topics)||!object(o.thematic.equipmentRewards))fail();
@@ -369,6 +377,6 @@ const LearningCore = (() => {
     o.set = JSON.parse(JSON.stringify(current.set || {auto:true}));
     return o;
   }
-  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,knownEntry,assumeKnown,dailyLoad,lessonMinutes,forgottenKeys,spreadBacklog,empty,migrate,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
+  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,knownEntry,assumeKnown,dailyLoad,lessonMinutes,forgottenKeys,spreadBacklog,empty,migrate,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petDecorIds,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
 })();
 if (typeof module !== "undefined") module.exports = LearningCore;

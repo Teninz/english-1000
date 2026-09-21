@@ -6,6 +6,51 @@ const FOX_REWARDS = [
   {id:"fourteen",icon:"🫖",name:"Вечерний чай",desc:"Заниматься в четырнадцать разных дней",at:14},
   {id:"thirty",icon:"🏡",name:"Дом для лисы",desc:"Заниматься в тридцать разных дней",at:30}
 ];
+// Предметы занимают устойчивые места в сцене. В одной зоне может быть только одна вещь,
+// а вся композиция ограничена тремя предметами, чтобы домик не превращался в витрину.
+const FOX_ITEMS = [
+  {id:"lamp",name:"Лесной фонарь",slot:"floor-left",layer:"back",achievement:"fixed10",unlock:"Закрепить 10 слов"},
+  {id:"books",name:"Книги",slot:"floor-right",layer:"back",achievement:"fixed100",unlock:"Закрепить 100 слов"},
+  {id:"blanket",name:"Тёплый плед",slot:"seat",layer:"back",achievement:"streak7",unlock:"Заниматься 7 дней подряд"},
+  {id:"plant",name:"Лесной папоротник",slot:"floor-right",layer:"back",achievement:"levelA1",unlock:"Освоить уровень A1"},
+  {id:"garland",name:"Осенняя гирлянда",slot:"overhead",layer:"back",achievement:"weekly4",unlock:"Заниматься 4 дня из последних 7"},
+  {id:"painting",name:"Картина леса",slot:"overhead",layer:"back",achievement:"fixed300",unlock:"Закрепить 300 слов"},
+  {id:"cushion",name:"Большая подушка",slot:"seat",layer:"back",achievement:"solved",unlock:"Закрепить 10 сложных слов"},
+  {id:"tea",name:"Вечерний чай",slot:"floor-left",layer:"front",foxMark:"fourteen",unlock:"Заниматься в 14 разных дней"}
+];
+const FOX_ITEM_MAX = 3;
+const foxItem = id => FOX_ITEMS.find(item=>item.id===id);
+const foxItemUnlocked = item => !!(item&&(item.achievement?S.ach?.[item.achievement]:S.journey?.rewards?.[item.foxMark]));
+function foxDecorState(){
+  S.companion=S.companion||LearningCore.petEmpty();
+  const decor=S.companion.decor&&typeof S.companion.decor==="object"?S.companion.decor:(S.companion.decor={active:[],known:[]});
+  decor.active=Array.isArray(decor.active)?decor.active.filter((id,k,a)=>foxItem(id)&&a.indexOf(id)===k):[];
+  decor.known=Array.isArray(decor.known)?decor.known.filter((id,k,a)=>foxItem(id)&&a.indexOf(id)===k):[];
+  const used=new Set(), normalized=[];
+  for(const id of decor.active){const item=foxItem(id);if(!foxItemUnlocked(item)||used.has(item.slot)||normalized.length>=FOX_ITEM_MAX)continue;used.add(item.slot);normalized.push(id);}
+  decor.active=normalized;
+  // Новая награда сразу появляется в свободной зоне, если в композиции ещё есть место.
+  for(const item of FOX_ITEMS){
+    if(!foxItemUnlocked(item)||decor.known.includes(item.id))continue;
+    decor.known.push(item.id);
+    if(decor.active.length<FOX_ITEM_MAX&&!decor.active.some(id=>foxItem(id)?.slot===item.slot))decor.active.push(item.id);
+  }
+  return decor;
+}
+const foxActiveItems = () => foxDecorState().active.map(foxItem).filter(Boolean);
+function foxToggleItem(id){
+  const item=foxItem(id), decor=foxDecorState();
+  if(!foxItemUnlocked(item))return "locked";
+  if(decor.active.includes(id)){decor.active=decor.active.filter(value=>value!==id);save();return "off";}
+  const sameSlot=decor.active.find(value=>foxItem(value)?.slot===item.slot);
+  let next=decor.active.filter(value=>value!==sameSlot);
+  if(next.length>=FOX_ITEM_MAX)return "limit";
+  next.push(id);decor.active=next;save();return sameSlot?"replaced":"on";
+}
+function foxItemsHtml(layer){
+  const items=foxActiveItems().filter(item=>item.layer===layer);
+  return `<div class="fox-items fox-items-${layer}" aria-hidden="true">${items.map(item=>`<img class="fox-item fox-item-${item.id}" src="${FOX_V2_DIR}/items/${item.id}.png" alt="" draggable="false">`).join("")}</div>`;
+}
 // Лиса v2: набор клипов VP9 с альфа-каналом из art/companion-v2 (описание — FOX_PACK из manifest.js).
 // Каждый клип начинается и заканчивается каноническим кадром покоя или сна, поэтому клипы
 // стыкуются в любом порядке. Плеер держит два <video>: пока один играет, во второй грузится следующий.
@@ -79,7 +124,9 @@ function foxStageHtml(fox,mood,alt){
   const actor=foxStill()||!foxClipNames(fox).length
     ? `<img class="fox-clip on" src="${foxPoster(fox,posterKind)}" alt="${esc(alt)}">`
     : `<video class="fox-clip" muted playsinline preload="auto" disablepictureinpicture aria-label="${esc(alt)}" poster="${foxPoster(fox,posterKind)}"></video><video class="fox-clip" muted playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>`;
-  return `<div class="fox-stage mood-${mood}" id="foxStage" data-mood="${mood}" data-period="${period}" data-mode="${asleep?"asleep":"awake"}" data-set="${set}" data-zoom="${asleep?"in":"out"}" data-from="${change?change.seen:""}" data-transition="${transition||""}" title="${FOX_PERIOD_NAMES[period]}">${scene}<div class="fox-actor">${actor}</div></div>`;
+  const active=foxActiveItems();
+  const itemClasses=active.map(item=>`has-${item.id}`).join(" ");
+  return `<div class="fox-stage mood-${mood} ${itemClasses}" id="foxStage" data-mood="${mood}" data-period="${period}" data-mode="${asleep?"asleep":"awake"}" data-set="${set}" data-zoom="${asleep?"in":"out"}" data-from="${change?change.seen:""}" data-transition="${transition||""}" title="${FOX_PERIOD_NAMES[period]}">${scene}${foxItemsHtml("back")}<div class="fox-actor">${actor}</div>${foxItemsHtml("front")}</div>`;
 }
 
 // --- плеер ---
@@ -255,6 +302,7 @@ function journeyState(){
   S.journey = S.journey || {completed:{},rewards:{}};
   S.companion = S.companion || LearningCore.petEmpty();
   S.companion.identity = LearningCore.petIdentity(S.companion.identity);
+  foxDecorState();
   return S.journey;
 }
 const foxIdentity = () => LearningCore.petIdentity(S.companion?.identity);
@@ -340,14 +388,14 @@ function companionCardHtml(){
   if(asleepNow)moods[p.mood]=p.mood>=1?"Спит, отвернувшись":"Сладко спит";
   const sleepText=`Ночью ${who} спит и видит сны про новые слова. Коснись — ${pronoun} шевельнётся, а утром проснётся ${male?"сам":"сама"}.`;
   const texts = [asleepNow ? sleepText : p.last === today() ? `Сегодня мы уже позанимались. ${who} рад${male?"":"а"}, что ты заглянул!` : p.last ? "У нас есть несколько слов для короткого занятия." : `${who} теперь твой компаньон. Давай начнём с пяти слов?`, `Один день без занятия. ${who} ждёт вашей следующей встречи.`, `Два дня без занятия. ${who} совсем ${male?"приуныл":"приуныла"}.`, `Три дня или больше без занятия. ${who} ${male?"отвернулся":"отвернулась"} и не смотрит — начните урок вместе.`];
-  const total = Object.keys(j.completed).length, next = FOX_REWARDS.find(r=>!j.rewards[r.id]);
+  const total = Object.keys(j.completed).length, next = FOX_REWARDS.find(r=>!j.rewards[r.id]), activeItems=foxActiveItems().length;
   const week = Array.from({length:7},(_,i)=>addDays(today(),i-6));
   const weekly = week.filter(d=>j.completed[d]).length;
   return `<section class="card companion" id="companionCard">
-    <div class="row between fox-card-head"><div class="eyebrow">${male?"Твой":"Твоя"} ${esc(foxWho())}</div><div class="fox-card-tools"><button class="btn ghost small" id="foxIdentity">Имя и образ</button><button class="btn ghost small" id="foxCollection">Отметки · ${Object.keys(j.rewards).length}/${FOX_REWARDS.length}</button></div></div>
+    <div class="row between fox-card-head"><div class="eyebrow">${male?"Твой":"Твоя"} ${esc(foxWho())}</div><div class="fox-card-tools"><button class="btn ghost small" id="foxIdentity">Имя и образ</button><button class="btn ghost small" id="foxCollection">Домик · ${activeItems}/${FOX_ITEM_MAX}</button></div></div>
     <div class="fox-meeting">${foxStageHtml(foxCurrent(),p.mood,`${who}: ${moods[p.mood]}`)}<div><h2>${moods[p.mood]}</h2><p class="small muted">${esc(asleepNow?sleepText:texts[p.mood])}</p></div></div>
     ${foxPackCardHtml()}
-    <div class="fox-beta"><b>Домик растёт</b><span>Лис живёт по часам телефона: утро, день, вечер и ночной сон, а настроение зависит от занятий. Вещи в домике за достижения появятся в следующих версиях.</span></div>
+    <div class="fox-beta"><b>Домик растёт</b><span>Открывай вещи за достижения и выбирай до трёх предметов. Каждая вещь занимает своё естественное место в сцене.</span></div>
     <p class="small fox-response" id="foxResponse" role="status" aria-live="polite">${memoryCount() ? `Сегодня ты вспомнил ${plural(memoryCount(),"слово","слова","слов")} после перерыва.` : p.mood>=3 ? `${who} обидел${male?"ся":"ась"} и сидит спиной. Только занятие вернёт ${male?"его":"её"}.` : p.mood>=1 ? `${who} грустит без занятий. Коснись — ${pronoun} вздохнёт.` : `Коснись ${foxWho("gen")} — ${pronoun} откликнется.`}</p>
     <div class="fox-week" aria-label="Занятия за последние семь дней">${week.map(d=>`<span class="${j.completed[d]?"done":""}" title="${d}">${j.completed[d]?"✓":"·"}</span>`).join("")}<b>${weekly}/4 дня</b></div>
     <p class="small muted">${weekly>=4?"Недельная цель выполнена. Можно отдохнуть или продолжить в своём темпе.":"Цель — четыре дня занятий за последние семь. Не обязательно подряд."}</p>
@@ -363,7 +411,7 @@ function companionChooserHtml(){
   const identity=foxIdentity(), fox=foxOnly();
   return `<section class="card companion fox-choose" id="companionChooser">
     <div class="eyebrow">Компаньон</div><h2>Знакомься</h2>
-    <p class="small muted">Лис живёт по часам телефона — утро, день, вечер и ночной сон, а настроение зависит от занятий. Со временем в домике будут появляться вещи за достижения.</p>
+    <p class="small muted">Лис живёт по часам телефона — утро, день, вечер и ночной сон, а настроение зависит от занятий. Вещи для домика открываются за достижения.</p>
     <div class="fox-grid fox-grid-single"><div class="fox-option on">
       <span class="fox-option-art">${!foxStill()&&foxPreviewClip(fox)?`<video src="${foxAsset(fox,foxPreviewClip(fox))}" poster="${foxPoster(fox)}" autoplay muted loop playsinline disablepictureinpicture></video>`:`<img src="${foxPoster(fox)}" alt="">`}</span>
       ${foxSexBadge(fox.sex)}<b>${esc(fox.title)}</b></div></div>
@@ -422,9 +470,26 @@ function progressAccordionHtml(){
   </div></details>`;
 }
 function companionCollection(){
-  const j = journeyState();
+  const j = journeyState(), decor=foxDecorState();
   const male=foxMale(), who=foxWhoCap();
-  sheet(`<div class="row between"><h2>Отметки ${esc(foxWho("gen"))}</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div><p class="muted">Памятные отметки за дни занятий. Пропуски их не отнимают. Предметы для домика за достижения появятся позже.</p><div class="fox-rewards">${FOX_REWARDS.map(r=>`<div class="card ${j.rewards[r.id]?"earned":""}"><span class="reward-icon">${r.icon}</span><b>${r.name}</b><p class="small muted">${r.desc}</p><span class="small">${j.rewards[r.id]?`Получено ${j.rewards[r.id]}`:"Ещё впереди"}</span></div>`).join("")}</div><p class="small muted">После первого пропущенного дня ${esc(who)} грустит, после третьего обижается и садится спиной. Одно завершённое занятие возвращает ${male?"его":"её"} к общению.</p>`);
+  sheet(`<div class="row between"><h2>Домик ${esc(foxWho("gen"))}</h2><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
+    <p class="muted">Выбери до трёх предметов. В одной зоне сцены может стоять только одна вещь: новая заменит прежнюю.</p>
+    <div class="row between fox-items-title"><b>Предметы</b><span class="small muted">${decor.active.length}/${FOX_ITEM_MAX} на сцене</span></div>
+    <div class="fox-item-grid">${FOX_ITEMS.map(item=>{const unlocked=foxItemUnlocked(item),on=decor.active.includes(item.id);return `<button class="fox-item-card ${on?"on":""} ${unlocked?"":"locked"}" data-fox-item="${item.id}" ${unlocked?"":"disabled"} aria-pressed="${on}"><span class="fox-item-thumb"><img src="${FOX_V2_DIR}/items/${item.id}.png" alt=""></span><b>${item.name}</b><small>${unlocked?(on?"На сцене":"Добавить"):item.unlock}</small></button>`;}).join("")}</div>
+    <h3 class="fox-marks-title">Памятные отметки</h3><p class="muted">Пропуски не отнимают уже полученные отметки.</p><div class="fox-rewards">${FOX_REWARDS.map(r=>`<div class="card ${j.rewards[r.id]?"earned":""}"><span class="reward-icon">${r.icon}</span><b>${r.name}</b><p class="small muted">${r.desc}</p><span class="small">${j.rewards[r.id]?`Получено ${j.rewards[r.id]}`:"Ещё впереди"}</span></div>`).join("")}</div><p class="small muted">После первого пропущенного дня ${esc(who)} грустит, после третьего обижается и садится спиной. Одно завершённое занятие возвращает ${male?"его":"её"} к общению.</p>`);
+  document.querySelectorAll("[data-fox-item]").forEach(button=>button.onclick=()=>{
+    const result=foxToggleItem(button.dataset.foxItem);
+    if(result==="limit"){toast("На сцене уже три предмета. Сначала убери один из них.");return;}
+    foxApplyStageItems();companionCollection();
+  });
+}
+function foxApplyStageItems(){
+  const stage=$("#foxStage");if(!stage)return;
+  stage.querySelectorAll(".fox-items").forEach(node=>node.remove());
+  const actor=stage.querySelector(".fox-actor");if(!actor)return;
+  actor.insertAdjacentHTML("beforebegin",foxItemsHtml("back"));
+  actor.insertAdjacentHTML("afterend",foxItemsHtml("front"));
+  for(const item of FOX_ITEMS)stage.classList.toggle(`has-${item.id}`,foxDecorState().active.includes(item.id));
 }
 function companionIdentitySheet(draft){
   journeyState();
