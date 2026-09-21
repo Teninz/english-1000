@@ -76,6 +76,7 @@ main > *:nth-child(2){animation-delay:.04s} main > *:nth-child(3){animation-dela
 .tile.full{color:var(--amber)} .tile.full .tb i{background:var(--amber)}
 .colloc{color:var(--accent-deep);margin:0} .colloc b{font-weight:600}
 .practice{margin-top:10px;text-align:left} .practice .eyebrow{margin-bottom:4px} .practice ul{margin:0;padding-left:18px;font-size:14px;line-height:1.45} .practice li{margin:2px 0}
+.lesson-time{font-weight:400;opacity:.8;font-size:.85em}
 .tiles.dense{grid-template-columns:repeat(6,1fr);gap:6px}
 .tiles.dense .tile{font-size:15px;border-radius:10px}
 .seg.levels{margin-bottom:10px}
@@ -629,9 +630,11 @@ function renderHome(){
         </div>
       </div>
     </section>
+    ${journeyHeroHtml()}
+    ${loadCardHtml()}
     <div class="grid2">
       <button class="btn secondary block" id="hLearn" ${unstartedList().length?"":"disabled"}>Учить новые</button>
-      <button class="btn block ${due.length?"":"secondary"}" id="hReview">Повторить${due.length?` · ${due.length}`:""}</button>
+      <button class="btn secondary block" id="hReview">Повторить${due.length?` · ${due.length}`:""}</button>
     </div>
     ${dailyCardHtml()}
     ${thematicHomeCardHtml()}
@@ -643,6 +646,8 @@ function renderHome(){
   $("#achCard").onclick = achSheet; wireDaily(); wireThematicHomeCard();
   $("#hLearn").onclick = () => go("learn");
   $("#hReview").onclick = () => due.length ? startReview() : toast("Пока нечего повторять");
+  $("#hJourney").onclick = journeyStart;
+  document.querySelectorAll("[data-forgot]").forEach(b => b.onclick = () => wordSheet(+b.dataset.forgot));
 }
 // сложность проверки растёт вместе с ячейкой: выбор → обратный выбор → слух/пропуск → письмо
 // сочетания и близкие пары вплетаются с ячейки 2, когда у слова есть такие данные (пункт «содержательная практика»)

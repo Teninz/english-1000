@@ -379,7 +379,10 @@ test('эталонные ключевые кадры имеют общий хо�
 test('лиса открывается отдельной панелью, инфографика сложена после заданий',()=>{
   const html=read('index.html'),home=html.slice(html.indexOf('function renderHome'),html.indexOf('function kindForBox'));
   assert.ok(html.includes('id="foxHandle"'));assert.ok(html.includes('id="foxDrawerHost"'));
-  assert.equal(home.includes('${companionCardHtml()}'),false);assert.equal(home.includes('${journeyHeroHtml()}'),false);
+  assert.equal(home.includes('${companionCardHtml()}'),false);
+  // главная кнопка «Занятие на сегодня» с оценкой времени и показатели нагрузки — над остальными режимами
+  assert.ok(home.indexOf('${journeyHeroHtml()}')<home.indexOf('${loadCardHtml()}'));assert.ok(home.indexOf('${loadCardHtml()}')<home.indexOf('id="hLearn"'));
+  assert.ok(read('journey.js').includes('journeyHeroHtml("foxJourney")'),'в домике лисы своя кнопка');
   assert.ok(home.indexOf('${dailyCardHtml()}')<home.indexOf('${progressAccordionHtml()}'));
   assert.ok(home.indexOf('${dailyCardHtml()}')<home.indexOf('${thematicHomeCardHtml()}'));
   assert.ok(home.indexOf('${thematicHomeCardHtml()}')<home.indexOf('${progressAccordionHtml()}'));

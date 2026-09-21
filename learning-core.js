@@ -71,6 +71,19 @@ const LearningCore = (() => {
     }
     return added;
   }
+  // Нагрузка занятия по результатам: много повторений или падающая точность — меньше новых слов.
+  // dueCount — слов к повторению, accuracy — доля верных за последние дни (null, если ответов не было).
+  function dailyLoad(dueCount, accuracy) {
+    let fresh = 5, review = Math.min(dueCount, 8), reason = null;
+    if (dueCount >= 40) { fresh = 0; review = Math.min(dueCount, 12); reason = "Накопилось много повторений — сегодня без новых слов."; }
+    else if (dueCount >= 20) { fresh = 2; review = Math.min(dueCount, 10); reason = "Повторений много — новых слов сегодня меньше."; }
+    if (accuracy !== null && accuracy < 0.7 && fresh > 2) { fresh = 2; reason = "Ошибок стало больше — новых слов меньше, разбираем старые."; }
+    return {fresh, review, reason};
+  }
+  // Оценка длительности занятия в минутах: ~20 с на повторение, ~45 с на новое слово с проверкой, ~15 с на разбор ошибки.
+  const lessonMinutes = (review, fresh, repair = 0) => Math.max(1, Math.ceil((review*20 + fresh*45 + repair*15) / 60));
+  // Слова, которые регулярно забываются: не меньше трёх ошибок и ячейка не выше 2.
+  const forgottenKeys = (w, limit = 5) => Object.entries(w).filter(([,r]) => r.bad >= 3 && r.box <= 2).sort((a,b) => b[1].bad - a[1].bad).slice(0, limit).map(([k]) => k);
   const empty = () => ({v:3,goal:10,streak:{n:0,last:null},days:{},w:{},modes:{},hard:{},set:{auto:true},thematic:thematicEmpty()});
   // Перенос прогресса прежнего курса (v2, ключ — слово) на ключи программы (v3, «слово|часть речи»).
   // legacyKeys: {слово: новый ключ}; слово без соответствия сохраняет прежний ключ, чтобы ничего не потерять.
@@ -349,6 +362,6 @@ const LearningCore = (() => {
     o.set = JSON.parse(JSON.stringify(current.set || {auto:true}));
     return o;
   }
-  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,knownEntry,assumeKnown,empty,migrate,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
+  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,knownEntry,assumeKnown,dailyLoad,lessonMinutes,forgottenKeys,empty,migrate,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
 })();
 if (typeof module !== "undefined") module.exports = LearningCore;

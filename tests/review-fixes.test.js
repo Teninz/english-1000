@@ -234,3 +234,20 @@ test('достижения: вехи только по закреплённым 
   assert.equal(run('Object.keys(S.stats.solvedSet||{}).length'),0,'сложное слово в ячейке 5 ещё не «разобрано»');
 });
 
+test('нагрузка занятия по результатам и показатели дня',()=>{
+  assert.deepEqual(core.dailyLoad(5,null),{fresh:5,review:5,reason:null});
+  assert.equal(core.dailyLoad(25,0.9).fresh,2);assert.equal(core.dailyLoad(25,0.9).review,10);
+  assert.equal(core.dailyLoad(60,null).fresh,0);assert.equal(core.dailyLoad(60,null).review,12);
+  assert.equal(core.dailyLoad(3,0.5).fresh,2);assert.match(core.dailyLoad(3,0.5).reason,/Ошибок/);
+  assert.equal(core.lessonMinutes(8,5,0),7);assert.equal(core.lessonMinutes(0,0,0),1);
+  assert.deepEqual(core.forgottenKeys({a:{box:1,bad:4},b:{box:5,bad:6},c:{box:0,bad:3},d:{box:2,bad:2}}),['a','c']);
+  const {run}=app();
+  run('for(let k=0;k<45;k++)S.w[wk(k)]={box:2,due:"2020-01-01",ok:1,bad:0};');
+  const plan=JSON.parse(run('JSON.stringify(journeyPlan())'));
+  assert.equal(plan.fresh.length,0);assert.equal(plan.review.length,12);assert.match(plan.reason,/без новых/);
+  assert.ok(plan.review.every(k=>k.includes('|')),'план хранит ключи слово|часть речи');
+  run('journeyRunning=false;startSession=o=>{window.started=o;};');run('journeyNext()');
+  assert.equal(run('window.started.items.length'),12,'ключи плана находят слова');
+  assert.match(run('journeyHeroHtml()'),/повторить 12/);assert.match(run('journeyHeroHtml()'),/~4 мин/);
+});
+

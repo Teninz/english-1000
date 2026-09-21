@@ -399,11 +399,11 @@ function openCompanion(options={}){
   journeyState();
   const host=$("#foxDrawerHost"); if(!host)return;
   const choose=options.choose||!foxReady();
-  host.innerHTML=`<div class="fox-drawer-scrim"><aside class="fox-drawer" role="dialog" aria-modal="true" aria-labelledby="foxDrawerTitle"><div class="fox-drawer-head"><div><div class="eyebrow">Компаньон</div><h2 id="foxDrawerTitle">${choose&&!foxReady()?"Новый спутник":`Домик ${esc(foxWho("gen"))}`}</h2></div><button class="icon-btn" id="foxDrawerClose" aria-label="Закрыть">${ICONS.close}</button></div>${journeyHeroHtml()}${choose?companionChooserHtml():companionCardHtml()}</aside></div>`;
+  host.innerHTML=`<div class="fox-drawer-scrim"><aside class="fox-drawer" role="dialog" aria-modal="true" aria-labelledby="foxDrawerTitle"><div class="fox-drawer-head"><div><div class="eyebrow">Компаньон</div><h2 id="foxDrawerTitle">${choose&&!foxReady()?"Новый спутник":`Домик ${esc(foxWho("gen"))}`}</h2></div><button class="icon-btn" id="foxDrawerClose" aria-label="Закрыть">${ICONS.close}</button></div>${journeyHeroHtml("foxJourney")}${choose?companionChooserHtml():companionCardHtml()}</aside></div>`;
   document.body.classList.add("fox-drawer-open");
   $("#foxDrawerClose").onclick=closeCompanion;
   $(".fox-drawer-scrim").onclick=e=>{if(e.target===e.currentTarget)closeCompanion();};
-  if($("#hJourney"))$("#hJourney").onclick=journeyStart;
+  if($("#foxJourney"))$("#foxJourney").onclick=journeyStart;
   if(choose){wireCompanionChooser();$("#foxDrawerClose").focus();return;}
   wireCompanion(); wireFoxPack();
   foxPlayerStart();
@@ -474,7 +474,9 @@ function journeyPlan(){
   const j = journeyState();
   if(!j.plan || j.plan.day !== today()) {
     const block = learnBlock !== null && blockUnstarted(learnBlock).length ? learnBlock : firstBlockToLearn();
-    j.plan = {day:today(),review:dueList().sort((a,b)=>W(a).due.localeCompare(W(b).due)).slice(0,8).map(wk),fresh:blockUnstarted(block).slice(0,5).map(wk),reviewed:{},checked:{},errors:{},repaired:{},done:false};
+    const due = dueList(), load = LearningCore.dailyLoad(due.length, recentAccuracy());
+    j.plan = {day:today(),review:due.sort((a,b)=>W(a).due.localeCompare(W(b).due)).slice(0,load.review).map(wk),fresh:blockUnstarted(block).slice(0,load.fresh).map(wk),reviewed:{},checked:{},errors:{},repaired:{},done:false};
+    if(load.reason) j.plan.reason = load.reason;
     // Если новых и плановых слов нет, предлагаем короткую практику без изменения будущих интервалов.
     if(!j.plan.review.length && !j.plan.fresh.length) j.plan.review=sample(startedList(),5).map(wk);
     save();
@@ -498,9 +500,14 @@ function journeyStart(){
   if(p.done){ journeyRunning=false; go("home"); toast("Занятие на сегодня завершено. Другие тренировки доступны во вкладках."); return; }
   journeyNext();
 }
+// Точность ответов за последние три дня (null — ответов не было).
+function recentAccuracy(){
+  let ok=0,q=0; for(let k=0;k<3;k++){ const r=S.days[addDays(today(),-k)]; if(r){ ok+=r.ok||0; q+=r.q||0; } }
+  return q>=10 ? ok/q : null;
+}
 function journeyNext(){
   journeyRunning=true;
-  const p=journeyPlan(), ids=words=>words.map(w=>WORDS.findIndex(x=>x[0]===w)).filter(i=>i>=0);
+  const p=journeyPlan(), ids=words=>words.map(w=>KEY_INDEX[w]).filter(i=>i!==undefined);
   const review=ids(p.review.filter(w=>!p.reviewed[w]));
   if(review.length){p.phase="review";save();startSession({title:"Сегодня · вспоминаем",items:review.map(i=>({i,kind:kindForBox(W(i)?.box||0,i)})),mode:"review",after:"home",onComplete:journeyNext});return;}
   const fresh=ids(p.fresh).filter(i=>!W(i));
@@ -517,7 +524,16 @@ function tomorrowText(){
   const n=startedList().filter(i=>W(i).due===addDays(today(),1)).length;
   return n?`Завтра вас ждут ${plural(n,"слово","слова","слов")} на повторение.`:"Следующее занятие подберём, когда ты вернёшься.";
 }
-function journeyHeroHtml(){
-  const p=journeyState().plan, done=p?.day===today()&&p.done;
-  return `<button class="btn block huge" id="hJourney" ${done?"disabled":""}>${done?"Занятие на сегодня завершено":p?.day===today()?"Продолжить занятие":"Занятие на сегодня"}</button><p class="small muted" style="text-align:center">${done?tomorrowText():"До 8 слов на повторение → 5 новых → разбор ошибок"}</p>`;
+function journeyHeroHtml(id="hJourney"){
+  const p=journeyPlan(), done=p.done, started=Object.keys(p.reviewed).length+Object.keys(p.checked).length>0;
+  const review=p.review.filter(w=>!p.reviewed[w]).length, fresh=p.fresh.filter(w=>!p.checked[w]).length, repair=Object.keys(p.errors).filter(w=>!p.repaired[w]).length;
+  const minutes=LearningCore.lessonMinutes(review,fresh,repair);
+  const parts=[review?`повторить ${review}`:null, fresh?`новых ${fresh}`:null, repair?`разбор ошибок ${repair}`:null].filter(Boolean).join(" → ");
+  return `<button class="btn block huge" id="${id}" ${done?"disabled":""}>${done?"Занятие на сегодня завершено":started?"Продолжить занятие":"Занятие на сегодня"}${done?"":` <span class="lesson-time">· ~${minutes} мин</span>`}</button><p class="small muted" style="text-align:center">${done?tomorrowText():parts||"Короткая практика по начатым словам"}${!done&&p.reason?`<br>${esc(p.reason)}`:""}</p>`;
+}
+// Понятные показатели дня: сколько повторить, сколько вспомнил сам, что регулярно забывается.
+function loadCardHtml(){
+  const due=dueList().length, recalled=memoryCount(), week=Array.from({length:7},(_,k)=>S.days[addDays(today(),-k)]).reduce((n,r)=>n+Object.keys(r?.remembered||{}).length,0);
+  const forgotten=LearningCore.forgottenKeys(S.w).map(k=>KEY_INDEX[k]).filter(i=>i!==undefined);
+  return `<section class="card"><div class="theme-stat-grid"><div class="theme-stat"><b>${due}</b><span>к повторению</span></div><div class="theme-stat"><b>${recalled}</b><span>вспомнил сам сегодня</span></div><div class="theme-stat"><b>${week}</b><span>за неделю</span></div></div>${forgotten.length?`<div class="eyebrow" style="margin-top:12px">Регулярно забываются</div><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${forgotten.map(i=>`<button class="chip warn" data-forgot="${i}">${esc(WORDS[i][0])} · ${W(i).bad}</button>`).join("")}</div>`:""}</section>`;
 }
