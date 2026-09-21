@@ -11,7 +11,7 @@
   },
   "plugins": {
     "LocalNotifications": {
-      "smallIcon": "ic_stat_fox",
+      "smallIcon": "ic_stat_learn",
       "iconColor": "#E8853A"
     },
     "SplashScreen": {

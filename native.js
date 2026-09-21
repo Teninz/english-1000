@@ -142,7 +142,7 @@ if (NATIVE) {
       if (!S.set.remind) return;
       const p = await NATIVE.notif.requestPermissions(); if (p.display !== "granted") return;
       const [h, m] = S.set.remind.split(":").map(Number);
-      await NATIVE.notif.schedule({ notifications: [{ id: 1, title: "ShadowFox Eng", body: "Пора повторить слова — 5 минут, и серия дней не прервётся", schedule: { on: { hour: h, minute: m }, allowWhileIdle: true }, smallIcon: "ic_stat_fox" }] });
+      await NATIVE.notif.schedule({ notifications: [{ id: 1, title: "ShadowFox Eng", body: "Пора повторить слова — 5 минут, и серия дней не прервётся", schedule: { on: { hour: h, minute: m }, allowWhileIdle: true }, smallIcon: "ic_stat_learn" }] });
     } catch (e) {}
   };
   NATIVE.notif.addListener("localNotificationActionPerformed", () => { dueList().length ? startReview() : go("home"); });

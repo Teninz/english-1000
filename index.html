@@ -53,6 +53,7 @@ p{margin:0}
 .top{display:flex;align-items:center;justify-content:space-between;padding:calc(14px + var(--sat)) 18px 6px}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--word);font-size:22px;font-weight:600;letter-spacing:-.01em}
 .brand img{width:46px;height:46px;object-fit:contain;margin:-6px 0;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
+.home-fox{width:88px;height:88px;object-fit:contain;flex:none;align-self:center;filter:drop-shadow(0 5px 9px rgba(0,0,0,.32))}
 .brand small{font-family:var(--ui);font-weight:700;font-size:11px;color:var(--accent-ink);background:var(--accent);padding:2px 7px;border-radius:6px;letter-spacing:.06em;text-transform:uppercase;margin-left:2px}
 .icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
 .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
@@ -98,6 +99,13 @@ main > *:nth-child(2){animation-delay:.04s} main > *:nth-child(3){animation-dela
 .card.hero .ring{width:74px;height:74px}
 .card.hero .ring .lab{font-size:15px}
 .card.hero h2{font-size:19px}
+@media (max-width:360px){
+  .card.hero>.row{display:grid;grid-template-columns:72px minmax(0,1fr);grid-template-areas:"fox copy" "progress progress";gap:10px 12px}
+  .card.hero>.row>.home-fox{grid-area:fox;width:72px;height:72px}
+  .card.hero>.row>.grow{grid-area:copy}
+  .card.hero>.row>.ring-col{grid-area:progress;flex-direction:row;justify-content:center}
+  .card.hero .ring{width:58px;height:58px}
+}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .row{display:flex;align-items:center;gap:12px}
 .between{justify-content:space-between}
@@ -415,7 +423,7 @@ a.btn{text-decoration:none}
 <div id="scene" aria-hidden="true"></div>
 <div class="app">
   <header class="top">
-    <div class="brand"><img src="art/logo.png" alt="" onerror="this.hidden=true">ShadowFox<small>Eng</small></div>
+    <div class="brand"><img src="art/shadowfox.png" alt="" onerror="this.hidden=true">ShadowFox<small>Eng</small></div>
     <button class="icon-btn" id="btnSettings" aria-label="Настройки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   </header>
   <main id="view"></main>
@@ -619,6 +627,7 @@ function renderHome(){
   view().innerHTML = `
     <section class="card hero">
       <div class="row">
+        <img class="home-fox" src="art/shadowfox.png" alt="Лис ShadowFox">
         <div class="ring-col"><div class="ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="40"/><circle class="fill" cx="50" cy="50" r="40" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg><div class="lab">${dailyCount}/${S.goal}</div></div><span class="small muted">слов в практике</span></div>
         <div class="grow">
           <div class="eyebrow">${new Date().toLocaleDateString("ru-RU",{weekday:"short",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase())}</div>

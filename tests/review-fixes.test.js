@@ -215,6 +215,7 @@ test('словарная разметка включена в HTML, офлайн
 test('виджет компаньона и лисий значок не возвращаются в Android-сборку',()=>{
   const manifest=read('android/app/src/main/AndroidManifest.xml');
   const road=read('android/app/src/main/java/io/github/teninz/shadowfox/RoadService.kt');
+  const capacitor=read('capacitor.config.json'),native=read('native.js');
   assert.doesNotMatch(manifest,/CompanionWidget|companion_widget/i);
   for(const file of [
     'android/app/src/main/java/io/github/teninz/shadowfox/CompanionWidget.kt',
@@ -223,6 +224,14 @@ test('виджет компаньона и лисий значок не возв
     'android/app/src/main/res/drawable/ic_stat_fox.xml',
   ]) assert.equal(fs.existsSync(path.join(__dirname,'..',file)),false,file);
   assert.match(road,/R\.drawable\.ic_stat_learn/);
+  assert.doesNotMatch(capacitor+native,/ic_stat_fox/);
+  assert.match(capacitor+native,/ic_stat_learn/);
+});
+
+test('фирменный лис остаётся на главном экране и доступен офлайн',()=>{
+  const html=read('index.html'),sw=read('sw.js');
+  assert.match(html,/<img class="home-fox" src="art\/shadowfox\.png" alt="Лис ShadowFox">/);
+  assert.match(sw,/"\.\/art\/shadowfox\.png"/);
 });
 
 test('слова, выбывшие из маршрута, вычищаются из прогресса вместе с незавершённым блицем',()=>{
