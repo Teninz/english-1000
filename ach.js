@@ -1,17 +1,27 @@
 // Достижения. Определения, счётчики и проверка. Подключается после tts.js, до native.js.
 // Разблокированные хранятся в S.ach = {id: дата}; вспомогательные счётчики — в S.stats.
 const ACH = [
-  // путь
-  { id:"first",     icon:"🌱", title:"Первое слово",        desc:"Начать изучение первого слова" },
-  { id:"ten",       icon:"🔟", title:"Десятка",             desc:"Начать 10 слов" },
-  { id:"hundred",   icon:"💯", title:"Сотня",               desc:"Довести 100 слов до «знаю»" },
-  { id:"half",      icon:"🌗", title:"Экватор",             desc:"500 слов в «знаю» или выше" },
-  { id:"thousand",  icon:"🏁", title:"Тысяча",              desc:"Начать 1000 слов" },
+  // путь — только закреплённые слова (ячейка 6, подтверждённые ответами), не просмотр карточек
+  { id:"fixed1",    icon:"🌱", title:"Первое закреплённое",  desc:"Закрепить первое слово" },
+  { id:"fixed10",   icon:"🔟", title:"Десятка",             desc:"Закрепить 10 слов" },
+  { id:"fixed100",  icon:"💯", title:"Сотня",               desc:"Закрепить 100 слов" },
+  { id:"fixed300",  icon:"🌿", title:"Триста",              desc:"Закрепить 300 слов" },
+  { id:"fixed500",  icon:"🌗", title:"Пятьсот",             desc:"Закрепить 500 слов" },
+  { id:"fixed1000", icon:"🏁", title:"Тысяча",              desc:"Закрепить 1000 слов" },
+  { id:"fixed2000", icon:"🏔️", title:"Две тысячи",          desc:"Закрепить 2000 слов", hard:true },
+  { id:"fixed3000", icon:"🎓", title:"Oxford 3000",         desc:"Закрепить 3000 слов", hard:true },
   { id:"master",    icon:"👑", title:"Мастер",              desc:"Закрепить все слова программы", hard:true },
+  // уровни — все слова уровня в «знаю» или выше по ответам
+  { id:"levelA1",   icon:"🅰️", title:"Уровень A1",          desc:"Все слова A1 в «знаю» или выше" },
+  { id:"levelA2",   icon:"🔤", title:"Уровень A2",          desc:"Все слова A2 в «знаю» или выше" },
+  { id:"levelB1",   icon:"🅱️", title:"Уровень B1",          desc:"Все слова B1 в «знаю» или выше" },
+  { id:"levelB2",   icon:"🏅", title:"Уровень B2",          desc:"Все слова B2 в «знаю» или выше", hard:true },
   // регулярность
   { id:"streak3",   icon:"🔥", title:"Три дня подряд",      desc:"Заниматься три дня без пропуска" },
   { id:"streak7",   icon:"📅", title:"Неделя",              desc:"Серия из 7 дней" },
   { id:"streak30",  icon:"🗓️", title:"Месяц",               desc:"Серия из 30 дней" },
+  { id:"weekly4",   icon:"🎯", title:"Четыре дня в неделю",  desc:"Заниматься четыре дня из последних семи" },
+  { id:"rhythm4",   icon:"🥁", title:"Ритм",                desc:"Четыре недели подряд по четыре дня занятий", hard:true },
   { id:"comeback",  icon:"🦊", title:"Мы скучали",          desc:"Вернуться после перерыва в неделю и пройти сессию", hidden:"Лиса умеет ждать" },
   { id:"owl",       icon:"🦉", title:"Сова",                desc:"Закончить сессию между полуночью и пятью утра", hidden:"Что-то про поздний час" },
   { id:"lark",      icon:"🐦", title:"Жаворонок",           desc:"Закончить сессию между пятью и семью утра", hidden:"Что-то про ранний час" },
@@ -28,7 +38,8 @@ const ACH = [
   { id:"daily7",    icon:"🗂️", title:"Неделя по плану",     desc:"Закрыть задания дня семь раз" },
   // сложные слова
   { id:"hard10",    icon:"🚩", title:"Коллекционер проблем", desc:"Пометить 10 сложных слов" },
-  { id:"solved",    icon:"🔓", title:"Разобрался",          desc:"Довести 10 сложных слов до «знаю»" },
+  { id:"solved",    icon:"🔓", title:"Разобрался",          desc:"Закрепить 10 слов, помеченных сложными" },
+  { id:"solved50",  icon:"🗝️", title:"Укротитель",           desc:"Закрепить 50 слов, помеченных сложными", hard:true },
   // забавные
   { id:"zero",      icon:"🫠", title:"Полный ноль",         desc:"Все ответы в сессии мимо. Зато теперь точно ясно, что повторять", fun:true, hidden:"Откроется само — когда день пойдёт не по плану" },
   { id:"stubborn",  icon:"🐐", title:"Упрямец",             desc:"Ошибиться в одном и том же слове пять раз. Оно не сдаётся — ты тоже", fun:true, hidden:"Есть слова с характером" },
@@ -40,7 +51,7 @@ const ACH = [
   ...THEMATIC_META.map(t=>({id:"topic_"+t.id,icon:t.icon,title:"Маршрут: "+t.title,desc:"Пройти блиц-экзамен «"+t.title+"» и получить "+t.reward})),
 ];
 const ACH_BY = Object.fromEntries(ACH.map(a => [a.id, a]));
-function achStats(){ S.ach = S.ach || {}; S.stats = S.stats || { near:0, pairsClean:0, voiceOk:0, road:0, scenes:{}, themes:{}, lastActive:null, modesDone:{}, heard:{d:null, w:{}} }; return S.stats; }
+function achStats(){ S.ach = S.ach || {}; for(const id of ["first","ten","hundred","half","thousand"]) delete S.ach[id]; S.stats = S.stats || { near:0, pairsClean:0, voiceOk:0, road:0, scenes:{}, themes:{}, lastActive:null, modesDone:{}, heard:{d:null, w:{}} }; return S.stats; }
 function unlock(id){
   achStats(); if(S.ach[id]) return; const a = ACH_BY[id]; if(!a) return;
   S.ach[id] = today(); save(); buzz(true); if(typeof cue==="function") cue("ok");
@@ -50,14 +61,18 @@ function unlock(id){
   document.body.appendChild(el); el.onclick = () => { el.remove(); achSheet(); };
   setTimeout(() => el.classList.add("show"), 20); setTimeout(() => { el.classList.remove("show"); setTimeout(()=>el.remove(), 400); }, 4200);
 }
-const achCount = () => Object.keys(S.ach||{}).length;
+const achCount = () => Object.keys(S.ach||{}).filter(id => ACH_BY[id]).length;
+// дни с занятиями в окне [from; to] включительно
+const activeDays = (from, to) => Object.entries(S.days).filter(([d,r]) => d >= from && d <= to && ((r.n||0) + (r.q||0)) > 0).length;
 // проверки по событиям
 function checkAch(ev, p = {}){
   // слова, отмеченные известными без проверки (стартовая проверка, «Уже знаю»), в достижения не идут, пока не подтверждены ответом
   const st = achStats(); const started = startedList().filter(i => !W(i).known), known = started.filter(i => status(i) >= 2), fixed = started.filter(i => status(i) === 3);
-  if(started.length >= 1) unlock("first"); if(started.length >= 10) unlock("ten"); if(started.length >= 1000) unlock("thousand");
-  if(known.length >= 100) unlock("hundred"); if(known.length >= 500) unlock("half"); if(fixed.length >= WORDS.length) unlock("master");
+  for(const [n,id] of [[1,"fixed1"],[10,"fixed10"],[100,"fixed100"],[300,"fixed300"],[500,"fixed500"],[1000,"fixed1000"],[2000,"fixed2000"],[3000,"fixed3000"]]) if(fixed.length >= n) unlock(id);
+  if(fixed.length >= WORDS.length) unlock("master");
+  for(const L of PROGRAM_LEVELS) if(L.total && L.blocks.length && L.blocks.every(b => b.ids.every(i => W(i) && !W(i).known && status(i) >= 2))) unlock("level"+L.id);
   if(S.streak.n >= 3) unlock("streak3"); if(S.streak.n >= 7) unlock("streak7"); if(S.streak.n >= 30) unlock("streak30");
+  { const t = today(); const weeks = [0,1,2,3].map(w => activeDays(addDays(t,-7*w-6), addDays(t,-7*w))); if(weeks[0] >= 4) unlock("weekly4"); if(weeks.every(n => n >= 4)) unlock("rhythm4"); }
   if((dayRec().n||0) >= 100) unlock("hundredday");
   if(Object.keys(S.hard||{}).length >= 10) unlock("hard10");
   if(ev === "session"){ // p: {mode, res:[{i,ok,kind}], ms}
@@ -73,7 +88,7 @@ function checkAch(ev, p = {}){
     if(p.road){ st.road += n; if(st.road >= 50) unlock("road50"); }
     st.lastActive = today();
   }
-  if(ev === "grade"){ const r = W(p.i); if(r && r.bad >= 5) unlock("stubborn"); if(r && isHard(p.i) && r.box >= 3){ st.solvedSet = st.solvedSet || {}; st.solvedSet[wk(p.i)] = 1; if(Object.keys(st.solvedSet).length >= 10) unlock("solved"); } }
+  if(ev === "grade"){ const r = W(p.i); if(r && r.bad >= 5) unlock("stubborn"); if(r && isHard(p.i) && r.box >= 6){ st.solvedSet = st.solvedSet || {}; st.solvedSet[wk(p.i)] = 1; const n = Object.keys(st.solvedSet).length; if(n >= 10) unlock("solved"); if(n >= 50) unlock("solved50"); } }
   if(ev === "near"){ st.near++; if(st.near >= 5) unlock("almost"); }
   if(ev === "pairsClean"){ st.pairsClean++; if(st.pairsClean >= 5) unlock("pairs5"); }
   if(ev === "heard"){ if(st.heard.d !== today()) st.heard = { d: today(), w: {} }; st.heard.w[wk(p.i)] = 1; st.road++; if(st.road >= 50) unlock("road50"); if(Object.keys(st.heard.w).length >= 1000) unlock("marathon"); }

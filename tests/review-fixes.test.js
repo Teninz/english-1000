@@ -216,3 +216,21 @@ test('стартовая проверка: ничего не оценивает,
   assert.ok(JSON.parse(run('JSON.stringify(LearningCore.portable(S))')).placement);
 });
 
+test('достижения: вехи только по закреплённым и подтверждённым словам, уровни, четыре дня в неделю',()=>{
+  const {run}=app();
+  run(read('ach.js'));run('unlock=id=>{S.ach[id]=today();};S.ach={first:"2026-09-01",thousand:"2026-09-01"};');
+  run('checkAch("grade",{i:0})');
+  assert.deepEqual(JSON.parse(run('JSON.stringify(Object.keys(S.ach))')),[],'старые вехи за начатые слова удалены, новых нет');
+  run('LearningCore.assumeKnown(S,PROGRAM_LEVELS[0].blocks.flatMap(b=>b.ids).map(wk),today(),addDays);checkAch("grade",{i:0})');
+  assert.equal(run('Object.keys(S.ach).length'),0,'условно известные слова не дают вех');
+  run('for(const i of PROGRAM_LEVELS[0].blocks.flatMap(b=>b.ids))S.w[wk(i)]={box:6,due:today(),ok:3,bad:0};checkAch("grade",{i:0})');
+  const got=JSON.parse(run('JSON.stringify(Object.keys(S.ach).sort())'));
+  assert.deepEqual(got,['fixed1','fixed10','fixed100','fixed1000','fixed300','fixed500','levelA1']);
+  run('S.ach={};for(let k=0;k<7;k++){S.days[addDays(today(),-k)]={n:k%2?1:0,q:0,ok:0,bad:0};}checkAch("grade",{i:0})');
+  assert.equal(run('!!S.ach.weekly4'),false,'три дня из семи — мало');
+  run('S.days[today()]={n:1,q:0,ok:0,bad:0};checkAch("grade",{i:0})');
+  assert.equal(run('!!S.ach.weekly4'),true);assert.equal(run('!!S.ach.rhythm4'),false);
+  run('S.hard[wk(5)]=1;S.w[wk(5)]={box:5,due:today(),ok:1,bad:0};checkAch("grade",{i:5})');
+  assert.equal(run('Object.keys(S.stats.solvedSet||{}).length'),0,'сложное слово в ячейке 5 ещё не «разобрано»');
+});
+
