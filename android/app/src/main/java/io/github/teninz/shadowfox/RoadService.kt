@@ -75,7 +75,7 @@ class RoadService : Service() {
         fun pi(action: String, code: Int) = PendingIntent.getService(this, code, Intent(this, RoadService::class.java).setAction(action), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val open = PendingIntent.getActivity(this, 9, Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         return NotificationCompat.Builder(this, CHANNEL)
-            .setSmallIcon(R.drawable.ic_stat_fox).setContentTitle(word).setContentText(ru).setSubText("В дороге")
+            .setSmallIcon(R.drawable.ic_stat_learn).setContentTitle(word).setContentText(ru).setSubText("В дороге")
             .setContentIntent(open).setOngoing(true).setOnlyAlertOnce(true).setSilent(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setCategory(NotificationCompat.CATEGORY_TRANSPORT)
             .addAction(if (paused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause, if (paused) "Продолжить" else "Пауза", pi(ACTION_PAUSE, 1))

@@ -212,6 +212,19 @@ test('словарная разметка включена в HTML, офлайн
   assert.ok(read('sw.js').includes('"./word-levels.js"'));assert.ok(read('tools/build-web.js').includes('"word-levels.js"'));
 });
 
+test('виджет компаньона и лисий значок не возвращаются в Android-сборку',()=>{
+  const manifest=read('android/app/src/main/AndroidManifest.xml');
+  const road=read('android/app/src/main/java/io/github/teninz/shadowfox/RoadService.kt');
+  assert.doesNotMatch(manifest,/CompanionWidget|companion_widget/i);
+  for(const file of [
+    'android/app/src/main/java/io/github/teninz/shadowfox/CompanionWidget.kt',
+    'android/app/src/main/res/layout/companion_widget.xml',
+    'android/app/src/main/res/xml/companion_widget_info.xml',
+    'android/app/src/main/res/drawable/ic_stat_fox.xml',
+  ]) assert.equal(fs.existsSync(path.join(__dirname,'..',file)),false,file);
+  assert.match(road,/R\.drawable\.ic_stat_learn/);
+});
+
 test('слова, выбывшие из маршрута, вычищаются из прогресса вместе с незавершённым блицем',()=>{
   const {run}=app();
   run('S.thematic.topics.space=LearningCore.thematicTopicEmpty();const t=S.thematic.topics.space;t.words.browser={box:2,due:today(),ok:1,bad:0};t.introduced.browser=1;t.words.planet={box:2,due:today(),ok:1,bad:0};t.introduced.planet=1;t.exam.active={attemptId:"x",order:["browser"],index:0,errors:0,correct:0,startedWall:1,questionWall:1,questionMono:1};');
