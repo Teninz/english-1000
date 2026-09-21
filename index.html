@@ -92,9 +92,8 @@ main > *:nth-child(2){animation-delay:.04s} main > *:nth-child(3){animation-dela
 .card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
 .card.hero{background:radial-gradient(120% 90% at 100% 0%,var(--accent-soft) 0%,var(--surface) 55%);border:1px solid var(--line)}
 .card.hero{position:relative;overflow:hidden}
-.hero-fox{position:absolute;right:-24px;bottom:-34px;height:210px;pointer-events:none;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4))}
-.card.hero{padding:18px 16px 22px;min-height:190px}
-.card.hero .row{position:relative;z-index:1;padding-right:96px;align-items:flex-start}
+.card.hero{padding:18px 16px 22px}
+.card.hero .row{position:relative;z-index:1;align-items:flex-start}
 .ring-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
 .card.hero .ring{width:74px;height:74px}
 .card.hero .ring .lab{font-size:15px}
@@ -423,16 +422,11 @@ a.btn{text-decoration:none}
   <nav class="tabs"><div class="tabs-in" id="tabs"></div></nav>
 </div>
 <div id="overlay"></div>
-<button id="foxHandle" class="fox-handle" aria-label="Открыть домик лисы"></button>
-<div id="foxDrawerHost"></div>
-
-<link rel="stylesheet" href="companion.css">
+<link rel="stylesheet" href="motivation.css">
 <link rel="stylesheet" href="thematic.css">
 <script src="learning-core.js"></script>
 <script src="word-forms.js"></script>
 <script src="progress-storage.js"></script>
-<script src="fox-motion.js"></script>
-<script src="art/companion-v2/manifest.js"></script>
 <script src="journey.js"></script>
 <script src="words-a.js"></script>
 <script src="words-b.js"></script>
@@ -617,7 +611,7 @@ function renderHome(){
   const dailyCount = activityCount(), pct = Math.min(1, dailyCount / S.goal), C = 2*Math.PI*40;
   const acc = d.q ? Math.round(100*d.ok/d.q) : null;
   view().innerHTML = `
-    <section class="card hero"><img class="hero-fox" src="art/shadowfox.png" alt="" onerror="this.hidden=true">
+    <section class="card hero">
       <div class="row">
         <div class="ring-col"><div class="ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="40"/><circle class="fill" cx="50" cy="50" r="40" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg><div class="lab">${dailyCount}/${S.goal}</div></div><span class="small muted">слов в практике</span></div>
         <div class="grow">
@@ -632,6 +626,7 @@ function renderHome(){
     </section>
     ${comebackCardHtml()}
     ${journeyHeroHtml()}
+    ${motivationCardHtml()}
     ${loadCardHtml()}
     <div class="grid2">
       <button class="btn secondary block" id="hLearn" ${unstartedList().length?"":"disabled"}>Учить новые</button>
@@ -1263,7 +1258,7 @@ function settingsSheet(){
     <div class="set-row"><span>Виджет на рабочем столе</span><div class="seg" style="width:200px" id="widgetSeg">${[["dark","Тёмный"],["light","Светлый"]].map(([k,l])=>`<button class="${(S.set.widgetTheme||"dark")===k?"on":""}" data-w="${k}">${l}</button>`).join("")}</div></div>
     <div class="set-row"><span>Тема</span><div class="seg" style="width:200px" id="themeSeg">${[["dark","Ночь"],["light","День"]].map(([k,l])=>`<button class="${(S.set.theme||"dark")===k?"on":""}" data-t="${k}">${l}</button>`).join("")}</div></div>
     <div class="set-row" style="flex-direction:column;align-items:stretch;gap:10px" id="voicesPanel">${voicesPanel()}</div>
-    <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px"><span>Перенос прогресса на другое устройство</span><textarea class="io" id="io" placeholder="Вставь сюда код с другого устройства"></textarea><div class="grid2"><button class="btn secondary" id="exp">Скопировать код</button><button class="btn secondary" id="imp">Загрузить</button></div><p class="small muted">Копия содержит прогресс и лису. API-ключи и настройки голосов не включаются.</p><div class="backup-tools"><button class="btn secondary" id="backupFile">Сохранить копию в файл</button><label class="small">Загрузить файл копии<input type="file" id="importFile" accept=".json,application/json,text/plain" style="display:block;width:100%;margin-top:6px"></label><button class="btn ghost" id="undoImport">Восстановить копию до импорта</button></div></div>
+    <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px"><span>Перенос прогресса на другое устройство</span><textarea class="io" id="io" placeholder="Вставь сюда код с другого устройства"></textarea><div class="grid2"><button class="btn secondary" id="exp">Скопировать код</button><button class="btn secondary" id="imp">Загрузить</button></div><p class="small muted">Копия содержит учебный прогресс, достижения и настройки программы. API-ключи и настройки голосов не включаются.</p><div class="backup-tools"><button class="btn secondary" id="backupFile">Сохранить копию в файл</button><label class="small">Загрузить файл копии<input type="file" id="importFile" accept=".json,application/json,text/plain" style="display:block;width:100%;margin-top:6px"></label><button class="btn ghost" id="undoImport">Восстановить копию до импорта</button></div></div>
     <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px"><div class="row between"><span>Прогресс</span><span class="small muted">начато ${plural(started,"слово","слова","слов")} · сложных ${hardList().length}</span></div>
       <div class="grid2"><button class="btn secondary" id="resetProg">${ICONS.reset.replace("<svg","<svg width=16 height=16")} Сбросить изученное</button><button class="btn secondary" id="resetHard">${ICONS.flag.replace("<svg","<svg width=16 height=16")} Снять все пометки</button></div>
       <p class="small muted">Сброс изученного обнуляет слова, серию дней и статистику, но сохраняет настройки, голоса, ключи и пометки «сложное». Сбросить один уровень можно во вкладке «Слова».</p></div>
@@ -1287,7 +1282,7 @@ function settingsSheet(){
   $("#aboutBtn").onclick = aboutSheet;
   $("#resetProg").onclick = () => confirmSheet("Сбросить изученное?", `${plural(started,"слово","слова","слов")} вернутся в «не начато». Настройки и пометки останутся.`, "Сбросить", () => { resetProgress(); go("home"); toast("Прогресс сброшен"); }, true);
   $("#resetHard").onclick = () => confirmSheet("Снять все пометки «сложное»?", `Сейчас помечено ${plural(hardList().length,"слово","слова","слов")}.`, "Снять", () => { S.hard = {}; save(); settingsSheet(); toast("Пометки сняты"); });
-  $("#reset").onclick = () => confirmSheet("Удалить весь прогресс?", "Это нельзя отменить. Ключи и скачанные голоса останутся.", "Удалить", () => { const keep = {tts:S.set.tts, ttsKeys:S.set.ttsKeys}; try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+".before-import");}catch(e){toast("Не удалось сбросить данные");return;} load(); Object.assign(S.set, keep); save(); if(window.resetCompanion)window.resetCompanion(); go("home"); }, true);
+  $("#reset").onclick = () => confirmSheet("Удалить весь прогресс?", "Это нельзя отменить. Ключи и скачанные голоса останутся.", "Удалить", () => { const keep = {tts:S.set.tts, ttsKeys:S.set.ttsKeys}; try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+".before-import");}catch(e){toast("Не удалось сбросить данные");return;} load(); Object.assign(S.set, keep); save(); go("home"); }, true);
 }
 function applyScene(){
   const k = S.set.scene || "town"; const layer = $("#scene");
@@ -1306,9 +1301,6 @@ function confirmSheet(title, text, yes, onYes, danger){
 function sheet(html){ $("#overlay").innerHTML = `<div class="scrim"><div class="sheet">${html}</div></div>`; $(".scrim").onclick = e => { if(e.target===e.currentTarget) closeSheet(); }; $("[data-close]").onclick = closeSheet; }
 function closeSheet(){ $("#overlay").innerHTML = ""; }
 $("#btnSettings").onclick = settingsSheet;
-$("#foxHandle").innerHTML=foxFaceIcon();
-$("#foxHandle").onclick=()=>openCompanion();
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&companionDrawerOpen())closeCompanion();});
 
 /* ---------- старт ---------- */
 load();
@@ -1346,7 +1338,7 @@ if(qsDemo.get("demo")){ const sc = qsDemo.get("screen"); setTimeout(() => {
   else if(sc==="road"){ go("road"); }
   else if(sc==="words"){ go("words"); openLevelIdx = 0; openBlock = 0; drawWords(); }
   else if(sc==="settings"){ settingsSheet(); }
-  else if(sc==="companion"||sc==="choose"){ journeyState(); if(sc==="companion"){ S.companion.fox="04-boy-bold"; S.companion.adopted=today(); S.companion.identity=LearningCore.petIdentity({sex:"male",name:"Фокс"}); S.companion.completed[today()]=1; S.journey.completed[today()]=1; S.journey.foxSeen={day:today(),period:foxPeriod()}; } openCompanion(); }
+  else if(sc==="motivation"){ go("home"); document.querySelector("#motivationCard")?.scrollIntoView({block:"center"}); }
   else if(sc==="thematic"){ go("thematic"); }
   else if(sc) go(sc); }, 200); }
 document.addEventListener("visibilitychange", () => {if(document.visibilityState==="visible" && !inSession && tab==="home")go("home");});

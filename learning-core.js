@@ -106,78 +106,6 @@ const LearningCore = (() => {
     o.v = 3;
     return o;
   }
-  const petFormKeys = ["nom","gen","dat","acc","ins","prep"];
-  const petIdentityEmpty = () => ({sex:"female",name:"",decline:true,forms:{nom:"",gen:"",dat:"",acc:"",ins:"",prep:""}});
-  function petNameForms(value, sex="female", decline=true) {
-    const name=String(value||"").normalize("NFKC").replace(/\s+/g," ").trim().slice(0,32);
-    const same=()=>Object.fromEntries(petFormKeys.map(k=>[k,name]));
-    if(!name||!decline||!/^[А-ЯЁа-яё-]+$/.test(name))return same();
-    const lower=name.toLocaleLowerCase("ru-RU"), last=lower.at(-1), stem=name.slice(0,-1), before=lower.at(-2)||"";
-    if(last==="а")return {nom:name,gen:stem+("гкхжчшщц".includes(before)?"и":"ы"),dat:stem+"е",acc:stem+"у",ins:stem+"ой",prep:stem+"е"};
-    if(last==="я")return {nom:name,gen:stem+"и",dat:stem+"е",acc:stem+"ю",ins:stem+"ей",prep:stem+"е"};
-    if(last==="й")return {nom:name,gen:stem+"я",dat:stem+"ю",acc:stem+"я",ins:stem+"ем",prep:stem+"е"};
-    if(last==="ь")return sex==="male"?{nom:name,gen:stem+"я",dat:stem+"ю",acc:stem+"я",ins:stem+"ем",prep:stem+"е"}:{nom:name,gen:stem+"и",dat:stem+"и",acc:name,ins:stem+"ью",prep:stem+"и"};
-    if(sex==="male"&&/[бвгджзклмнпрстфхцчшщ]$/.test(lower))return {nom:name,gen:name+"а",dat:name+"у",acc:name+"а",ins:name+"ом",prep:name+"е"};
-    return same();
-  }
-  function petIdentity(value={}) {
-    const sex=value?.sex==="male"?"male":"female", name=String(value?.name||"").normalize("NFKC").replace(/\s+/g," ").trim().slice(0,32), decline=value?.decline!==false;
-    const suggested=petNameForms(name,sex,decline), incoming=object(value?.forms)?value.forms:{};
-    return {sex,name,decline,forms:Object.fromEntries(petFormKeys.map(k=>[k,typeof incoming[k]==="string"&&incoming[k].trim()?incoming[k].normalize("NFKC").replace(/\s+/g," ").trim().slice(0,32):suggested[k]]))};
-  }
-  // Лисы v2: пока открыт только 04 (полный набор клипов 17.09); 01–03 показываются приглушённо до своих наборов.
-  // Состав клипов каждой лисы описывает art/companion-v2/manifest.js, собираемый tools/build-companion-pack.py.
-  const petFoxes = [
-    {id:"04-boy-bold",sex:"male",title:"Смелый",available:true},
-    {id:"03-girl-gentle",sex:"female",title:"Тихая",available:false},
-    {id:"01-boy-calm",sex:"male",title:"Спокойный",available:false},
-    {id:"02-girl-warm",sex:"female",title:"Тёплая",available:false}
-  ];
-  const petFox = id => petFoxes.find(f=>f.id===id) || null;
-  const petDecorIds = ["lamp","books","blanket","plant","garland","painting","cushion","tea"];
-  const petEmpty = () => ({completed:{},fed:0,watered:0,pets:0,lastFed:null,lastWater:null,lastAction:null,identity:petIdentityEmpty(),fox:null,adopted:null,decor:{active:[],known:[]}});
-  // Родное хранилище Android возвращает только известные ему поля: выбор лисы и дата встречи переносятся из прежнего снимка.
-  function petKeepChoice(next, previous) {
-    if(!object(next))return next;
-    if(next.fox===undefined&&previous?.fox)next.fox=previous.fox;
-    if(next.adopted===undefined&&previous?.adopted)next.adopted=previous.adopted;
-    if(next.decor===undefined&&previous?.decor)next.decor=previous.decor;
-    return next;
-  }
-  const petSex = pet => petIdentity(pet?.identity).sex;
-  function petTerm(pet, form="nom") {
-    const identity=petIdentity(pet?.identity), key=petFormKeys.includes(form)?form:"nom";
-    if(identity.name)return identity.forms[key]||identity.name;
-    const nouns=identity.sex==="male"?{nom:"лис",gen:"лиса",dat:"лису",acc:"лиса",ins:"лисом",prep:"лисе"}:{nom:"лиса",gen:"лисы",dat:"лисе",acc:"лису",ins:"лисой",prep:"лисе"};
-    return nouns[key];
-  }
-  const petCap = text => text ? text[0].toLocaleUpperCase("ru-RU")+text.slice(1) : text;
-  function petMood(pet, day) {
-    const dates = Object.keys(pet.completed).filter(d => d <= day).sort();
-    const last = dates.at(-1);
-    const missed = last ? Math.max(0, Math.round((Date.parse(day)-Date.parse(last))/86400000)-1) : 0;
-    const mood = Math.min(3, missed);
-    return {mood,missed,last:last || null,treats:Math.max(0,2+Object.keys(pet.completed).length-(pet.fed||0))};
-  }
-  function petAction(pet, action, day) {
-    const state = JSON.parse(JSON.stringify(pet)), m = petMood(state,day);
-    state.identity=petIdentity(state.identity);
-    const male=petSex(state)==="male", who=petCap(petTerm(state));
-    state.fed = state.fed || 0; state.watered = state.watered || 0; state.pets = state.pets || 0;
-    if(state.lastFed===undefined)state.lastFed=null;
-    if(state.lastWater===undefined)state.lastWater=null;
-    if (m.mood === 3) return {state,message:`${who} ${male?"свернулся":"свернулась"} клубком. Короткое занятие поможет снова оживиться.`};
-    if (action === "feed") {
-      if (!m.treats) return {state,message:"Угощения закончились. Новое ждёт за первое занятие дня."};
-      state.fed++; state.lastFed=day;
-    } else if (action === "water") {
-      state.watered++; state.lastWater=day;
-    } else if (action === "pet") state.pets++;
-    else throw Error("Неизвестное действие");
-    state.lastAction = {day,kind:action};
-    const message = m.mood === 2 ? `${who} чуть шевельнул${male?"":"а"} ушами. ${male?"Он":"Она"} скучает по вашим занятиям.` : m.mood === 1 ? `${who} тихо прижал${male?"ся":"ась"} к тебе. Может, позанимаемся вместе?` : action === "feed" ? `Хрум! ${who} довольно облизывается.` : action === "water" ? `${who} напил${male?"ся":"ась"} и довольно встряхнул${male?"":"а"} ушами.` : `${who} подставил${male?"":"а"} голову и замахал${male?"":"а"} хвостом.`;
-    return {state,message};
-  }
   const thematicIds = ["forest","village","travel","city","beach","space","science","rescue","shops","home"];
   const thematicEmpty = () => ({settings:{batchSize:5,reviewSize:15,autoSpeak:true},topics:{},equipmentRewards:{}});
   const thematicTopicEmpty = () => ({words:{},introduced:{},days:{},stats:{ok:0,bad:0},exam:{passedAt:null,attempts:0,lockedUntil:null,active:null,lastResult:null}});
@@ -301,32 +229,8 @@ const LearningCore = (() => {
         if(p.phase!==undefined&&!["review","new","check","repair"].includes(p.phase))fail();
       }
     }
-    if (o.companion !== undefined) {
-      if (!object(o.companion) || !object(o.companion.completed) || !count(o.companion.fed) || !count(o.companion.pets)) fail();
-      if (!Object.entries(o.companion.completed).every(([d,v])=>dateOK(d)&&v===1)) fail();
-      if (o.companion.watered !== undefined && !count(o.companion.watered)) fail();
-      for(const k of ["lastFed","lastWater"])if(o.companion[k]!==undefined&&o.companion[k]!==null&&!dateOK(o.companion[k]))fail();
-      if (o.companion.lastAction !== null && o.companion.lastAction !== undefined && (!object(o.companion.lastAction) || !dateOK(o.companion.lastAction.day) || !["feed","water","pet"].includes(o.companion.lastAction.kind))) fail();
-      o.companion.watered=o.companion.watered||0;
-      if(o.companion.lastFed===undefined)o.companion.lastFed=null;
-      if(o.companion.lastWater===undefined)o.companion.lastWater=null;
-      const identity=o.companion.identity;
-      if(identity!==undefined){
-        if(!object(identity)||!["female","male"].includes(identity.sex)||typeof identity.name!=="string"||identity.name.length>32||typeof identity.decline!=="boolean"||!object(identity.forms))fail();
-        if(!petFormKeys.every(k=>identity.forms[k]===undefined||(typeof identity.forms[k]==="string"&&identity.forms[k].length<=32)))fail();
-      }
-      o.companion.identity=petIdentity(identity);
-      if(o.companion.fox!==undefined&&o.companion.fox!==null&&!petFox(o.companion.fox))fail();
-      if(o.companion.adopted!==undefined&&o.companion.adopted!==null&&!dateOK(o.companion.adopted))fail();
-      if(o.companion.fox===undefined)o.companion.fox=null;
-      if(o.companion.adopted===undefined)o.companion.adopted=null;
-      const decor=o.companion.decor;
-      if(decor!==undefined){
-        if(!object(decor)||!Array.isArray(decor.active)||!Array.isArray(decor.known)||decor.active.length>3||decor.known.length>petDecorIds.length)fail();
-        for(const list of [decor.active,decor.known])if(new Set(list).size!==list.length||!list.every(id=>petDecorIds.includes(id)))fail();
-      }
-      o.companion.decor=decor||{active:[],known:[]};
-    }
+    // Поле companion из старых копий больше не используется и не переносится.
+    delete o.companion;
     o.thematic=o.thematic||thematicEmpty();
     if(!object(o.thematic)||!object(o.thematic.settings)||!object(o.thematic.topics)||!object(o.thematic.equipmentRewards))fail();
     if(![5,10].includes(o.thematic.settings.batchSize)||![10,15,20].includes(o.thematic.settings.reviewSize)||typeof o.thematic.settings.autoSpeak!=="boolean")fail();
@@ -365,7 +269,7 @@ const LearningCore = (() => {
   }
   function portable(state, legacyKeys) {
     const o = validate(state, legacyKeys), result = {format:"shadowfox-progress",exportedAt:new Date().toISOString()};
-    for (const k of ["v","goal","streak","days","w","modes","hard","ach","stats","journey","companion","thematic","placement"]) if (o[k] !== undefined) result[k] = o[k];
+    for (const k of ["v","goal","streak","days","w","modes","hard","ach","stats","journey","thematic","placement"]) if (o[k] !== undefined) result[k] = o[k];
     if(result.journey)delete result.journey.plan;
     return result;
   }
@@ -377,6 +281,6 @@ const LearningCore = (() => {
     o.set = JSON.parse(JSON.stringify(current.set || {auto:true}));
     return o;
   }
-  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,knownEntry,assumeKnown,dailyLoad,lessonMinutes,forgottenKeys,spreadBacklog,empty,migrate,validate,portable,prepareImport,petIdentityEmpty,petNameForms,petIdentity,petTerm,petEmpty,petDecorIds,petFoxes,petFox,petKeepChoice,petMood,petAction,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
+  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,knownEntry,assumeKnown,dailyLoad,lessonMinutes,forgottenKeys,spreadBacklog,empty,migrate,validate,portable,prepareImport,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
 })();
 if (typeof module !== "undefined") module.exports = LearningCore;

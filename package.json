@@ -2,13 +2,9 @@
   "name": "shadowfox-eng",
   "version": "1.0.3-7b",
   "private": true,
-  "description": "ShadowFox Eng — 1000 английских слов B1–B2",
+  "description": "ShadowFox Eng — Oxford 3000, английские слова A1–B2",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "build:companion-frames": "python tools/build-pixel-companion.py",
-    "build:companion-apng": "node tools/build-companion-apng.js",
-    "build:fox-motion-plan": "node tools/build-fox-motion-plan.js",
-    "extract:fox-keyframes": "python tools/extract-fox-reference-frames.py",
     "build:web": "node tools/build-web.js",
     "sync": "npm run build:web && npx cap sync android",
     "open": "npx cap open android"
@@ -22,7 +18,6 @@
     "@capacitor/browser": "^8.0.4",
     "@capacitor/cli": "^8.5.2",
     "@capacitor/core": "^8.5.2",
-    "@capacitor/filesystem": "^8.1.3",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/local-notifications": "^8.3.1"
   },

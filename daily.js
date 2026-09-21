@@ -41,7 +41,7 @@ function dailyEvent(ev, p = {}){
 }
 function dailyProgress(t){
   const L = dailyEnsure().log;
-  if(t.id === "lesson") return [S.companion?.completed[today()]?1:0,1];
+  if(t.id === "lesson") return [S.journey?.completed?.[today()]?1:0,1];
   if(t.id === "learn") return [L.learn, t.target];
   if(t.id === "review") return [Math.min(L.review, t.target), t.target];
   if(t.id === "hard") return [L.sessions.some(s => s.scope === "hard" && s.n >= 4 && s.pct >= .8) ? 1 : 0, 1];
@@ -59,7 +59,7 @@ function dailyRefresh(){
   if(tab === "home" && $("#dailyCard")) { const c = $("#dailyCard"); c.outerHTML = dailyCardHtml(); wireDaily(); }
 }
 function dailyTitle(t){
-  if(t.id === "lesson") return ["Встреча с лисой", "Короткое занятие и угощение для компаньона", "learn"];
+  if(t.id === "lesson") return ["Занятие на сегодня", "Короткое занятие для сохранения учебного ритма", "learn"];
   if(t.id === "learn") return ["Выучить новые слова", `${t.target} ${plural(t.target,"слово","слова","слов").replace(/^\d+ /,"")} из текущего блока`, "learn"];
   if(t.id === "review") return ["Повторить слова", `${t.target} из очереди на сегодня`, "rev"];
   if(t.id === "hard") return ["Сложные слова", "Любая проверка по сложным на 80%", "flag"];

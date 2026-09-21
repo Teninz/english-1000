@@ -91,9 +91,8 @@ if (NATIVE) {
     if (a) { e.preventDefault(); NATIVE.browser.open({ url: a.href }).catch(() => {}); }
   }, true);
 
-  // --- кнопка «назад»: закрыть панель → вернуться на главную → свернуть приложение ---
+  // --- кнопка «назад»: закрыть лист → вернуться на главную → свернуть приложение ---
   NATIVE.app.addListener("backButton", () => {
-    if (companionDrawerOpen()) { closeCompanion(); return; }
     if (document.querySelector(".scrim")) { closeSheet(); return; }
     if (typeof thematicExamRunning === "function" && thematicExamRunning()) { thematicRequestExamExit("thematic"); return; }
     if (inSession) { endSession(); go(tab); return; }
@@ -107,7 +106,7 @@ if (NATIVE) {
     try { const u = new URL(url); const sc = u.searchParams.get("screen"), w = u.searchParams.get("word");
       if (w) { const i = WORDS.findIndex(x => x[0] === w); if (i >= 0) { go("words"); query = w; renderWords(); wordSheet(i); return; } }
       if (sc === "journey") { endSession(); journeyStart(); return; }
-      if (sc === "companion") { endSession(); go("home"); openCompanion(); return; }
+      if (sc === "motivation") { endSession(); go("home"); document.querySelector("#motivationCard")?.scrollIntoView({block:"center"}); return; }
       if (sc === "review") { dueList().length ? startReview() : go("home"); return; }
       if (sc === "hard") { go("words"); wordsFilter = "hard"; renderWords(); return; }
       if (sc && ["home","learn","test","road","words","thematic"].includes(sc)) go(sc);
@@ -134,111 +133,7 @@ if (NATIVE) {
   window.save = function () { const saved=origSave.apply(this, arguments); if(saved!==false)updateWidget(false); return saved; };
   updateWidget(true);
 
-  // В Android действия с лисой выполняет тот же репозиторий, что и виджет.
-  let companionChain=Promise.resolve();
-  const companionQueue=fn=>{const job=companionChain.then(fn);companionChain=job.catch(()=>{});return job;};
-  window.syncCompanion = () => companionQueue(async()=>{
-    journeyState();
-    const r=await NATIVE.P.Widget.companionSync({state:S.companion});
-    S.companion=LearningCore.petKeepChoice(r.state,S.companion);
-    for(const day of Object.keys(r.state.completed))S.journey.completed[day]=1;
-    origSave();
-    if(companionDrawerOpen()&&!inSession&&!$(".scrim"))openCompanion();
-    return r.state;
-  }).catch(()=>{toast("Не удалось синхронизировать лису с виджетом");});
-  window.nativeCompanionAction = action => companionQueue(async()=>{const r=await NATIVE.P.Widget.companionAction({action});r.state=LearningCore.petKeepChoice(r.state,S.companion);return r;});
-  window.resetCompanion = () => companionQueue(()=>NATIVE.P.Widget.companionReset()).catch(()=>toast("Не удалось сбросить виджет лисы"));
   window.shareProgressFile = content => NATIVE.P.Widget.shareProgress({content});
-  window.pinCompanion = async()=>{const r=await NATIVE.P.Widget.companionPin();if(!r.supported)toast("Удерживай рабочий стол → Виджеты → ShadowFox → Лиса-компаньон");};
-  NATIVE.app.addListener("appStateChange",s=>{if(s.isActive)syncCompanion();});
-  syncCompanion();
-
-  // --- набор анимаций лисы: скачивается по кнопке и хранится в приватной папке приложения (как контент в играх) ---
-  // Файлы берутся с GitHub Releases по версии из manifest.js; в APK лежат только постеры. Пока набора нет — лиса неподвижна.
-  // При bundled: true (manifest.js) клипы лежат в APK, хранилище и кнопка загрузки не нужны.
-  if (typeof FOX_PACK === "undefined" || !FOX_PACK.bundled) window.foxPackStore = (() => {
-    const FS = NATIVE.P.Filesystem, KEY = "foxPack", DIR = "DATA";
-    const pack = () => (typeof FOX_PACK !== "undefined" ? FOX_PACK : {version:0});
-    const base = () => pack().base || `https://github.com/Teninz/english-1000/releases/download/fox-pack-${pack().version}/`;
-    const flat = path => path.split("/").join("__");
-    const local = path => `fox-pack/${pack().version}/${flat(path)}`;
-    const record = () => { try { return JSON.parse(localStorage.getItem(KEY) || "null") || {}; } catch (e) { return {}; } };
-    const save = r => localStorage.setItem(KEY, JSON.stringify(r));
-    let urls = {}, state = "missing", percent = 0, error = "";
-    // WebView не воспроизводит <video> по внутреннему адресу _capacitor_file_, поэтому файл читается целиком
-    // и отдаётся плееру как blob-URL. Сначала через fetch (быстро), при неудаче — через readFile (base64).
-    async function blobUrl(path) {
-      const u = await FS.getUri({ path: local(path), directory: DIR });
-      try {
-        const res = await fetch(NATIVE.C.convertFileSrc(u.uri));
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return URL.createObjectURL(await res.blob());
-      } catch (e) {
-        const r = await FS.readFile({ path: local(path), directory: DIR });
-        const bin = atob(r.data), bytes = new Uint8Array(bin.length);
-        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-        return URL.createObjectURL(new Blob([bytes], { type: "video/webm" }));
-      }
-    }
-    async function init() {
-      const r = record();
-      if (!FS) { state = "missing"; return; }
-      if (r.version !== pack().version) { state = r.version ? "stale" : "missing"; return; }
-      const files = foxPackFiles();
-      const next = {};
-      for (const f of files) {
-        try { const st = await FS.stat({ path: local(f.path), directory: DIR }); if (!(st.size > 1000)) throw new Error("empty"); next[f.path] = await blobUrl(f.path); }
-        catch (e) { for (const old of Object.values(next)) URL.revokeObjectURL(old); state = "missing"; error = "Набор повреждён: " + (e && e.message || e); return; }
-      }
-      for (const old of Object.values(urls)) URL.revokeObjectURL(old);
-      urls = next; state = "ready";
-    }
-    async function download(onProgress) {
-      if (!FS || state === "downloading") return;
-      state = "downloading"; percent = 0; error = "";
-      const files = foxPackFiles(), total = Math.max(1, files.reduce((s, f) => s + f.kb * 1024, 0));
-      let done = 0, current = 0;
-      // downloadFile не создаёт папку назначения даже с recursive — делаем это сами (ошибка «уже существует» безвредна).
-      try { await FS.mkdir({ path: `fox-pack/${pack().version}`, directory: DIR, recursive: true }); } catch (e) {}
-      const handle = await FS.addListener("progress", p => { current = p.bytes || 0; const pct = Math.min(99, Math.round((done + current) / total * 100)); if (pct !== percent) { percent = pct; onProgress && onProgress(pct); } });
-      try {
-        for (const f of files) {
-          let exists = false;
-          try { const st = await FS.stat({ path: local(f.path), directory: DIR }); exists = st.size > 1000; } catch (e) {}
-          if (!exists) await FS.downloadFile({ url: base() + flat(f.path), path: local(f.path), directory: DIR, recursive: true, progress: true });
-          done += f.kb * 1024; current = 0;
-          percent = Math.min(99, Math.round(done / total * 100)); onProgress && onProgress(percent);
-        }
-        save({ version: pack().version, day: today() });
-        await init();
-        if (state !== "ready") throw new Error("Файлы не прошли проверку после загрузки");
-        percent = 100; onProgress && onProgress(100);
-      } catch (e) {
-        state = record().version === pack().version ? "ready" : "missing";
-        const reason = String(e && e.message || "").replace(/^Error downloading file:\s*/i, "").replace(/^\/data\/[^:]*:\s*/i, "");
-        error = "Не удалось загрузить: " + (reason || "проверь интернет");
-        if (state === "ready") await init();
-        throw e;
-      } finally { handle.remove(); }
-    }
-    async function remove() {
-      try { await FS.rmdir({ path: "fox-pack", directory: DIR, recursive: true }); } catch (e) {}
-      localStorage.removeItem(KEY); for (const old of Object.values(urls)) URL.revokeObjectURL(old); urls = {}; state = "missing"; percent = 0;
-    }
-    init().then(() => { if (state === "ready" && companionDrawerOpen() && !inSession && !$(".scrim")) { closeCompanion(); openCompanion(); } });
-    // Ошибка воспроизведения из плеера (journey.js): показывается в блоке набора, чтобы её можно было прочитать на телефоне.
-    window.foxPackMediaError = (path, code, msg) => { error = `Видео не запускается (${code}${msg ? ": " + msg : ""}): ${path}`; };
-    let probe = "";
-    // Источники для диагностики: скачанный файл напрямую (_capacitor_file_), тот же файл через память, data-URL.
-    async function probeSources(path) {
-      const out = {};
-      try { const u = await FS.getUri({ path: local(path), directory: DIR }); out["файл"] = NATIVE.C.convertFileSrc(u.uri); } catch (e) { out["файл"] = null; }
-      out["файл→память"] = urls[path] || null;
-      try { const r = await FS.readFile({ path: local(path), directory: DIR }); out["data-url"] = "data:video/webm;base64," + r.data; } catch (e) { out["data-url"] = null; }
-      return out;
-    }
-    return { ready: () => state === "ready", url: path => urls[path] || null, status: () => ({ state, percent, error, probe }), download, remove, probeSources, setProbe: text => { probe = text; } };
-  })();
 
   // --- ежедневное напоминание (настраивается в настройках через S.set.remind = "HH:MM" | null) ---
   window.scheduleReminder = async function () {

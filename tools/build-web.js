@@ -3,14 +3,13 @@ const fs = require("fs"), path = require("path"), vm = require("vm");
 const root = path.join(__dirname, ".."), dist = path.join(root, "dist");
 fs.rmSync(dist, { recursive: true, force: true }); fs.mkdirSync(dist, { recursive: true });
 
-const files = ["index.html", "learning-core.js", "word-forms.js", "progress-storage.js", "fox-motion.js", "journey.js", "companion.css", "thematic.css", "thematic.js", "words-a.js", "words-b.js", "ex-ru.js", "thematic-data.js", "word-levels.js", "oxford-a1.js", "oxford-a2.js", "oxford-b1.js", "oxford-b2.js", "words-extra.js", "program.js", "scenes.js", "tts.js", "ach.js", "daily.js", "about.js", "native.js", "manifest.json", "privacy.html"];
+const files = ["index.html", "learning-core.js", "word-forms.js", "progress-storage.js", "journey.js", "motivation.css", "thematic.css", "thematic.js", "words-a.js", "words-b.js", "ex-ru.js", "thematic-data.js", "word-levels.js", "oxford-a1.js", "oxford-a2.js", "oxford-b1.js", "oxford-b2.js", "words-extra.js", "program.js", "scenes.js", "tts.js", "ach.js", "daily.js", "about.js", "native.js", "manifest.json", "privacy.html"];
 const dirs = ["icons", "art", "lib"];
 for (const f of files) fs.copyFileSync(path.join(root, f), path.join(dist, f));
 for (const d of dirs) fs.cpSync(path.join(root, d), path.join(dist, d), {
   recursive: true,
-  // Исходные PNG-кадры нужны только для пересборки APNG и не должны попадать в APK.
-  // Референсы, исходные клипы и пробы фона живут в art/, но в APK не нужны.
-  filter: src => !["companion-anim-frames", "companion", "companion-anim", "companion-references", "Visual", "Фон"].includes(path.basename(src)) && !/^Фон.*\.png$/u.test(path.basename(src)), // клипы, фон и постеры лисы (art/companion-v2) упакованы в APK; companion-probe/probe.webm нужен диагностике
+  // Архивные материалы бывшего компаньона и исходники фонов не входят в приложение.
+  filter: src => !["companion-anim-frames", "companion", "companion-anim", "companion-references", "companion-v2", "companion-probe", "Visual", "Фон"].includes(path.basename(src)) && !/^Фон.*\.png$/u.test(path.basename(src)),
 });
 
 // внутри APK service worker не нужен: файлы и так локальные

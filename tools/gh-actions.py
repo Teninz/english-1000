@@ -4,8 +4,6 @@ Git Credential Manager сохранил после первого push. Токе
   python tools/gh-actions.py dispatch <ветка>      запустить сборку и показать последние запуски
   python tools/gh-actions.py runs                  последние запуски
   python tools/gh-actions.py artifacts <run_id> <папка>   скачать и распаковать артефакты
-  python tools/gh-actions.py publish-pack                  выложить клипы art/companion-v2 в релиз fox-pack-<версия>
-                                                           (имена файлов: <лиса>__<клип>.webm, scene__<файл>.webm)
 """
 import io
 import json
@@ -50,40 +48,6 @@ def api(method, path, body=None, raw=False, upload=None):
         return json.loads(data) if data else {"status": r.status}
 
 
-def publish_pack():
-    """Клипы набора уходят в релиз fox-pack-<версия>; тег не начинается с v, поэтому сборку APK не запускает."""
-    from pathlib import Path
-    root = Path(__file__).resolve().parent.parent
-    pack = json.loads((root / "art" / "companion-v2" / "manifest.json").read_text(encoding="utf-8"))
-    tag = f"fox-pack-{pack['version']}"
-    sha = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True, cwd=root).stdout.strip()
-    try:
-        release = api("GET", f"/repos/{REPO}/releases/tags/{tag}")
-    except urllib.error.HTTPError as e:
-        if e.code != 404:
-            raise
-        release = api("POST", f"/repos/{REPO}/releases", {"tag_name": tag, "target_commitish": sha, "name": f"Набор анимаций лисы {pack['version']}",
-                      "body": "Клипы компаньона для ShadowFox Eng: приложение скачивает их по кнопке в домике лисы. Не для установки вручную.", "prerelease": True})
-    existing = {a["name"]: a for a in release.get("assets", [])}
-    files = [p for p in (root / "art" / "companion-v2").rglob("*.webm")]
-    for f in sorted(files):
-        name = f.relative_to(root / "art" / "companion-v2").as_posix().replace("/", "__")
-        if name in existing:
-            if existing[name]["size"] == f.stat().st_size:
-                print("skip", name); continue
-            api("DELETE", f"/repos/{REPO}/releases/assets/{existing[name]['id']}")
-        upload_url = release["upload_url"].split("{")[0] + f"?name={name}"
-        for attempt in range(4):  # загрузка на uploads.github.com иногда отвечает 5xx — повторяем
-            try:
-                api("POST", upload_url, upload=f.read_bytes()); break
-            except urllib.error.HTTPError as e:
-                if e.code < 500 or attempt == 3:
-                    raise
-                time.sleep(3 * (attempt + 1))
-        print("uploaded", name, f.stat().st_size // 1024, "KB")
-    print("release:", release["html_url"])
-
-
 def main():
     cmd = sys.argv[1]
     if cmd == "dispatch":
@@ -93,8 +57,6 @@ def main():
     if cmd == "runs":
         for run in api("GET", f"/repos/{REPO}/actions/workflows/android.yml/runs?per_page=4")["workflow_runs"]:
             print(run["id"], run["status"], run["conclusion"], run["head_branch"], run["event"], run["created_at"], run["html_url"])
-    if cmd == "publish-pack":
-        publish_pack()
     if cmd == "artifacts":
         run_id, out_dir = sys.argv[2], sys.argv[3]
         for a in api("GET", f"/repos/{REPO}/actions/runs/{run_id}/artifacts")["artifacts"]:

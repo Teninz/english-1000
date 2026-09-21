@@ -1,12 +1,12 @@
 // Скриншоты для магазина: локальный Chrome (puppeteer-core, без загрузки браузера), демо-режим приложения,
 // 360×640 CSS px при DPR 3 → 1080×1920 PNG в store/screens-9x16/. Нужен запущенный статический сервер (порт 8766).
-//   node tools/store-screens.js [home companion thematic card quiz gap road words]
+//   node tools/store-screens.js [home motivation thematic card quiz gap road words]
 const puppeteer = require("puppeteer-core");
 const path = require("path"), fs = require("fs");
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const BASE = process.env.BASE || "http://localhost:8766/index.html";
 const OUT = path.join(__dirname, "..", "store", "screens-9x16");
-const SCREENS = { home: {}, companion: { wait: 1500 }, thematic: {}, card: { wait: 900 }, quiz: {}, gap: {}, road: {}, words: {} };
+const SCREENS = { home: {}, motivation: {}, thematic: {}, card: { wait: 900 }, quiz: {}, gap: {}, road: {}, words: {} };
 (async () => {
   const names = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(SCREENS);
   fs.mkdirSync(OUT, { recursive: true });

@@ -38,7 +38,6 @@ function requestProgressImport(text){
       endSession();S=candidate;storageBlocked=false;clearStorageWarning();
       applyTheme();applyScene();pickVoices();go("home");
       if(window.updateWidget)window.updateWidget(true);
-      if(window.syncCompanion)window.syncCompanion();
       toast("Прогресс загружен. Предыдущая копия доступна в настройках.");
     }catch(e){storageWarning("Загрузка отменена: не удалось сохранить копию. Текущий прогресс не заменён.");}
   });
