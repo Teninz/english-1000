@@ -69,7 +69,7 @@ begin
   if char_length(p_nickname) not between 2 and 30 then raise exception 'invalid_nickname';end if;
   if char_length(p_device_id) not between 8 and 160 then raise exception 'invalid_device';end if;
   insert into public.competition_profiles(id,nickname,invite_code,active_device_id)
-  values(v_user,p_nickname,upper(encode(gen_random_bytes(5),'hex')),p_device_id)
+  values(v_user,p_nickname,upper(encode(extensions.gen_random_bytes(5),'hex')),p_device_id)
   on conflict(id) do update set nickname=excluded.nickname,updated_at=now()
   returning * into v_profile;
   if v_profile.active_device_id<>p_device_id then raise exception 'device_mismatch';end if;
@@ -134,7 +134,7 @@ as $$
 declare v_user uuid:=auth.uid();
 begin
   if v_user is null then raise exception 'authentication_required';end if;
-  delete from public.competition_profiles where id=v_user;
+  delete from auth.users where id=v_user;
   return jsonb_build_object('ok',true);
 end $$;
 
