@@ -10,8 +10,9 @@ function load(){
   try {
     const raw=localStorage.getItem(KEY), parsed=raw?JSON.parse(raw):null;
     S=parsed ? LearningCore.validate(parsed, LEGACY_KEYS) : LearningCore.empty();
+    if(typeof ScoreCore!=="undefined")ScoreCore.seedFromProgress(S,today());
     storageBlocked=false;
-    if(parsed && parsed.v!==S.v) save(); // прогресс прежнего курса перенесён на новые ключи
+    if(parsed && (parsed.v!==S.v||!parsed.score?.epoch)) save(); // прогресс и балльная модель перенесены на текущую версию
   } catch(e) {
     S=LearningCore.empty(); storageBlocked=true;
     storageWarning("Не удалось прочитать прогресс. Исходные данные сохранены. Восстанови резервную копию в настройках; новые ответы пока не сохраняются.");
@@ -32,6 +33,7 @@ function requestProgressImport(text){
   try {candidate=LearningCore.prepareImport(parseProgress(text),S,LEGACY_KEYS);} catch(e){toast("Не удалось прочитать копию: "+e.message);return;}
   confirmSheet("Загрузить прогресс?",`В копии ${Object.keys(candidate.w).length} начатых слов. Текущий прогресс будет сохранён для отмены. Голоса и ключи этого устройства останутся.`,"Загрузить",()=>{
     try {
+      if(typeof ScoreCore!=="undefined")ScoreCore.seedFromProgress(candidate,today());
       const previous=localStorage.getItem(KEY);
       localStorage.setItem(KEY+".before-import",previous || JSON.stringify(S));
       localStorage.setItem(KEY,JSON.stringify(candidate));

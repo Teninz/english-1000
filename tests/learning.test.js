@@ -9,7 +9,7 @@ function app(){
   const store=new Map();
   const ctx={console,Date,URLSearchParams,setTimeout:()=>0,clearTimeout(){},window:{},navigator:{},TTS:{stop(){}},document:{querySelector:()=>({}),querySelectorAll:()=>[],getElementById:()=>null,addEventListener(){}},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},checkAch(){},dailyEvent(){}};
   vm.createContext(ctx);
-  for(const f of ['learning-core.js','word-forms.js','progress-storage.js','journey.js','words-a.js','words-b.js','ex-ru.js','word-levels.js','oxford-a1.js','oxford-a2.js','oxford-b1.js','oxford-b2.js','words-extra.js','program.js','thematic-data.js'])vm.runInContext(read(f),ctx,{filename:f});
+  for(const f of ['learning-core.js','score-core.js','word-forms.js','progress-storage.js','journey.js','words-a.js','words-b.js','ex-ru.js','word-levels.js','oxford-a1.js','oxford-a2.js','oxford-b1.js','oxford-b2.js','words-extra.js','program.js','thematic-data.js','competition-config.js','competition.js'])vm.runInContext(read(f),ctx,{filename:f});
   const script=read('index.html').match(/<script>([\s\S]*?)<\/script>/)[1];
   vm.runInContext(script.slice(0,script.indexOf('/* ---------- старт')),ctx);
   vm.runInContext('S=LearningCore.empty();save=()=>true;checkAch=()=>{};dailyEvent=()=>{};buzz=()=>{};',ctx);
@@ -77,7 +77,7 @@ test('прогресс прежнего курса переносится на �
     journey:{completed:{},rewards:{},plan:{day:'2026-09-19',review:['assume'],fresh:['deadline'],reviewed:{assume:1},checked:{},errors:{},repaired:{},done:false}},
     daily:{d:'2026-09-19',tasks:[{id:'level',level:3,done:false,swapped:false},{id:'learn',target:5,done:false,swapped:false}],log:{learn:0,review:0,heard:0,pronOk:0,sessions:[]}}};
   const migrated=JSON.parse(JSON.stringify(run('LearningCore.validate('+JSON.stringify(old)+',LEGACY_KEYS)')));
-  assert.equal(migrated.v,3);
+  assert.equal(migrated.v,4);
   assert.deepEqual(Object.keys(migrated.w).sort(),['assume|v','deadline|n']);assert.equal(migrated.w['assume|v'].box,3);
   assert.deepEqual(migrated.hard,{'deadline|n':1});
   assert.deepEqual(migrated.days['2026-09-19'].words,{'assume|v':1,'deadline|n':1});assert.deepEqual(migrated.days['2026-09-19'].remembered,{'assume|v':1});
@@ -88,8 +88,8 @@ test('прогресс прежнего курса переносится на �
   assert.equal(run('W(WORDS.findIndex(w=>w[0]==="deadline")).box'),1,'слово дополнительного словаря видит перенесённый прогресс');
   assert.equal(run('isHard(WORDS.findIndex(w=>w[0]==="deadline"))'),true);
   const again=JSON.parse(run('JSON.stringify(LearningCore.validate(JSON.parse(JSON.stringify(S)),LEGACY_KEYS))'));
-  assert.deepEqual(Object.keys(again.w).sort(),['assume|v','deadline|n'],'повторная проверка v3 ничего не меняет');
-  assert.throws(()=>core.validate({...old,v:3}),/повреждена/,'задание «уровень» недопустимо в v3');
+  assert.deepEqual(Object.keys(again.w).sort(),['assume|v','deadline|n'],'повторная проверка v4 ничего не меняет');
+  assert.throws(()=>core.validate({...old,v:3}),/повреждена/,'задание «уровень» недопустимо после переноса в v4');
 });
 test('практика: сочетания и близкие пары ссылаются на слова программы, задания выбирают нужные слова',()=>{
   const run=app();
@@ -225,7 +225,7 @@ test('Путь Oxford 3000 показывает закреплённые сло�
 test('обязательные ресурсы PWA и APK присутствуют',()=>{
   const ctx={self:{addEventListener(){}},location:{},importScripts(){throw Error('service worker не должен импортировать дополнительные сценарии');}};vm.createContext(ctx);vm.runInContext(read('sw.js')+';this.files=FILES',ctx);
   for(const asset of ctx.files)assert.ok(fs.existsSync(path.join(root,asset)),asset);
-  for(const asset of ['learning-core.js','journey.js','motivation.css','word-forms.js','progress-storage.js','thematic.css','thematic.js','thematic-data.js','oxford-a1.js','oxford-a2.js','oxford-b1.js','oxford-b2.js','words-extra.js','program.js'])assert.ok(read('tools/build-web.js').includes('"'+asset+'"'),asset);
+  for(const asset of ['learning-core.js','score-core.js','journey.js','motivation.css','word-forms.js','progress-storage.js','thematic.css','thematic.js','thematic-data.js','competition.css','competition-config.js','competition.js','oxford-a1.js','oxford-a2.js','oxford-b1.js','oxford-b2.js','words-extra.js','program.js'])assert.ok(read('tools/build-web.js').includes('"'+asset+'"'),asset);
 });
 test('APK использует монотонные часы Android и подтверждает выход из блица',()=>{
   const activity=read('android/app/src/main/java/io/github/teninz/shadowfox/MainActivity.java'),clock=read('android/app/src/main/java/io/github/teninz/shadowfox/ClockPlugin.java'),native=read('native.js');

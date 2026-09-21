@@ -424,7 +424,9 @@ a.btn{text-decoration:none}
 <div id="overlay"></div>
 <link rel="stylesheet" href="motivation.css">
 <link rel="stylesheet" href="thematic.css">
+<link rel="stylesheet" href="competition.css">
 <script src="learning-core.js"></script>
+<script src="score-core.js"></script>
 <script src="word-forms.js"></script>
 <script src="progress-storage.js"></script>
 <script src="journey.js"></script>
@@ -445,6 +447,8 @@ a.btn{text-decoration:none}
 <script src="daily.js"></script>
 <script src="about.js"></script>
 <script src="thematic.js"></script>
+<script src="competition-config.js"></script>
+<script src="competition.js"></script>
 <script>
 /* ---------- данные ---------- */
 // WORDS, BLOCKS, blockOf, levelOf, WORD_KEYS — из program.js (Oxford 3000 по уровням + дополнительный словарь)
@@ -474,6 +478,7 @@ function grade(i, ok, mode, assisted = false){
   const previous = W(i), day = today();
   const remembered = ok && !assisted && previous && previous.ok > 0 && previous.due <= day && previous.lastAttempt !== day;
   S.w[wk(i)] = LearningCore.schedule(previous,ok,day,addDays,assisted);
+  ScoreCore.awardWord(S.score,{scope:"main",key:wk(i),before:previous,after:S.w[wk(i)],day,assisted});
   const d = dayRec(); d.q++; ok ? d.ok++ : d.bad++;
   d.words=d.words||{}; d.words[wk(i)]=1;
   if(remembered){d.remembered=d.remembered||{};d.remembered[wk(i)]=1;}
@@ -483,6 +488,7 @@ function grade(i, ok, mode, assisted = false){
 function introduce(i, known){
   if(!W(i)) { S.w[wk(i)] = known ? LearningCore.knownEntry(today(), addDays) : {box:0, due:today(), ok:0, bad:0}; dayRec().n++; touchStreak(); }
   else if(known){ Object.assign(W(i), LearningCore.knownEntry(today(), addDays), {ok:W(i).ok, bad:W(i).bad}); }
+  if(known)ScoreCore.markKnown(S.score,"main",wk(i),5,today());
   save(); checkAch("introduce", {i}); if(!known && typeof dailyEvent==="function") dailyEvent("learn");
 }
 const allIdx = () => WORDS.map((_,i)=>i);
@@ -494,7 +500,7 @@ const isHard = i => !!S.hard[wk(i)];
 const hardList = () => allIdx().filter(isHard);
 function toggleHard(i){ if(isHard(i)) delete S.hard[wk(i)]; else S.hard[wk(i)] = 1; save(); buzz(true); return isHard(i); }
 // сброс прогресса: всех слов или одного уровня; настройки, голоса и флажки не трогаем
-function resetProgress(block){ const ids = block==null ? allIdx() : BLOCKS[block].ids; ids.forEach(i => delete S.w[wk(i)]); if(level==null){ S.days = {}; S.modes = {}; S.streak = {n:0,last:null}; } save(); }
+function resetProgress(block){ const ids = block==null ? allIdx() : BLOCKS[block].ids,keys=ids.map(wk); ids.forEach(i => delete S.w[wk(i)]); if(block==null){ S.days = {}; S.modes = {}; S.streak = {n:0,last:null}; ScoreCore.resetScope(S.score,"main",today()); } else ScoreCore.resetWords(S.score,"main",keys,today()); save(); }
 
 /* ---------- утилиты ---------- */
 const $ = s => document.querySelector(s);
@@ -602,7 +608,7 @@ function renderTabs(){
   $("#tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => { const leave = () => { endSession(); go(b.dataset.tab); }; if(typeof thematicExamRunning==="function"&&thematicExamRunning()&&b.dataset.tab!==tab)thematicRequestExamExit(b.dataset.tab);else if(inSession && b.dataset.tab !== tab) confirmSheet("Прервать сессию?", "Ответы, которые ты уже дал, сохранены.", "Прервать", leave); else leave(); });
 }
 function endSession(){ if(typeof thematicCancelLesson==="function")thematicCancelLesson(); journeyRunning = false; if(optionKeys){document.removeEventListener("keydown",optionKeys);optionKeys=null;} inSession = false; hfStop(); stopListening(); TTS.stop(); }
-function go(t){ if(typeof thematicCancelLesson==="function")thematicCancelLesson(); tab = t; renderTabs(); window.scrollTo(0,0); ({home:renderHome, learn:renderLearn, test:renderTest, road:renderRoad, words:renderWords, thematic:renderThematicCatalog})[t](); }
+function go(t){ if(typeof thematicCancelLesson==="function")thematicCancelLesson(); tab = t; renderTabs(); window.scrollTo(0,0); ({home:renderHome, learn:renderLearn, test:renderTest, road:renderRoad, words:renderWords, thematic:renderThematicCatalog, competition:renderCompetition})[t](); }
 const view = () => $("#view");
 
 /* ---------- Сегодня ---------- */
@@ -633,13 +639,14 @@ function renderHome(){
       <button class="btn secondary block" id="hReview">Повторить${due.length?` · ${due.length}`:""}</button>
     </div>
     ${dailyCardHtml()}
+    ${competitionHomeCardHtml()}
     ${thematicHomeCardHtml()}
     ${progressAccordionHtml()}
     ${achCardHtml()}
     ${due.length===0 && started.length ? `<p class="small muted" style="text-align:center">На повторение сегодня ничего нет — интервалы работают. Учи новые или проверь себя.</p>`:""}
   `;
   { const f = $(".ring .fill"); if(f){ const to = f.getAttribute("stroke-dashoffset"); f.style.transition = "none"; f.setAttribute("stroke-dashoffset", C); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.transition = ""; f.setAttribute("stroke-dashoffset", to); })); } }
-  $("#achCard").onclick = achSheet; wireDaily(); wireThematicHomeCard();
+  $("#achCard").onclick = achSheet; wireDaily(); wireCompetitionHomeCard(); wireThematicHomeCard();
   $("#hLearn").onclick = () => go("learn");
   $("#hReview").onclick = () => due.length ? startReview() : toast("Пока нечего повторять");
   $("#hJourney").onclick = journeyStart;
@@ -731,6 +738,7 @@ function placementFinish(){
 function placementApply(levelIdx, score, knownIdx){
   const keys = PROGRAM_LEVELS.slice(0, levelIdx).flatMap(L => L.blocks.flatMap(b => b.ids)).concat(knownIdx).map(wk);
   const added = LearningCore.assumeKnown(S, keys, today(), addDays);
+  ScoreCore.seedFromProgress(S,today());
   S.placement = {level: PROGRAM_LEVELS[levelIdx].id, day: today(), score};
   const first = PROGRAM_LEVELS[levelIdx].blocks.find(b => b.ids.some(i=>!W(i))) || PROGRAM_LEVELS[levelIdx].blocks[0];
   learnBlock = BLOCKS.indexOf(first); save();
@@ -1237,7 +1245,7 @@ function wordSheet(i){
   `);
   $("#ssp").onclick = () => speak(w[0]); wireFlags();
   $("#sKnow").onclick = () => { introduce(i,true); closeSheet(); drawWords(); toast("Отмечено как известное"); };
-  $("#sReset").onclick = () => { if(r){ delete S.w[wk(i)]; save(); } else introduce(i,false); closeSheet(); drawWords(); };
+  $("#sReset").onclick = () => { if(r){ ScoreCore.resetWords(S.score,"main",[wk(i)],today()); delete S.w[wk(i)]; save(); } else introduce(i,false); closeSheet(); drawWords(); };
   $("[data-close]").onclick = () => { closeSheet(); drawWords(); }; $(".scrim").onclick = e => { if(e.target===e.currentTarget){ closeSheet(); drawWords(); } };
 }
 
@@ -1281,9 +1289,9 @@ function settingsSheet(){
   if(Object.values(S.set.tts||{}).some(c=>c.engine==="piper") && !TTS.piperStored) TTS.piperList().then(rerenderVoices).catch(()=>{});
   wireProgressStorage();
   $("#aboutBtn").onclick = aboutSheet;
-  $("#resetProg").onclick = () => confirmSheet("Сбросить изученное?", `${plural(started,"слово","слова","слов")} вернутся в «не начато». Настройки и пометки останутся.`, "Сбросить", () => { resetProgress(); go("home"); toast("Прогресс сброшен"); }, true);
+  $("#resetProg").onclick = () => confirmSheet("Сбросить изученное?", `${plural(started,"слово","слова","слов")} вернутся в «не начато». Баллы основной программы также будут удалены. Настройки и пометки останутся.`, "Сбросить", () => { resetProgress(); go("home"); toast("Прогресс и связанные баллы сброшены"); }, true);
   $("#resetHard").onclick = () => confirmSheet("Снять все пометки «сложное»?", `Сейчас помечено ${plural(hardList().length,"слово","слова","слов")}.`, "Снять", () => { S.hard = {}; save(); settingsSheet(); toast("Пометки сняты"); });
-  $("#reset").onclick = () => confirmSheet("Удалить весь прогресс?", "Это нельзя отменить. Ключи и скачанные голоса останутся.", "Удалить", () => { const keep = {tts:S.set.tts, ttsKeys:S.set.ttsKeys}; try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+".before-import");}catch(e){toast("Не удалось сбросить данные");return;} load(); Object.assign(S.set, keep); save(); go("home"); }, true);
+  $("#reset").onclick = () => confirmSheet("Удалить весь прогресс?", "Это нельзя отменить. Учебный прогресс и все баллы станут равны нулю. Профиль друзей, ключи и скачанные голоса останутся.", "Удалить", () => { const keep = {tts:S.set.tts, ttsKeys:S.set.ttsKeys},score=ScoreCore.resetAll(S.score,today()); try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+".before-import");}catch(e){toast("Не удалось сбросить данные");return;} load(); Object.assign(S.set, keep); S.score=score; save(); go("home"); }, true);
 }
 function applyScene(){
   const k = S.set.scene || "town"; const layer = $("#scene");

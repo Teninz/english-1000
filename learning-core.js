@@ -4,6 +4,7 @@ const LearningCore = (() => {
   const dateOK = s => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s)) && new Date(s).toISOString().slice(0,10) === s;
   const object = o => !!o && typeof o === "object" && !Array.isArray(o);
   const count = n => Number.isSafeInteger(n) && n >= 0;
+  const scoreEmpty = () => ({version:1,epoch:null,retiredEpochs:[],week:{id:null,events:{}},archive:{},milestones:{main:{},thematic:{},verified:{},exams:{}},profile:{nickname:"",inviteCode:"",userId:null,accessToken:null,refreshToken:null,deviceId:null},sync:{lastSuccessAt:null,lastPublishedPoints:0,pendingReset:false,friends:[],quotaDay:null,quotaUsed:0}});
   const norm = s => String(s).normalize("NFKC").toLowerCase().replace(/ё/g,"е").replace(/[’']/g,"'").replace(/[.,!?;:"«»()]/g," ").replace(/\s+/g," ").trim();
   const aliases = {"résumé":["resume","resumé"], analyse:["analyze"], fulfil:["fulfill"], labour:["labor"], neighbour:["neighbor"], neighbourhood:["neighborhood"], behaviour:["behavior"], colour:["color"], favourite:["favorite"], centre:["center"], theatre:["theater"], travelling:["traveling"], organise:["organize"], recognise:["recognize"], memorise:["memorize"], apologize:["apologise"], realise:["realize"]};
   function englishForms(word) {
@@ -91,19 +92,21 @@ const LearningCore = (() => {
     overdue.forEach(([,r], k) => { r.due = addDays(day, Math.floor(k / perDay)); });
     return {moved: Math.max(0, overdue.length - perDay), days: overdue.length ? Math.ceil(overdue.length / perDay) : 0};
   }
-  const empty = () => ({v:3,goal:10,streak:{n:0,last:null},days:{},w:{},modes:{},hard:{},set:{auto:true},thematic:thematicEmpty()});
-  // Перенос прогресса прежнего курса (v2, ключ — слово) на ключи программы (v3, «слово|часть речи»).
+  const empty = () => ({v:4,goal:10,streak:{n:0,last:null},days:{},w:{},modes:{},hard:{},set:{auto:true},thematic:thematicEmpty(),score:scoreEmpty()});
+  // v2 → v3: ключ «слово|часть речи»; v3 → v4: локальный соревновательный счёт.
   // legacyKeys: {слово: новый ключ}; слово без соответствия сохраняет прежний ключ, чтобы ничего не потерять.
   function migrate(o, legacyKeys = {}) {
-    if (o.v !== 2) return o;
-    const key = k => legacyKeys[k] || k;
-    const rename = obj => { const out = {}; for (const [k,v] of Object.entries(obj)) out[key(k)] = v; return out; };
-    o.w = rename(o.w); o.hard = rename(o.hard || {});
-    for (const r of Object.values(o.days)) { if (r.words) r.words = rename(r.words); if (r.remembered) r.remembered = rename(r.remembered); }
-    if (o.stats) { if (o.stats.solvedSet) o.stats.solvedSet = rename(o.stats.solvedSet); if (o.stats.heard && o.stats.heard.w) o.stats.heard.w = rename(o.stats.heard.w); }
-    if (o.journey && o.journey.plan) { const p = o.journey.plan; for (const k of ["review","fresh"]) p[k] = p[k].map(key); for (const k of ["reviewed","checked","errors","repaired"]) p[k] = rename(p[k]); }
-    if (o.daily) o.daily.tasks = o.daily.tasks.filter(t => t.id !== "level");
-    o.v = 3;
+    if (o.v === 2) {
+      const key = k => legacyKeys[k] || k;
+      const rename = obj => { const out = {}; for (const [k,v] of Object.entries(obj)) out[key(k)] = v; return out; };
+      o.w = rename(o.w); o.hard = rename(o.hard || {});
+      for (const r of Object.values(o.days)) { if (r.words) r.words = rename(r.words); if (r.remembered) r.remembered = rename(r.remembered); }
+      if (o.stats) { if (o.stats.solvedSet) o.stats.solvedSet = rename(o.stats.solvedSet); if (o.stats.heard && o.stats.heard.w) o.stats.heard.w = rename(o.stats.heard.w); }
+      if (o.journey && o.journey.plan) { const p = o.journey.plan; for (const k of ["review","fresh"]) p[k] = p[k].map(key); for (const k of ["reviewed","checked","errors","repaired"]) p[k] = rename(p[k]); }
+      if (o.daily) o.daily.tasks = o.daily.tasks.filter(t => t.id !== "level");
+      o.v = 3;
+    }
+    if (o.v === 3) {o.score=scoreEmpty();o.v=4;}
     return o;
   }
   const thematicIds = ["forest","village","travel","city","beach","space","science","rescue","shops","home"];
@@ -190,10 +193,11 @@ const LearningCore = (() => {
     const raw = JSON.stringify(input);
     if (!raw || raw.length > 4000000) throw Error("Слишком большой файл прогресса");
     const o = JSON.parse(raw, (k,v) => { if (["__proto__","constructor","prototype"].includes(k)) throw Error("Недопустимый ключ данных"); return v; });
-    const stateKeys = new Set(["v","goal","streak","days","w","modes","hard","set","ach","stats","journey","thematic","placement","daily"]);
+    migrate(o, legacyKeys);
+    const stateKeys = new Set(["v","goal","streak","days","w","modes","hard","set","ach","stats","journey","thematic","placement","daily","score"]);
     for (const key of Object.keys(o)) if (!stateKeys.has(key)) delete o[key];
     const fail = () => { throw Error("Структура прогресса повреждена"); };
-    if (!object(o) || ![2,3].includes(o.v) || ![5,10,15,20].includes(o.goal)) fail();
+    if (!object(o) || o.v!==4 || ![5,10,15,20].includes(o.goal)) fail();
     for (const k of ["w","days","modes","streak"]) if (!object(o[k])) fail();
     if (!count(o.streak.n) || !(o.streak.last === null || dateOK(o.streak.last))) fail();
     for (const [word,r] of Object.entries(o.w)) {
@@ -265,7 +269,23 @@ const LearningCore = (() => {
       for(const k of ["learn","review","heard","pronOk"])if(!count(d.log[k]))fail();
       if(!Array.isArray(d.log.sessions)||!d.log.sessions.every(s=>object(s)&&typeof s.mode==="string"&&count(s.n)&&typeof s.pct==="number"&&s.pct>=0&&s.pct<=1))fail();
     }
-    return migrate(o, legacyKeys);
+    o.score=o.score||scoreEmpty();
+    if(o.score.retiredEpochs===undefined)o.score.retiredEpochs=[];
+    const sc=o.score,nullableString=(v,max)=>(v===null||(typeof v==="string"&&v.length<=max)),weekOK=v=>v===null||(typeof v==="string"&&/^\d{4}-W\d{2}$/.test(v));
+    if(!object(sc)||sc.version!==1||!nullableString(sc.epoch,120)||!Array.isArray(sc.retiredEpochs)||sc.retiredEpochs.length>500||!sc.retiredEpochs.every(e=>typeof e==="string"&&e.length<=120)||!object(sc.week)||!weekOK(sc.week.id)||!object(sc.week.events)||Object.keys(sc.week.events).length>2500)fail();
+    for(const [id,e] of Object.entries(sc.week.events)){
+      if(!id||id.length>320||!object(e)||!dateOK(e.day)||typeof e.scope!=="string"||e.scope.length>80||typeof e.key!=="string"||e.key.length>160||!["word","verify","exam"].includes(e.kind)||!count(e.delta)||e.delta>100)fail();
+      if(e.scope!=="main"&&!(e.scope.startsWith("thematic:")&&thematicIds.includes(e.scope.slice(9))))fail();
+    }
+    if(!object(sc.archive)||Object.keys(sc.archive).length>52||!Object.entries(sc.archive).every(([w,p])=>weekOK(w)&&w!==null&&count(p)))fail();
+    if(!object(sc.milestones)||!object(sc.milestones.main)||!object(sc.milestones.thematic)||!object(sc.milestones.verified)||!object(sc.milestones.exams))fail();
+    if(!Object.entries(sc.milestones.main).every(([k,v])=>k&&k.length<=160&&count(v)&&v<=6))fail();
+    for(const [route,words] of Object.entries(sc.milestones.thematic))if(!thematicIds.includes(route)||!object(words)||!Object.entries(words).every(([k,v])=>k&&k.length<=160&&count(v)&&v<=6))fail();
+    if(!Object.entries(sc.milestones.verified).every(([k,v])=>k&&k.length<=320&&v===1)||!Object.entries(sc.milestones.exams).every(([k,v])=>thematicIds.includes(k)&&v===1))fail();
+    if(!object(sc.profile)||typeof sc.profile.nickname!=="string"||sc.profile.nickname.length>30||!nullableString(sc.profile.inviteCode,24)||!nullableString(sc.profile.userId,160)||!nullableString(sc.profile.accessToken,4096)||!nullableString(sc.profile.refreshToken,4096)||!nullableString(sc.profile.deviceId,160))fail();
+    if(!object(sc.sync)||!nullableString(sc.sync.lastSuccessAt,40)||!count(sc.sync.lastPublishedPoints)||typeof sc.sync.pendingReset!=="boolean"||!Array.isArray(sc.sync.friends)||sc.sync.friends.length>500||!(sc.sync.quotaDay===null||dateOK(sc.sync.quotaDay))||!count(sc.sync.quotaUsed)||sc.sync.quotaUsed>2)fail();
+    for(const f of sc.sync.friends)if(!object(f)||typeof f.id!=="string"||f.id.length>160||typeof f.nickname!=="string"||f.nickname.length>30||!count(f.points)||!nullableString(f.updatedAt,40))fail();
+    return o;
   }
   function portable(state, legacyKeys) {
     const o = validate(state, legacyKeys), result = {format:"shadowfox-progress",exportedAt:new Date().toISOString()};
@@ -279,8 +299,12 @@ const LearningCore = (() => {
     if(o.journey)delete o.journey.plan;
     // Даже старый код с ключами не заменяет настройки голосов на этом устройстве.
     o.set = JSON.parse(JSON.stringify(current.set || {auto:true}));
+    // Резервная копия переносит обучение, но не может восстановить старый рейтинговый счёт.
+    const local=scoreEmpty(),existing=current.score;
+    if(existing){local.profile=JSON.parse(JSON.stringify(existing.profile));local.sync.friends=JSON.parse(JSON.stringify(existing.sync.friends));local.sync.lastPublishedPoints=existing.sync.lastPublishedPoints;}
+    local.sync.pendingReset=true;o.score=local;
     return o;
   }
-  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,knownEntry,assumeKnown,dailyLoad,lessonMinutes,forgottenKeys,spreadBacklog,empty,migrate,validate,portable,prepareImport,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
+  return {intervals,dateOK,norm,englishForms,englishMatch,translationTerms,sharesTranslation,translationAnswers,schedule,knownEntry,assumeKnown,dailyLoad,lessonMinutes,forgottenKeys,spreadBacklog,scoreEmpty,empty,migrate,validate,portable,prepareImport,thematicIds,thematicEmpty,thematicTopicEmpty,thematicEnsure,thematicTopic,thematicIntroduce,thematicGrade,thematicExamReady,thematicExamCooldown,thematicExamStart,thematicExamTick,thematicExamAnswer,thematicExamAbort,THEMATIC_QUESTION_MS,THEMATIC_COOLDOWN_MS,THEMATIC_ERROR_LIMIT};
 })();
 if (typeof module !== "undefined") module.exports = LearningCore;

@@ -17,7 +17,7 @@ function app(){
     localStorage:{getItem:()=>null,setItem(){}},TTS:{stop(){}},checkAch(){},dailyEvent(){}};
   ctx.window=ctx;ctx.scrollTo=()=>{};
   vm.createContext(ctx);
-  for(const f of ['learning-core.js','word-forms.js','progress-storage.js','journey.js','words-a.js','words-b.js','ex-ru.js','word-levels.js','oxford-a1.js','oxford-a2.js','oxford-b1.js','oxford-b2.js','words-extra.js','program.js','thematic-data.js','thematic.js'])vm.runInContext(read(f),ctx,{filename:f});
+  for(const f of ['learning-core.js','score-core.js','word-forms.js','progress-storage.js','journey.js','words-a.js','words-b.js','ex-ru.js','word-levels.js','oxford-a1.js','oxford-a2.js','oxford-b1.js','oxford-b2.js','words-extra.js','program.js','thematic-data.js','thematic.js','competition-config.js','competition.js'])vm.runInContext(read(f),ctx,{filename:f});
   const inline=read('index.html').match(/<script>([\s\S]*?)<\/script>/)[1];
   vm.runInContext(inline.slice(0,inline.indexOf('/* ---------- старт')),ctx);
   const run=code=>vm.runInContext(code,ctx);

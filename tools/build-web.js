@@ -3,7 +3,7 @@ const fs = require("fs"), path = require("path"), vm = require("vm");
 const root = path.join(__dirname, ".."), dist = path.join(root, "dist");
 fs.rmSync(dist, { recursive: true, force: true }); fs.mkdirSync(dist, { recursive: true });
 
-const files = ["index.html", "learning-core.js", "word-forms.js", "progress-storage.js", "journey.js", "motivation.css", "thematic.css", "thematic.js", "words-a.js", "words-b.js", "ex-ru.js", "thematic-data.js", "word-levels.js", "oxford-a1.js", "oxford-a2.js", "oxford-b1.js", "oxford-b2.js", "words-extra.js", "program.js", "scenes.js", "tts.js", "ach.js", "daily.js", "about.js", "native.js", "manifest.json", "privacy.html"];
+const files = ["index.html", "learning-core.js", "score-core.js", "word-forms.js", "progress-storage.js", "journey.js", "motivation.css", "thematic.css", "thematic.js", "competition.css", "competition-config.js", "competition.js", "words-a.js", "words-b.js", "ex-ru.js", "thematic-data.js", "word-levels.js", "oxford-a1.js", "oxford-a2.js", "oxford-b1.js", "oxford-b2.js", "words-extra.js", "program.js", "scenes.js", "tts.js", "ach.js", "daily.js", "about.js", "native.js", "manifest.json", "privacy.html"];
 const dirs = ["icons", "art", "lib"];
 for (const f of files) fs.copyFileSync(path.join(root, f), path.join(dist, f));
 for (const d of dirs) fs.cpSync(path.join(root, d), path.join(dist, d), {
