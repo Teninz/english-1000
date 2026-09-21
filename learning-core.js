@@ -190,6 +190,8 @@ const LearningCore = (() => {
     const raw = JSON.stringify(input);
     if (!raw || raw.length > 4000000) throw Error("Слишком большой файл прогресса");
     const o = JSON.parse(raw, (k,v) => { if (["__proto__","constructor","prototype"].includes(k)) throw Error("Недопустимый ключ данных"); return v; });
+    const stateKeys = new Set(["v","goal","streak","days","w","modes","hard","set","ach","stats","journey","thematic","placement","daily"]);
+    for (const key of Object.keys(o)) if (!stateKeys.has(key)) delete o[key];
     const fail = () => { throw Error("Структура прогресса повреждена"); };
     if (!object(o) || ![2,3].includes(o.v) || ![5,10,15,20].includes(o.goal)) fail();
     for (const k of ["w","days","modes","streak"]) if (!object(o[k])) fail();
@@ -229,8 +231,6 @@ const LearningCore = (() => {
         if(p.phase!==undefined&&!["review","new","check","repair"].includes(p.phase))fail();
       }
     }
-    // Поле companion из старых копий больше не используется и не переносится.
-    delete o.companion;
     o.thematic=o.thematic||thematicEmpty();
     if(!object(o.thematic)||!object(o.thematic.settings)||!object(o.thematic.topics)||!object(o.thematic.equipmentRewards))fail();
     if(![5,10].includes(o.thematic.settings.batchSize)||![10,15,20].includes(o.thematic.settings.reviewSize)||typeof o.thematic.settings.autoSpeak!=="boolean")fail();

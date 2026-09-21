@@ -207,14 +207,13 @@ test('день практики учитывает уникальные слов
 test('ошибка повторяется внутри обычной сессии максимум один раз',()=>{
   const run=app();assert.equal(run('sess={items:[{i:0,kind:"mc"},{i:1,kind:"mc"}],k:0,res:[],retried:{},mode:"mc"};record(0,false,"mc");sess.k=2;record(0,false,"mc");sess.items.length'),3);
 });
-test('завершённое занятие отмечает учебный день без состояния компаньона',()=>{
+test('завершённое занятие отмечает учебный день один раз',()=>{
   const run=app();assert.equal(run('lessonComplete();lessonComplete();Object.keys(S.journey.completed).length'),1);
-  assert.equal(run('S.companion'),undefined);
 });
-test('старая копия импортируется без удалённого состояния компаньона',()=>{
-  const state=core.empty();state.companion={completed:{},fed:0,pets:0,fox:'04-boy-bold'};
-  const copy=core.portable(state);assert.equal(copy.companion,undefined);
-  assert.equal(core.prepareImport(copy,core.empty()).companion,undefined);
+test('устаревшие неизвестные поля не переносятся из резервной копии',()=>{
+  const state=core.empty();state.obsoleteState={unused:true};
+  const copy=core.portable(state);assert.equal(copy.obsoleteState,undefined);
+  assert.equal(core.prepareImport({...copy,obsoleteState:{unused:true}},core.empty()).obsoleteState,undefined);
 });
 test('Путь Oxford 3000 показывает закреплённые слова, уровни и недельный ритм',()=>{
   const run=app();
@@ -223,16 +222,10 @@ test('Путь Oxford 3000 показывает закреплённые сло�
   assert.match(html,/Путь Oxford 3000/);assert.ok(html.includes('1 / 3000'));assert.ok(html.includes('2/4'));
   for(const level of ['A1','A2','B1','B2'])assert.ok(html.includes('>'+level+'<'));
 });
-test('обязательные ресурсы PWA и APK присутствуют без компаньона',()=>{
-  const ctx={self:{addEventListener(){}},location:{},importScripts(){throw Error('service worker не должен импортировать компаньона');}};vm.createContext(ctx);vm.runInContext(read('sw.js')+';this.files=FILES',ctx);
+test('обязательные ресурсы PWA и APK присутствуют',()=>{
+  const ctx={self:{addEventListener(){}},location:{},importScripts(){throw Error('service worker не должен импортировать дополнительные сценарии');}};vm.createContext(ctx);vm.runInContext(read('sw.js')+';this.files=FILES',ctx);
   for(const asset of ctx.files)assert.ok(fs.existsSync(path.join(root,asset)),asset);
   for(const asset of ['learning-core.js','journey.js','motivation.css','word-forms.js','progress-storage.js','thematic.css','thematic.js','thematic-data.js','oxford-a1.js','oxford-a2.js','oxford-b1.js','oxford-b2.js','words-extra.js','program.js'])assert.ok(read('tools/build-web.js').includes('"'+asset+'"'),asset);
-  for(const removed of ['fox-motion.js','companion.css','art/companion-v2/manifest.js']){assert.equal(read('index.html').includes(removed),false,removed);assert.equal(read('sw.js').includes(removed),false,removed);}
-  assert.equal(read('native.js').includes('syncCompanion'),false);
-  assert.equal(read('daily.js').includes('S.companion'),false);
-  assert.equal(read('progress-storage.js').includes('syncCompanion'),false);
-  assert.equal(read('android/app/src/main/AndroidManifest.xml').includes('CompanionWidget'),false);
-  assert.equal(read('android/app/src/main/java/io/github/teninz/shadowfox/WidgetPlugin.java').includes('companionSync'),false);
 });
 test('APK использует монотонные часы Android и подтверждает выход из блица',()=>{
   const activity=read('android/app/src/main/java/io/github/teninz/shadowfox/MainActivity.java'),clock=read('android/app/src/main/java/io/github/teninz/shadowfox/ClockPlugin.java'),native=read('native.js');

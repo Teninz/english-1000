@@ -8,8 +8,8 @@ const dirs = ["icons", "art", "lib"];
 for (const f of files) fs.copyFileSync(path.join(root, f), path.join(dist, f));
 for (const d of dirs) fs.cpSync(path.join(root, d), path.join(dist, d), {
   recursive: true,
-  // Архивные материалы бывшего компаньона и исходники фонов не входят в приложение.
-  filter: src => !["companion-anim-frames", "companion", "companion-anim", "companion-references", "companion-v2", "companion-probe", "Visual", "Фон"].includes(path.basename(src)) && !/^Фон.*\.png$/u.test(path.basename(src)),
+  // Исходники живых фонов не входят в приложение.
+  filter: src => !["Visual", "Фон"].includes(path.basename(src)) && !/^Фон.*\.png$/u.test(path.basename(src)),
 });
 
 // внутри APK service worker не нужен: файлы и так локальные
