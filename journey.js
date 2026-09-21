@@ -347,7 +347,7 @@ function companionCardHtml(){
     <div class="row between fox-card-head"><div class="eyebrow">${male?"Твой":"Твоя"} ${esc(foxWho())}</div><div class="fox-card-tools"><button class="btn ghost small" id="foxIdentity">Имя и образ</button><button class="btn ghost small" id="foxCollection">Отметки · ${Object.keys(j.rewards).length}/${FOX_REWARDS.length}</button></div></div>
     <div class="fox-meeting">${foxStageHtml(foxCurrent(),p.mood,`${who}: ${moods[p.mood]}`)}<div><h2>${moods[p.mood]}</h2><p class="small muted">${esc(asleepNow?sleepText:texts[p.mood])}</p></div></div>
     ${foxPackCardHtml()}
-    <div class="fox-beta"><b>Бета-версия компаньона</b><span>Лиса живёт по часам телефона: утро, день, вечер и ночной сон, а настроение зависит от занятий. Предметы, домики и новые взаимодействия появятся в следующих версиях.</span></div>
+    <div class="fox-beta"><b>Домик растёт</b><span>Лис живёт по часам телефона: утро, день, вечер и ночной сон, а настроение зависит от занятий. Вещи в домике за достижения появятся в следующих версиях.</span></div>
     <p class="small fox-response" id="foxResponse" role="status" aria-live="polite">${memoryCount() ? `Сегодня ты вспомнил ${plural(memoryCount(),"слово","слова","слов")} после перерыва.` : p.mood>=3 ? `${who} обидел${male?"ся":"ась"} и сидит спиной. Только занятие вернёт ${male?"его":"её"}.` : p.mood>=1 ? `${who} грустит без занятий. Коснись — ${pronoun} вздохнёт.` : `Коснись ${foxWho("gen")} — ${pronoun} откликнется.`}</p>
     <div class="fox-week" aria-label="Занятия за последние семь дней">${week.map(d=>`<span class="${j.completed[d]?"done":""}" title="${d}">${j.completed[d]?"✓":"·"}</span>`).join("")}<b>${weekly}/4 дня</b></div>
     <p class="small muted">${weekly>=4?"Недельная цель выполнена. Можно отдохнуть или продолжить в своём темпе.":"Цель — четыре дня занятий за последние семь. Не обязательно подряд."}</p>
@@ -357,48 +357,39 @@ function companionCardHtml(){
 }
 function foxFaceIcon(){return `<img src="${FOX_V2_DIR}/handle.png" alt="" draggable="false">`;}
 const foxSexBadge = sex => sex==="male" ? `<span class="fox-sex male" title="Лис">♂ Лис</span>` : `<span class="fox-sex female" title="Лиса">♀ Лиса</span>`;
-// Выбор спутника: доступные лисы показывают петлю покоя, остальные — приглушённую карточку. Имя задаётся один раз.
+// Первая встреча: один лис, имя даётся сразу. Экран выбора и недоступные персонажи убраны.
+const foxOnly = () => LearningCore.petFoxes.find(f=>f.available);
 function companionChooserHtml(){
-  const identity=foxIdentity(), adopted=!!S.companion.adopted&&!!identity.name, selected=foxCurrent()?.id||"";
+  const identity=foxIdentity(), fox=foxOnly();
   return `<section class="card companion fox-choose" id="companionChooser">
-    <div class="eyebrow">Компаньон · бета</div><h2>${adopted?"Другая лиса":"Выбери спутника"}</h2>
-    <p class="small muted">Бета-версия компаньона: лиса живёт по часам телефона — утро, день, вечер и ночной сон. Позже будут открываться новые взаимодействия, предметы и домики.</p>
-    <div class="fox-grid" role="radiogroup" aria-label="Лисы">${LearningCore.petFoxes.map(fox=>`<button type="button" class="fox-option ${fox.id===selected?"on":""} ${fox.available?"":"locked"}" data-fox="${fox.id}" role="radio" aria-checked="${fox.id===selected}" ${fox.available?"":"disabled"}>
-      <span class="fox-option-art">${fox.available&&!foxStill()&&foxPreviewClip(fox)?`<video src="${foxAsset(fox,foxPreviewClip(fox))}" poster="${foxPoster(fox)}" autoplay muted loop playsinline disablepictureinpicture></video>`:`<img src="${foxPoster(fox)}" alt="">`}</span>
-      ${foxSexBadge(fox.sex)}<b>${esc(fox.title)}</b><small>${fox.available?(fox.sex==="male"?"Доступен сразу":"Доступна сразу"):"Будет добавлено позднее"}</small></button>`).join("")}</div>
-    <label class="fox-choose-name"><span>${adopted?"Имя остаётся прежним":"Постоянное имя"}</span><input class="fox-name-input" id="foxChooseName" maxlength="32" autocomplete="off" value="${esc(identity.name)}" placeholder="Например, Луна или Фокс" ${adopted?"readonly":""}></label>
-    <p class="small muted">${adopted?"Имя даётся один раз. Падежные формы можно поправить в «Имя и образ».":"Имя даётся один раз и потом не меняется. Падежные формы можно будет поправить в «Имя и образ»."}</p>
-    <div class="grid2"><button class="btn block" id="foxAdopt" ${selected&&identity.name?"":"disabled"}>${adopted?"Выбрать эту лису":"Позвать"}</button>${adopted?`<button class="btn secondary block" id="foxChooseBack">Назад</button>`:""}</div>
+    <div class="eyebrow">Компаньон</div><h2>Знакомься</h2>
+    <p class="small muted">Лис живёт по часам телефона — утро, день, вечер и ночной сон, а настроение зависит от занятий. Со временем в домике будут появляться вещи за достижения.</p>
+    <div class="fox-grid fox-grid-single"><div class="fox-option on">
+      <span class="fox-option-art">${!foxStill()&&foxPreviewClip(fox)?`<video src="${foxAsset(fox,foxPreviewClip(fox))}" poster="${foxPoster(fox)}" autoplay muted loop playsinline disablepictureinpicture></video>`:`<img src="${foxPoster(fox)}" alt="">`}</span>
+      ${foxSexBadge(fox.sex)}<b>${esc(fox.title)}</b></div></div>
+    <label class="fox-choose-name"><span>Постоянное имя</span><input class="fox-name-input" id="foxChooseName" maxlength="32" autocomplete="off" value="${esc(identity.name)}" placeholder="Например, Фокс или Рыжик"></label>
+    <p class="small muted">Имя даётся один раз и потом не меняется. Падежные формы можно будет поправить в «Имя и образ».</p>
+    <button class="btn block" id="foxAdopt" ${identity.name?"":"disabled"}>Позвать</button>
   </section>`;
 }
 function wireCompanionChooser(){
   const host=$("#companionChooser"); if(!host)return;
-  let selected=foxCurrent()?.id||"";
-  const refresh=()=>{
-    host.querySelectorAll(".fox-option").forEach(b=>{b.classList.toggle("on",b.dataset.fox===selected);b.setAttribute("aria-checked",String(b.dataset.fox===selected));});
-    $("#foxAdopt").disabled=!(selected&&$("#foxChooseName").value.trim());
-  };
-  host.querySelectorAll(".fox-option:not([disabled])").forEach(b=>b.onclick=()=>{selected=b.dataset.fox;refresh();});
-  $("#foxChooseName").oninput=refresh;
-  if($("#foxChooseBack"))$("#foxChooseBack").onclick=()=>{closeCompanion();openCompanion();};
+  const fox=foxOnly();
+  $("#foxChooseName").oninput=()=>{$("#foxAdopt").disabled=!$("#foxChooseName").value.trim();};
   $("#foxAdopt").onclick=()=>{
-    const fox=LearningCore.petFox(selected); if(!fox||!fox.available)return;
-    const adopted=!!S.companion.adopted&&!!foxIdentity().name;
-    const name=adopted?foxIdentity().name:$("#foxChooseName").value.trim(); if(!name)return;
+    const name=$("#foxChooseName").value.trim(); if(!name)return;
     const commit=()=>{
-      const keepForms=adopted&&foxIdentity().sex===fox.sex;
       S.companion.fox=fox.id; S.companion.adopted=S.companion.adopted||today();
-      S.companion.identity=LearningCore.petIdentity({sex:fox.sex,name,decline:keepForms?foxIdentity().decline:true,forms:keepForms?foxIdentity().forms:LearningCore.petNameForms(name,fox.sex,true)});
+      S.companion.identity=LearningCore.petIdentity({sex:fox.sex,name,decline:true,forms:LearningCore.petNameForms(name,fox.sex,true)});
       save(); if(window.syncCompanion)window.syncCompanion(); closeCompanion(); openCompanion({celebrate:true});
     };
-    if(adopted)commit();
-    else confirmSheet(`Позвать ${fox.sex==="male"?"лиса":"лису"} по имени ${name}?`,"Имя останется навсегда — изменить его потом нельзя. Падежные формы можно будет поправить.","Позвать",commit);
+    confirmSheet(`Позвать ${fox.sex==="male"?"лиса":"лису"} по имени ${name}?`,"Имя останется навсегда — изменить его потом нельзя. Падежные формы можно будет поправить.","Позвать",commit);
   };
 }
 function openCompanion(options={}){
   journeyState();
   const host=$("#foxDrawerHost"); if(!host)return;
-  const choose=options.choose||!foxReady();
+  const choose=!foxReady();
   host.innerHTML=`<div class="fox-drawer-scrim"><aside class="fox-drawer" role="dialog" aria-modal="true" aria-labelledby="foxDrawerTitle"><div class="fox-drawer-head"><div><div class="eyebrow">Компаньон</div><h2 id="foxDrawerTitle">${choose&&!foxReady()?"Новый спутник":`Домик ${esc(foxWho("gen"))}`}</h2></div><button class="icon-btn" id="foxDrawerClose" aria-label="Закрыть">${ICONS.close}</button></div>${journeyHeroHtml("foxJourney")}${choose?companionChooserHtml():companionCardHtml()}</aside></div>`;
   document.body.classList.add("fox-drawer-open");
   $("#foxDrawerClose").onclick=closeCompanion;
@@ -443,14 +434,13 @@ function companionIdentitySheet(draft){
   sheet(`<div class="row between"><div><div class="eyebrow">Компаньон</div><h2>Имя и образ</h2></div><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
     <p class="muted">${adopted?"Имя постоянное, а падежные формы можно поправить: они появляются в репликах и виджете.":"Дай компаньону имя. Оно сохранится вместе с прогрессом и появится в репликах и виджете."}</p>
     <div class="fox-identity-form">
-      <div class="fox-identity-fox"><img src="${fox?foxPoster(fox):""}" alt="">${fox?`<div>${foxSexBadge(fox.sex)}<b>${esc(fox.title)}</b></div>`:""}<button class="btn ghost small" id="foxChange">Другая лиса</button></div>
+      <div class="fox-identity-fox"><img src="${fox?foxPoster(fox):""}" alt="">${fox?`<div>${foxSexBadge(fox.sex)}<b>${esc(fox.title)}</b></div>`:""}</div>
       <label><span>Имя</span><input class="fox-name-input" id="foxName" maxlength="32" autocomplete="off" value="${esc(identity.name)}" placeholder="Например, Луна или Фокс" ${adopted?"readonly":""}></label>
       <label class="fox-decline"><input type="checkbox" id="foxDecline" ${identity.decline?"checked":""}><span>Склонять имя в русских фразах</span></label>
       <div class="row between"><span class="small muted">Предложенные формы можно исправить вручную.</span><button class="btn ghost small" id="foxSuggest">Предложить формы</button></div>
       <div class="fox-name-forms">${Object.entries(labels).map(([key,label])=>`<label><span>${label}</span><input class="fox-name-input" data-fox-form="${key}" maxlength="32" value="${esc(identity.forms[key]||suggested[key])}" placeholder="${esc(suggested[key])}"></label>`).join("")}</div>
       <button class="btn block" id="foxIdentitySave">Сохранить</button>
     </div>`);
-  $("#foxChange").onclick=()=>{closeSheet();closeCompanion();openCompanion({choose:true});};
   $("#foxSuggest").onclick=()=>{
     const forms=LearningCore.petNameForms($("#foxName").value,identity.sex,$("#foxDecline").checked);
     document.querySelectorAll("[data-fox-form]").forEach(input=>input.value=forms[input.dataset.foxForm]);

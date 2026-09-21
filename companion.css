@@ -39,6 +39,7 @@ body.fox-drawer-open #overlay .scrim{z-index:60}
 .fox-pack-bar{height:8px;border-radius:9px;background:var(--surface);overflow:hidden}.fox-pack-bar i{display:block;height:100%;background:var(--accent);border-radius:inherit;transition:width .3s}
 /* Выбор спутника */
 .fox-choose h2{margin:4px 0 8px}
+.fox-grid-single{grid-template-columns:minmax(0,220px);justify-content:center}
 .fox-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .fox-option{display:grid;gap:6px;padding:9px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2);color:var(--ink);text-align:center;font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s}
 .fox-option b{font-size:15px}.fox-option small{color:var(--muted);font-size:12px}

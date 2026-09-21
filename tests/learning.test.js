@@ -354,9 +354,12 @@ test('выбор лисы и постоянное имя переживают с
   assert.equal(run('S.companion=LearningCore.petEmpty();foxReady()'),false);
   assert.equal(run('S.companion.fox="03-girl-gentle";S.companion.identity=LearningCore.petIdentity({sex:"female",name:"Луна"});foxReady()'),true);
   assert.equal(run('foxAsset(foxCurrent(),"calm1")'),'art/companion-v2/03-girl-gentle/calm1.webm');
-  assert.ok(run('companionChooserHtml()').includes('Будет добавлено позднее'));
-  assert.ok(run('companionChooserHtml()').includes('fox-sex male'));
-  assert.ok(run('companionCardHtml()').includes('Бета-версия компаньона'));
+  // один лис: без экрана выбора и недоступных персонажей, имя сразу; в домике — предметы за достижения
+  assert.equal(run('companionChooserHtml()').includes('Будет добавлено позднее'),false);
+  assert.equal(run('companionChooserHtml()').includes('fox-option locked'),false);
+  assert.ok(run('companionChooserHtml()').includes('fox-sex male'));assert.ok(run('companionChooserHtml()').includes('id="foxChooseName"'));
+  assert.equal(run('companionCardHtml()').includes('Бета-версия компаньона'),false);
+  assert.equal(read('journey.js').includes('HOUSE_ITEMS'),false,'предметы окружения рисует автор отдельно');
 });
 test('эталонная цепочка имеет ровную абсолютную шкалу 20 FPS',()=>{
   const plan=JSON.parse(read('tools/companion-source/reference-chain-v1.motion.json'));
