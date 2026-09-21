@@ -1012,18 +1012,18 @@ practice:{
 "throughout|prep":{collocations:[["throughout the year","в течение всего года"],["throughout the world","по всему миру"]],examples:[["The shop is open throughout the year.","Магазин открыт круглый год."]]}
 },
 confusables:[
-["historic|adj","historical|adj"],["economic|adj","economical|adj"],["sensible|adj","sensitive|adj"],["injure|v","damage|v"],["injury|n","damage|n"],
+["historic|adj","historical|adj"],["sensible|adj","sensitive|adj"],["injure|v","damage|v"],["injury|n","damage|n"],
 ["remind|v","remember|v"],["convince|v","persuade|v"],["prove|v","test|v"],["claim|v","say|v"],["admit|v","accept|v"],
 ["annoyed|adj","annoying|adj"],["frightened|adj","frightening|adj"],["disappointed|adj","disappointing|adj"],["embarrassed|adj","embarrassing|adj"],["relaxed|adj","relaxing|adj"],
 ["lend|v","borrow|v"],["rent|v","hire|v"],["profit|n","benefit|n"],["price|n","value|n"],["salary|n","payment|n"],
-["legal|adj","lawful|adj"],["guilty|adj","innocent|adj"],["punish|v","reward|v"],["steal|v","rob|v"],["thief|n","criminal|n"],
+["guilty|adj","innocent|adj"],["punish|v","reward|v"],["thief|n","criminal|n"],
 ["politics|n","policy|n"],["election|n","vote|n"],["nation|n","country|n"],["region|n","area|n"],["border|n","edge|n"],
 ["fasten|v","tie|v"],["fold|v","bend|v"],["attach|v","connect|v"],["gather|v","collect|v"],["spread|v","expand|v"],
 ["occur|v","happen|v"],["remain|v","stay|v"],["survive|v","live|v"],["tend|v","usually|adv"],["intend|v","plan|v"],
 ["effective|adj","efficient|adj"],["essential|adj","necessary|adj"],["convenient|adj","comfortable|adj"],["reliable|adj","responsible|adj"],["valuable|adj","expensive|adj"],
 ["tiny|adj","small|adj"],["giant|adj","huge|adj"],["sharp|adj","strong|adj"],["rough|adj","smooth|adj"],["tight|adj","narrow|adj"],
 ["despite|prep","although|conj"],["unless|conj","if|conj"],["whether|conj","if|conj"],["therefore|adv","so|conj"],["though|adv","however|adv"],
-["hardly|adv","hard|adv"],["highly|adv","high|adv"],["directly|adv","direct|adv"],["fairly|adv","quite|adv"],["slightly|adv","a bit|n"],
+["hardly|adv","hard|adv"],["highly|adv","high|adv"],["directly|adv","direct|adv"],["fairly|adv","quite|adv"],
 ["previous|adj","last|det"],["current|adj","present|adj"],["latest|adj","last|det"],["eventually|adv","finally|adv"],["meanwhile|adv","while|conj"],
 ["used|adj|accustomed","used|adj|second-hand"],["lie|v|down","lie|v|untruth"],["ring|n|jewellery","ring|n|sound"],["race|n|competition","race|n|people"],["bank|n|money","bank|n|river"]
 ]

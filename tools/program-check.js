@@ -1,5 +1,6 @@
 // Проверка контента уровня Oxford 3000 против tools/oxford-3000.json: полнота, дубликаты,
-// части речи, уточнения значений, наличие слова в примере. Запуск: node tools/program-check.js A1 [файл]
+// части речи, уточнения значений, примеры, practice и рабочие пары близких слов.
+// Запуск: node tools/program-check.js A1 [файл]
 // Без файла берётся oxford-<уровень>.js из корня. Выход 1 при ошибках; список недостающих единиц — в stderr.
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const root = path.join(__dirname, "..");
@@ -44,10 +45,40 @@ for (const block of data.blocks) {
 }
 for (const [key, extras] of Object.entries(data.practice || {})) {
   if (!seen.has(key)) errors.push(`practice: ключ ${key} не найден среди слов уровня`);
-  for (const [en] of extras.examples || []) if (!wordRegex(key.split("|")[0]).test(en)) errors.push(`practice ${key}: слово не найдено в примере «${en}»`);
-  for (const [phrase] of extras.collocations || []) if (!wordRegex(key.split("|")[0]).test(phrase)) errors.push(`practice ${key}: слово не найдено в сочетании «${phrase}»`);
+  for (const field of ["examples", "collocations"]) {
+    if (extras[field] !== undefined && !Array.isArray(extras[field])) errors.push(`practice ${key}: ${field} должно быть массивом`);
+    const phrases = new Set();
+    for (const item of extras[field] || []) {
+      if (!Array.isArray(item) || item.length !== 2 || item.some(x => typeof x !== "string" || !x.trim())) { errors.push(`practice ${key}: неполная запись ${field} ${JSON.stringify(item)}`); continue; }
+      const [en, ru] = item, normalized = en.toLocaleLowerCase("en").replace(/\s+/g, " ").trim();
+      if (!wordRegex(key.split("|")[0]).test(en)) errors.push(`practice ${key}: слово не найдено в ${field === "examples" ? "примере" : "сочетании"} «${en}»`);
+      if (!/[а-яё]/i.test(ru)) errors.push(`practice ${key}: перевод «${ru}» не на русском`);
+      if (phrases.has(normalized)) errors.push(`practice ${key}: повтор ${field} «${en}»`);
+      phrases.add(normalized);
+      if (field === "examples" && (!/^[A-Z“"‘']/.test(en) || !/[.!?”"]$/.test(en) || !/[А-ЯЁ«"]/.test(ru[0]) || !/[.!?»"]$/.test(ru))) errors.push(`practice ${key}: пара «${en}» / «${ru}» не похожа на предложения`);
+    }
+  }
 }
-for (const pair of data.confusables || []) { if (pair.length !== 2 || pair.some(k => typeof k !== "string")) errors.push(`confusables: ${JSON.stringify(pair)}`); }
+const validProgramKeys = new Set();
+for (const u of oxford.units) {
+  const base = u[0] + "|" + u[1], ambiguous = perPos[base].length > 1;
+  validProgramKeys.add(ambiguous ? base + "|" + senses[base + "|" + u[3]] : base);
+}
+const extraFile = path.join(root, "words-extra.js");
+if (fs.existsSync(extraFile)) {
+  const extraCtx = {}; vm.createContext(extraCtx); vm.runInContext(fs.readFileSync(extraFile, "utf8"), extraCtx);
+  const extra = vm.runInContext("WORDS_EXTRA", extraCtx);
+  for (const block of extra.blocks || []) for (const w of block.words || []) validProgramKeys.add(w[0] + "|" + w[2] + (w[5] ? "|" + w[5] : ""));
+}
+const seenPairs = new Set();
+for (const pair of data.confusables || []) {
+  if (!Array.isArray(pair) || pair.length !== 2 || pair.some(k => typeof k !== "string")) { errors.push(`confusables: ${JSON.stringify(pair)}`); continue; }
+  if (pair[0] === pair[1]) errors.push(`confusables: слово сравнивается само с собой ${pair[0]}`);
+  for (const key of pair) if (!validProgramKeys.has(key)) errors.push(`confusables: ключ ${key} отсутствует в программе`);
+  const pairKey = pair.slice().sort().join(" ↔ ");
+  if (seenPairs.has(pairKey)) errors.push(`confusables: повтор пары ${pairKey}`);
+  seenPairs.add(pairKey);
+}
 const missing = [...expected.keys()].filter(k => !seen.has(k));
 console.log(`${level}: ${seen.size}/${expected.size} единиц, ${data.blocks.length} блоков, ошибок ${errors.length}, не хватает ${missing.length}`);
 for (const e of errors) console.log("  " + e);

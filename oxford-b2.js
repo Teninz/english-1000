@@ -929,7 +929,7 @@ practice:{
 },
 confusables:[
 ["gain|v","earn|v"],["obtain|v","get|v"],["acquire|v","buy|v"],["seek|v","search|v"],["pursue|v","follow|v"],
-["ensure|v","insure|v"],["assure|v","ensure|v"],["maintain|v","keep|v"],["retain|v","remain|v"],["preserve|v","protect|v"],
+["assure|v","ensure|v"],["maintain|v","keep|v"],["retain|v","remain|v"],["preserve|v","protect|v"],
 ["accurate|adj","exact|adj"],["efficient|adj","effective|adj"],["significant|adj","important|adj"],["crucial|adj","vital|adj"],["massive|adj","huge|adj"],
 ["temporary|adj","permanent|adj"],["former|adj","previous|adj"],["initial|adj","first|det"],["entire|adj","whole|adj"],["numerous|adj","many|det"],
 ["accuse|v","blame|v"],["deny|v","refuse|v"],["declare|v","announce|v"],["acknowledge|v","admit|v"],["imply|v","suggest|v"],
@@ -937,7 +937,7 @@ confusables:[
 ["decline|v","decrease|v"],["decline|v","refuse|v"],["lower|v","reduce|v"],["alter|v","change|v"],["convert|v","transform|v"],
 ["expense|n","cost|n"],["wage|n","salary|n"],["fee|n","price|n"],["debt|n","loan|n"],["income|n","profit|n"],
 ["failure|n","mistake|n"],["fault|n","mistake|n"],["harm|n","damage|n"],["threat|n","danger|n"],["crisis|n","problem|n"],
-["anxious|adj","nervous|adj"],["ashamed|adj","embarrassed|adj"],["desperate|adj","hopeless|adj"],["willing|adj","ready|adj"],["sincere|adj","honest|adj"],
+["anxious|adj","nervous|adj"],["ashamed|adj","embarrassed|adj"],["willing|adj","ready|adj"],["sincere|adj","honest|adj"],
 ["thus|adv","therefore|adv"],["nevertheless|adv","however|adv"],["furthermore|adv","also|adv"],["whereas|conj","while|conj"],["otherwise|adv","or|conj"],
 ["apparently|adv","obviously|adv"],["entirely|adv","completely|adv"],["largely|adv","mainly|adv"],["relatively|adv","fairly|adv"],["somewhat|adv","slightly|adv"],
 ["tear|n|drop","tear|n|rip"],["shade|n","shadow|n"],["stream|n","river|n"],["steep|adj","high|adj"],["shallow|adj","low|adj"]
