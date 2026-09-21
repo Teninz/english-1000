@@ -126,6 +126,36 @@ test('сворачивание не отменяет переход в неза�
   assert.equal(run('thematicSession.k'),1);assert.equal(run('inSession'),true);
 });
 
+test('тематическое повторение включает все пройденные впервые слова до статуса «знаю»',()=>{
+  const {run,node}=app(),day='2026-09-21';
+  run(`for(let i=0;i<5;i++)LearningCore.thematicIntroduce(thematicTopic("forest"),thematicWords("forest")[i][0],${JSON.stringify(day)});`);
+  run(`for(let i=0;i<4;i++)LearningCore.thematicGrade(thematicTopic("forest"),thematicWords("forest")[i][0],true,${JSON.stringify(day)},addDays);`);
+  run(`LearningCore.thematicGrade(thematicTopic("forest"),thematicWords("forest")[4][0],false,${JSON.stringify(day)},addDays);`);
+  assert.deepEqual(JSON.parse(run('JSON.stringify(thematicReviewable("forest"))')),[0,1,2,3,4]);
+  assert.equal(run('thematicReviewQueue("forest",10).length'),5,'досрочные слова не скрываются из повторения');
+  run('renderThematicTopic("forest")');
+  assert.match(node('#view').innerHTML,/Повторить · 5/);
+
+  run(`LearningCore.thematicGrade(thematicTopic("forest"),thematicWords("forest")[4][0],true,${JSON.stringify(day)},addDays);`);
+  assert.equal(run('thematicReviewable("forest").length'),5,'правильный ответ после ошибки не отключает кнопку');
+  run(`LearningCore.thematicGrade(thematicTopic("forest"),thematicWords("forest")[0][0],true,addDays(${JSON.stringify(day)},1),addDays);`);
+  run(`LearningCore.thematicGrade(thematicTopic("forest"),thematicWords("forest")[0][0],true,addDays(${JSON.stringify(day)},4),addDays);`);
+  assert.equal(run('thematicTopic("forest").words[thematicWords("forest")[0][0]].box'),3);
+  assert.deepEqual(JSON.parse(run('JSON.stringify(thematicReviewable("forest"))')),[1,2,3,4],'слово исчезает только после статуса «знаю»');
+});
+
+test('справка объясняет переход в «знаю» в основном и тематическом меню',()=>{
+  const {run,node}=app();
+  run('learningStatusHelpSheet("thematic")');
+  assert.match(node('#overlay').innerHTML,/проверка при знакомстве → повторение завтра → повторение через 3 дня/);
+  assert.match(node('#overlay').innerHTML,/исчезает из тематической кнопки «Повторить»/);
+  run('learningStatusHelpSheet("main")');
+  assert.match(node('#overlay').innerHTML,/«Учу» — ячейки 0–2/);
+  assert.match(node('#overlay').innerHTML,/Уже знаю/);
+  run('renderLearn()');
+  assert.match(node('#view').innerHTML,/id="mainStatusHelp"/);
+});
+
 test('таймер блокировки не открывает покинутый экран, дедлайн остаётся в силе',()=>{
   const {ctx,run,element,intervals,flush}=app();const lock=element();let now=1000;
   ctx.Date={now:()=>now};lock.dataset.lock=31000;ctx.document.querySelectorAll=s=>s==='[data-lock]'?[lock]:[];ctx.finished=0;
@@ -266,4 +296,3 @@ test('возвращение после перерыва раскладывае�
   assert.equal(run('S.ach.fixed10'),'2026-08-01','награды на месте');
   run('comebackCheck()');assert.equal(run('dueList().length'),15,'повторный вызов в тот же день ничего не меняет');
 });
-

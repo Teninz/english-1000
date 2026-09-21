@@ -685,7 +685,7 @@ function renderLearn(){
     </section>
     ${!S.placement && startedList().length < 60 ? `<section class="card"><div class="eyebrow">Уже знаешь английский?</div><p class="small muted" style="margin:6px 0 10px">Выбери стартовый уровень и пройди короткую проверку из 15 слов — простые уровни отметятся как известные, и начинать можно будет с нужного места.</p><button class="btn secondary block" id="placementBtn">Выбрать стартовый уровень</button></section>` : ""}
     <section class="card">
-      <div class="eyebrow" style="margin-bottom:10px">Уровень и блок</div>
+      <div class="row between" style="margin-bottom:10px"><div class="eyebrow">Уровень и блок</div><button class="icon-btn" id="mainStatusHelp" aria-label="Как меняется статус слова">?</button></div>
       ${tilesHtml(learnBlock)}
     </section>
     <button class="btn block huge" id="startLearn" ${left?"":"disabled"}>${left?"Начать порцию":"Блок пройден"}</button>
@@ -694,6 +694,7 @@ function renderLearn(){
   `;
   wireTiles(l => { learnBlock = l; renderLearn(); });
   $("#startLearn").onclick = () => startLearnBatch(blockUnstarted(learnBlock).slice(0,5));
+  $("#mainStatusHelp").onclick = () => learningStatusHelpSheet("main");
   if($("#placementBtn")) $("#placementBtn").onclick = placementSheet;
 }
 /* ---------- Стартовая проверка: выбор уровня и 15 вопросов ---------- */
@@ -1297,6 +1298,15 @@ function applyTheme(){ const t = S.set.theme||"dark"; if(t==="light") document.d
 function confirmSheet(title, text, yes, onYes, danger){
   sheet(`<h2>${esc(title)}</h2><p class="muted">${esc(text)}</p><div class="grid2" style="margin-top:4px"><button class="btn secondary" data-close>Остаться</button><button class="btn" id="cfYes" style="${danger?"background:var(--bad);color:#fff;box-shadow:none":""}">${esc(yes)}</button></div>`);
   $("#cfYes").onclick = () => { closeSheet(); onYes(); };
+}
+function learningStatusHelpSheet(scope){
+  const thematic=scope==="thematic";
+  sheet(`<div class="row between"><div><div class="eyebrow">Справка</div><h2>Как слово становится «знаю»</h2></div><button class="icon-btn" data-close aria-label="Закрыть">${ICONS.close}</button></div>
+    ${thematic?`<p class="muted">После знакомства слово получает статус <b>«пройдено впервые»</b> и остаётся в кнопке «Повторить», пока не станет известным.</p>
+    <ul class="steps"><li><b>Повторяй в любой момент</b><p class="small muted">Кнопка включает все слова со статусом «пройдено впервые», в том числе те, чей плановый день ещё не наступил.</p></li><li><b>Отвечай самостоятельно в плановый день</b><p class="small muted">Первый правильный ответ по расписанию поднимает слово на одну ячейку. Дополнительные ответы в тот же день и досрочные повторы закрепляют память, но не ускоряют статус.</p></li><li><b>Дойди до третьей ячейки</b><p class="small muted">Обычный путь без ошибок: проверка при знакомстве → повторение завтра → повторение через 3 дня. После этого слово получает статус «знаю» и исчезает из тематической кнопки «Повторить».</p></li></ul>
+    <p class="small muted">Ошибка снижает текущую ячейку и возвращает слово в ближайшее повторение, поэтому путь может занять больше времени.</p>`:`<p class="muted">Статус показывает, насколько надёжно слово подтверждено самостоятельными ответами по интервальному расписанию.</p>
+    <ul class="steps"><li><b>«Учу» — ячейки 0–2</b><p class="small muted">Первый правильный ответ в запланированный день повышает слово на одну ячейку. Повторные ответы в тот же день не ускоряют прогресс.</p></li><li><b>«Знаю» — ячейки 3–5</b><p class="small muted">Слово уже запомнено, но основная программа продолжает возвращать его через растущие интервалы.</p></li><li><b>«Закреплено» — ячейка 6</b><p class="small muted">Слово проверено на длинном интервале и будет появляться значительно реже.</p></li></ul>
+    <p class="small muted">На карточке нового слова можно нажать «Уже знаю»: оно перейдёт в отложенную проверку через 14 дней. Ошибка понижает слово на две ячейки.</p>`}`);
 }
 function sheet(html){ $("#overlay").innerHTML = `<div class="scrim"><div class="sheet">${html}</div></div>`; $(".scrim").onclick = e => { if(e.target===e.currentTarget) closeSheet(); }; $("[data-close]").onclick = closeSheet; }
 function closeSheet(){ $("#overlay").innerHTML = ""; }
