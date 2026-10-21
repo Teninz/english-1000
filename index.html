@@ -23,6 +23,10 @@
   --glow:0 0 0 1px rgba(232,133,58,.25),0 10px 30px rgba(232,133,58,.18);
   --r:16px; --ui:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --word:"Fraunces","Iowan Old Style",Georgia,serif;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px;
+  --radius-sm:10px; --radius-md:12px; --radius-lg:20px;
+  --text-sm:13px; --text-base:16px; --text-title:20px;
+  --ease:cubic-bezier(.22,.68,.22,1); --motion-fast:160ms; --motion-base:240ms; --motion-slow:320ms;
   --ground-rgb:20,23,28; --surface-rgb:31,35,43; --accent-rgb:232,133,58;
   --sky1:#181C24; --sky2:#3E2C33; --sky3:#8A4E2A; --hill1:#111419; --hill2:#20262F; --hill3:#343C4A; --moon:#F1ECE3; --road:#2B2F38; --sand:#5A4630; --water:#2C3E52; --figure:#0B0D11; --orb:#F1ECE3; --cloud:#F1ECE3;
   color-scheme:dark;
@@ -58,15 +62,15 @@ p{margin:0}
 .icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
 .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
 .icon-btn svg{width:22px;height:22px}
-main{flex:1;padding:8px 16px calc(96px + var(--sab));display:flex;flex-direction:column;gap:14px}
+main{flex:1;min-width:0;padding:var(--space-2) var(--space-4) calc(96px + var(--sab));display:flex;flex-direction:column;gap:var(--space-3)}
 .tabs{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:var(--sab);z-index:5}
 .tabs-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 .tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 8px;font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.01em}
-.tab svg{width:24px;height:24px;padding:3px 12px;border-radius:99px;box-sizing:content-box;transition:background .15s}
+.tab svg{width:24px;height:24px;padding:3px 12px;border-radius:99px;box-sizing:content-box}
 .tab.active{color:var(--accent)}
 .tab.active svg{background:var(--accent-soft)}
-main > *{animation:rise .28s ease-out both}
-main > *:nth-child(2){animation-delay:.04s} main > *:nth-child(3){animation-delay:.08s} main > *:nth-child(4){animation-delay:.12s}
+main > *{min-width:0;animation:rise var(--motion-base) var(--ease) backwards}
+main > *:nth-child(2){animation-delay:24ms} main > *:nth-child(3){animation-delay:48ms} main > *:nth-child(n+4){animation-delay:72ms}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 /* плитки уровней */
 .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
@@ -86,25 +90,48 @@ main > *:nth-child(2){animation-delay:.04s} main > *:nth-child(3){animation-dela
 .tile-name b{font-weight:600}
 /* переворот карточки */
 .flip-wrap{perspective:1200px}
-.flash{transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,.2,.2,1)}
+.flash{transform-style:preserve-3d;transition:transform var(--motion-slow) var(--ease);display:grid}
 .flash.flipped{transform:rotateY(180deg)}
-.flash .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:30px 20px;background:var(--surface);border-radius:20px;box-shadow:var(--shadow)}
+.flash .face{position:relative;grid-area:1/1;min-width:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:30px 20px;background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow)}
 .flash .back{transform:rotateY(180deg)}
-.card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+.card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--space-4)}
 .card.hero{background:radial-gradient(120% 90% at 100% 0%,var(--accent-soft) 0%,var(--surface) 55%);border:1px solid var(--line)}
 .card.hero{position:relative;overflow:hidden}
-.card.hero{padding:18px 16px 22px}
-.card.hero .row{position:relative;z-index:1;align-items:flex-start}
-.ring-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
-.card.hero .ring{width:74px;height:74px}
-.card.hero .ring .lab{font-size:15px}
-.card.hero h2{font-size:19px}
-@media (max-width:360px){
-  .card.hero>.row{display:grid;grid-template-columns:72px minmax(0,1fr);grid-template-areas:"fox copy" "progress progress";gap:10px 12px}
-  .card.hero>.row>.home-fox{grid-area:fox;width:72px;height:72px}
-  .card.hero>.row>.grow{grid-area:copy}
-  .card.hero>.row>.ring-col{grid-area:progress;flex-direction:row;justify-content:center}
-  .card.hero .ring{width:58px;height:58px}
+.card.hero{padding:var(--space-4);display:grid;gap:var(--space-4)}
+.card.hero>.row{display:grid;grid-template-columns:48px minmax(0,1fr) 68px;grid-template-areas:"fox copy progress";gap:var(--space-3);align-items:center}
+.card.hero .home-fox{grid-area:fox;width:48px;height:64px}
+.card.hero>.row>.grow{grid-area:copy}
+.ring-col{grid-area:progress;display:flex;flex-direction:column;align-items:center;gap:4px;flex:none;text-align:center}
+.card.hero .ring{width:64px;height:64px}
+.card.hero .ring .lab{font-size:14px}
+.card.hero .ring-col>.small{font-size:11px;line-height:1.3}
+.card.hero h2{font-size:var(--text-title)}
+.home-lesson{display:grid;gap:var(--space-2)}
+.home-lesson .btn.huge{min-height:64px;font-size:18px;flex-wrap:wrap;gap:2px 8px;padding:14px 12px;line-height:1.3}
+.home-lesson .btn:disabled{opacity:1;background:var(--good-soft);color:var(--good);box-shadow:none;border:1px solid var(--good)}
+.home-lesson .small{line-height:1.5}
+.home-shortcuts{padding-top:var(--space-3);border-top:1px solid var(--line);gap:var(--space-2)}
+.home-shortcuts .btn{min-height:44px;font-size:var(--text-sm);padding:10px 8px;background:var(--surface-2);color:var(--muted)}
+.home-load{padding:var(--space-3) var(--space-4)}
+.home-load .theme-stat-grid{margin-top:0;gap:var(--space-2)}
+.home-load .theme-stat{background:transparent;padding:0 4px;min-width:0}
+.home-load .theme-stat+.theme-stat{border-left:1px solid var(--line);border-radius:0}
+.home-load .theme-stat span{display:block;line-height:1.4;margin-top:4px}
+.home-quiet{text-align:center;line-height:1.5;padding:0 var(--space-2)}
+/* Две неподвижные маски открывают кольцо только вращением полукругов. */
+.ring-progress,.ring-half{position:absolute;inset:0;pointer-events:none}
+.ring:has(.ring-progress) .fill{opacity:0}
+.ring-half{clip-path:inset(0 0 0 50%);--sweep:var(--first)}
+.ring-half.second{transform:rotate(180deg);--sweep:var(--second)}
+.ring-sweep{position:absolute;inset:6%;border:5px solid var(--amber);border-radius:50%;clip-path:inset(0 50% 0 0);transform:rotate(var(--sweep));animation:ringSweep 175ms var(--ease) backwards}
+.ring-half.second .ring-sweep{animation-delay:175ms}
+@keyframes ringSweep{from{transform:rotate(0deg)}}
+@media(max-width:380px){
+  .card.hero>.row{grid-template-columns:40px minmax(0,1fr) 60px;gap:var(--space-2)}
+  .card.hero .home-fox{width:40px;height:56px}
+  .card.hero .ring{width:60px;height:60px}
+  .card.hero h2{font-size:18px}
+  .card.hero .chip{font-size:11px;padding:4px 7px}
 }
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .row{display:flex;align-items:center;gap:12px}
@@ -113,7 +140,7 @@ main > *:nth-child(2){animation-delay:.04s} main > *:nth-child(3){animation-dela
 .muted{color:var(--muted)}
 .small{font-size:13px}
 .num{font-variant-numeric:tabular-nums}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:12px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent-deep));color:var(--accent-ink);min-height:48px;transition:transform .08s,box-shadow .15s;box-shadow:var(--glow)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:var(--radius-md);font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent-deep));color:var(--accent-ink);min-height:48px;box-shadow:var(--glow)}
 .btn:not(.ghost):not(.secondary){box-shadow:var(--glow),0 3px 0 rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25)}
 .btn:active{transform:translateY(2px);box-shadow:var(--glow),0 1px 0 rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.2)}
 .btn.secondary{background:var(--surface-2);color:var(--ink);box-shadow:none}
@@ -122,14 +149,14 @@ main > *:nth-child(2){animation-delay:.04s} main > *:nth-child(3){animation-dela
 .btn.huge{min-height:76px;font-size:20px;border-radius:18px}
 .btn[disabled]{opacity:.45;pointer-events:none}
 .bar{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden}
-.bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-deep),var(--accent));border-radius:99px;transition:width .4s}
+.bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-deep),var(--accent));border-radius:99px}
 .bar.good > i{background:var(--good)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .ring{width:92px;height:92px;flex:none;position:relative}
 .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
 .ring circle{fill:none;stroke-width:8;stroke-linecap:round}
 .ring .track{stroke:var(--surface-2)}
-.ring .fill{stroke:var(--amber);transition:stroke-dashoffset .6s}
+.ring .fill{stroke:var(--amber)}
 .ring .lab{position:absolute;inset:0;display:grid;place-items:center;font-weight:600;font-size:18px;font-variant-numeric:tabular-nums}
 .ring .lab small{display:block;font-size:10px;color:var(--muted);text-align:center;font-weight:500}
 .days{display:flex;gap:4px;align-items:flex-end;height:44px}
@@ -185,12 +212,12 @@ mark{background:var(--accent-soft);color:var(--accent-deep);border-radius:4px;pa
 .heard{font-size:15px;color:var(--muted)}
 .heard b{color:var(--ink);font-family:var(--word);font-size:20px;font-weight:600}
 .opts{display:grid;gap:10px}
-.opt{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px 16px;text-align:left;font-size:17px;font-weight:500;min-height:54px;display:flex;align-items:center;gap:12px;transition:border-color .12s,background .12s}
+.opt{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px 16px;text-align:left;font-size:17px;font-weight:500;min-height:54px;display:flex;align-items:center;gap:12px}
 .opt:hover{border-color:var(--accent)}
 /* «клавиши»: слой света сверху, тёмное ребро снизу, при нажатии проседают */
 .opt,body.scenic .opt{--edge:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.08);border-bottom-color:rgba(0,0,0,.4);
   background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,0) 40%,rgba(0,0,0,.16)),var(--surface);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.25),0 5px 0 var(--edge),0 12px 20px rgba(0,0,0,.4);transform:translateY(0);transition:transform .1s,box-shadow .1s,border-color .15s,background .2s}
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.25),0 5px 0 var(--edge),0 12px 20px rgba(0,0,0,.4);transform:translateY(0);transition:transform var(--motion-fast) var(--ease),opacity var(--motion-fast) var(--ease)}
 body.scenic .opt{background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,0) 40%,rgba(0,0,0,.18)),rgba(var(--surface-rgb),.92)}
 :root[data-theme="light"] .opt,:root[data-theme="light"] body.scenic .opt{--edge:#C9B9A5;border-color:rgba(255,255,255,.7);border-bottom-color:#D8CBB9;box-shadow:inset 0 1px 0 #fff,0 4px 0 var(--edge),0 10px 18px rgba(60,40,20,.15)}
 .opt:hover{border-color:rgba(var(--accent-rgb),.6)}
@@ -209,7 +236,7 @@ body.scenic .opt{background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(25
 .fb.ok{background:var(--good-soft);color:var(--good)} .fb.no{background:var(--bad-soft);color:var(--bad)}
 .fb b{font-size:16px} .fb .ans{color:var(--ink);font-weight:500}
 .fb .ans small{color:var(--muted);font-weight:400}
-.match{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.match{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .match .opt{justify-content:center;text-align:center;min-height:60px;font-size:16px}
 .match .opt.sel{border-color:var(--accent);background:var(--accent-soft)}
 .match .opt.done{opacity:.25;pointer-events:none}
@@ -233,7 +260,7 @@ body.scenic .opt{background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(25
 .wrow .en{font-family:var(--word);font-size:18px;font-weight:600;flex:none;min-width:40%}
 .wrow .tr{font-size:14px;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* режим «В дороге» */
-.flagb{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);flex:none;transition:transform .15s,color .15s,background .15s}
+.flagb{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);flex:none;transition:transform var(--motion-fast) var(--ease)}
 .flagb svg{width:18px;height:18px}
 .flagb.big{width:52px;height:52px} .flagb.big svg{width:22px;height:22px}
 .flagb.on{color:var(--accent-ink);background:var(--accent);border-color:var(--accent);box-shadow:var(--glow)}
@@ -257,8 +284,8 @@ body.scenic .opt{background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(25
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
 .set-row:last-child{border-bottom:0}
 .toggle{width:46px;height:28px;border-radius:99px;background:var(--surface-2);position:relative;flex:none}
-.toggle::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}
-.toggle.on{background:var(--accent)} .toggle.on::after{left:21px}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform var(--motion-fast) var(--ease)}
+.toggle.on{background:var(--accent)} .toggle.on::after{transform:translateX(18px)}
 textarea.io{width:100%;min-height:90px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);padding:10px;font-size:12px;font-family:ui-monospace,Consolas,monospace}
 .toast{position:fixed;left:50%;bottom:calc(90px + var(--sab));transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:99px;font-size:14px;font-weight:500;z-index:30;box-shadow:var(--shadow);max-width:90vw;text-align:center}
 .empty{text-align:center;color:var(--muted);padding:30px 10px}
@@ -349,27 +376,27 @@ body.noglass.scenic :is(.card,.mode,.opt,.lvl,.flash .face,.q,.hf,.tabs,.type-in
 body.noglass.scenic .card.hero{background:radial-gradient(120% 90% at 100% 0%,var(--accent-soft) 0%,var(--surface) 55%)}
 body.noglass #scene svg{filter:none}
 /* ---------- отклик блоков ---------- */
-.card,.mode,.opt,.tile,.lvl-h,.wrow,.btn,.speak,.mic,.tab{transition:transform .16s cubic-bezier(.2,.7,.2,1),box-shadow .2s,background .2s,border-color .15s,opacity .2s}
+.mode,.opt,.tile,.lvl-h,.wrow,.btn,.speak,.mic,.tab,.icon-btn,.seg button,[role="button"]{transition:transform var(--motion-fast) var(--ease),opacity var(--motion-fast) var(--ease)}
 .mode:active,.opt:active:not([disabled]),.tile:active,.lvl-h:active,.wrow:active,.speak:active,.tab:active svg{transform:scale(.97)}
-@media (hover:hover){.mode:hover,.tile:hover{transform:translateY(-2px);box-shadow:var(--glow)}.card:hover{box-shadow:var(--shadow),0 0 0 1px rgba(var(--accent-rgb),.12)}}
+@media (hover:hover){.mode:hover,.tile:hover{transform:translateY(-2px);box-shadow:var(--glow)}}
 .btn{position:relative;overflow:hidden}
-.btn::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--px,50%) var(--py,50%),rgba(255,255,255,.35),transparent 60%);opacity:0;transition:opacity .35s}
+.btn::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--px,50%) var(--py,50%),rgba(255,255,255,.35),transparent 60%);opacity:0;transition:opacity var(--motion-fast) var(--ease)}
 .btn:active::after{opacity:1;transition:none}
-.opt.ok{animation:pop .4s cubic-bezier(.2,.8,.3,1.4)}
-@keyframes pop{35%{transform:scale(1.035)}}
-.bar > i{animation:barIn .8s cubic-bezier(.2,.7,.2,1) both;transform-origin:left}
+.opt.ok{animation:pop var(--motion-base) var(--ease)}
+@keyframes pop{35%{transform:scale(1.015)}}
+.bar > i,.tile .tb i{animation:barIn var(--motion-slow) var(--ease) backwards;transform-origin:left}
 @keyframes barIn{from{transform:scaleX(0)}}
-.tab.active svg{animation:tabPop .35s cubic-bezier(.2,.8,.3,1.5)}
-@keyframes tabPop{40%{transform:scale(1.15)}}
-.toast{animation:toastIn .3s cubic-bezier(.2,.8,.3,1.3)}
+.tab.active svg{animation:tabPop var(--motion-base) var(--ease)}
+@keyframes tabPop{from{opacity:.55;transform:translateY(3px) scale(.94)}to{opacity:1;transform:none}}
+.toast{animation:toastIn var(--motion-base) var(--ease)}
 @keyframes toastIn{from{opacity:0;transform:translate(-50%,14px)}}
-.sheet{animation:sheetIn .32s cubic-bezier(.2,.8,.3,1)}
+.sheet{animation:sheetIn var(--motion-slow) var(--ease)}
 @keyframes sheetIn{from{transform:translateY(40px);opacity:0}}
-.scrim{animation:fadeIn .25s}
+.scrim{animation:fadeIn var(--motion-base) var(--ease)}
 @keyframes fadeIn{from{opacity:0}}
-.fb{animation:rise .3s ease-out both}
-.res-item{animation:rise .35s ease-out both}
-.res-item:nth-child(2){animation-delay:.05s}.res-item:nth-child(3){animation-delay:.1s}.res-item:nth-child(4){animation-delay:.15s}.res-item:nth-child(5){animation-delay:.2s}
+.fb{animation:rise var(--motion-base) var(--ease) backwards}
+.res-item{animation:rise var(--motion-base) var(--ease) backwards}
+.res-item:nth-child(2){animation-delay:24ms}.res-item:nth-child(3){animation-delay:48ms}.res-item:nth-child(n+4){animation-delay:72ms}
 @media (prefers-reduced-motion: reduce){#scene *{animation:none!important}}
 .vblock{background:var(--surface-2);border-radius:12px;padding:10px 12px}
 .vcats{display:grid;gap:6px}
@@ -407,7 +434,7 @@ a.btn{text-decoration:none}
 .ach .ach-ic{font-size:26px;line-height:1}
 .ach.on .ach-ic{filter:drop-shadow(0 2px 6px rgba(var(--accent-rgb),.5))}
 .ach b{font-size:14px}
-.ach-pop{position:fixed;top:calc(12px + var(--sat));left:50%;transform:translate(-50%,-140%);z-index:40;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid rgba(var(--accent-rgb),.5);box-shadow:var(--glow),var(--shadow);border-radius:16px;padding:10px 18px 10px 12px;transition:transform .45s cubic-bezier(.2,.8,.3,1.2);cursor:pointer;max-width:92vw}
+.ach-pop{position:fixed;top:calc(12px + var(--sat));left:50%;transform:translate(-50%,-140%);z-index:40;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid rgba(var(--accent-rgb),.5);box-shadow:var(--glow),var(--shadow);border-radius:16px;padding:10px 18px 10px 12px;transition:transform var(--motion-slow) var(--ease);cursor:pointer;max-width:92vw}
 .ach-pop.show{transform:translate(-50%,0)}
 .ach-pop .ach-ic{font-size:30px}
 .ach-pop small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-deep);font-weight:700}
@@ -418,6 +445,40 @@ a.btn{text-decoration:none}
 .scene-thumb svg{width:100%;height:100%;display:block}
 .scene-btn.on .scene-thumb{border-color:var(--accent)} .scene-btn.on{color:var(--ink);font-weight:600}
 .scene-thumb *{animation:none!important}
+/* Единый отклик и переносы, в том числе в узком Android WebView. */
+button,a,summary,[role="button"]{touch-action:manipulation}
+button,summary,[role="button"]{-webkit-tap-highlight-color:transparent}
+summary:focus-visible,[tabindex]:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:var(--radius-sm)}
+.icon-btn{min-width:40px;flex-shrink:0}
+.icon-btn:active,.seg button:active,[role="button"]:active{transform:scale(.97)}
+.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.seg button{min-width:0;overflow-wrap:anywhere}
+@media(max-width:380px){#scope{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile-name{flex-wrap:wrap;gap:4px 10px}
+.tile-name b,.tile-name span{min-width:0;overflow-wrap:anywhere}
+.q,.hf,.face,.sheet,.note,.res-item{overflow-wrap:anywhere}
+.flash{cursor:pointer}
+.flash .face>*{max-width:100%}
+.wrow .en{min-width:0;max-width:48%;overflow-wrap:anywhere}
+.wrow .tr{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.opt{min-width:0;overflow-wrap:anywhere}
+.res-item{flex-wrap:wrap}
+.set-row>div:first-child{min-width:0}
+.dtask{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:var(--space-2);align-items:start;padding:var(--space-3);border:1px solid transparent}
+.dt-ic{width:28px;height:32px;border-radius:var(--radius-sm)}
+.dt-ic svg{width:18px;height:18px}
+.dtask .small{font-size:12px;line-height:1.45;margin-top:4px}
+.dtask .btn.small{min-height:40px;padding:8px 10px;background:var(--surface);color:var(--accent-deep);box-shadow:none}
+.dtask .btn.ghost.small{min-height:32px!important;background:transparent;padding:4px!important}
+.dtask.done{opacity:1;border-color:var(--good-soft)}
+.dtask.done .grow>b{color:var(--good)}
+.dtask.just-done .dt-ic,.dtask.just-done .chip{animation:taskDone var(--motion-base) var(--ease)}
+@keyframes taskDone{from{opacity:.35;transform:translateY(4px) scale(.92)}to{opacity:1;transform:none}}
+/* Ни одна настройка экономии движения не оставляет скрытых элементов. */
+body:is(.still,.noglass) *,body:is(.still,.noglass) *::before,body:is(.still,.noglass) *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -612,12 +673,16 @@ function matchAny(alts, targets, lang = "en"){
 const TABS = [["home","Сегодня","home"],["learn","Учить","learn"],["test","Проверка","test"],["road","В дороге","road"],["words","Слова","list"]];
 let tab = "home", inSession = false;
 function renderTabs(){
-  $("#tabs").innerHTML = TABS.map(([k,l,ic]) => `<button class="tab ${tab===k?"active":""}" data-tab="${k}">${ICONS[ic]}<span>${l}</span></button>`).join("");
+  $("#tabs").innerHTML = TABS.map(([k,l,ic]) => `<button class="tab ${tab===k?"active":""}" data-tab="${k}" ${tab===k?'aria-current="page"':""}>${ICONS[ic]}<span>${l}</span></button>`).join("");
   $("#tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => { const leave = () => { endSession(); go(b.dataset.tab); }; if(typeof thematicExamRunning==="function"&&thematicExamRunning()&&b.dataset.tab!==tab)thematicRequestExamExit(b.dataset.tab);else if(inSession && b.dataset.tab !== tab) confirmSheet("Прервать сессию?", "Ответы, которые ты уже дал, сохранены.", "Прервать", leave); else leave(); });
 }
 function endSession(){ if(typeof thematicCancelLesson==="function")thematicCancelLesson(); journeyRunning = false; if(optionKeys){document.removeEventListener("keydown",optionKeys);optionKeys=null;} inSession = false; hfStop(); stopListening(); TTS.stop(); }
 function go(t){ if(typeof thematicCancelLesson==="function")thematicCancelLesson(); tab = t; renderTabs(); window.scrollTo(0,0); ({home:renderHome, learn:renderLearn, test:renderTest, road:renderRoad, words:renderWords, thematic:renderThematicCatalog, competition:renderCompetition})[t](); }
 const view = () => $("#view");
+// Карточки разделов доступны и с клавиатуры; обработчики клика остаются прежними.
+document.addEventListener("keydown", e => {
+  if((e.key==="Enter"||e.key===" ") && e.target.matches('[role="button"][tabindex="0"]')){e.preventDefault();e.target.click();}
+});
 
 /* ---------- Сегодня ---------- */
 function renderHome(){
@@ -628,7 +693,7 @@ function renderHome(){
     <section class="card hero">
       <div class="row">
         <img class="home-fox" src="art/shadowfox.png" alt="Лис ShadowFox">
-        <div class="ring-col"><div class="ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="40"/><circle class="fill" cx="50" cy="50" r="40" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg><div class="lab">${dailyCount}/${S.goal}</div></div><span class="small muted">слов в практике</span></div>
+        <div class="ring-col"><div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="40"/><circle class="fill" cx="50" cy="50" r="40" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg><div class="ring-progress" aria-hidden="true" style="--first:${Math.min(1,pct*2)*180}deg;--second:${Math.max(0,pct*2-1)*180}deg"><div class="ring-half"><i class="ring-sweep"></i></div><div class="ring-half second"><i class="ring-sweep"></i></div></div><div class="lab">${dailyCount}/${S.goal}</div></div><span class="small muted">слов в практике</span></div>
         <div class="grow">
           <div class="eyebrow">${new Date().toLocaleDateString("ru-RU",{weekday:"short",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase())}</div>
           <h2 style="font-size:20px;margin:4px 0 8px">${dailyCount >= S.goal ? "Цель выполнена" : "Сегодня — немного английского"}</h2>
@@ -638,23 +703,22 @@ function renderHome(){
           </div>
         </div>
       </div>
-    </section>
-    ${comebackCardHtml()}
-    ${journeyHeroHtml()}
-    ${motivationCardHtml()}
-    ${loadCardHtml()}
-    <div class="grid2">
+      <div class="home-lesson">${journeyHeroHtml()}</div>
+      <div class="grid2 home-shortcuts">
       <button class="btn secondary block" id="hLearn" ${unstartedList().length?"":"disabled"}>Учить новые</button>
       <button class="btn secondary block" id="hReview">${reviewRemaining()?`Повторить · ${reviewRemaining()}`:due.length?"Повторить ещё":"Повторить"}</button>
-    </div>
+      </div>
+    </section>
+    ${comebackCardHtml()}
+    ${loadCardHtml()}
     ${dailyCardHtml()}
+    ${motivationCardHtml()}
     ${competitionHomeCardHtml()}
     ${thematicHomeCardHtml()}
     ${progressAccordionHtml()}
     ${achCardHtml()}
-    ${due.length===0 && started.length ? `<p class="small muted" style="text-align:center">На повторение сегодня ничего нет — интервалы работают. Учи новые или проверь себя.</p>`:""}
+    ${due.length===0 && started.length ? `<p class="small muted home-quiet">На повторение сегодня ничего нет — интервалы работают. Учи новые или проверь себя.</p>`:""}
   `;
-  { const f = $(".ring .fill"); if(f){ const to = f.getAttribute("stroke-dashoffset"); f.style.transition = "none"; f.setAttribute("stroke-dashoffset", C); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.transition = ""; f.setAttribute("stroke-dashoffset", to); })); } }
   $("#achCard").onclick = achSheet; wireDaily(); wireCompetitionHomeCard(); wireThematicHomeCard();
   $("#hLearn").onclick = () => go("learn");
   $("#hReview").onclick = () => (reviewRemaining() || due.length) ? startReview() : toast("Пока нечего повторять");
@@ -783,14 +847,14 @@ function startLearnBatch(items, onComplete){
     const i = items[k]; const w = WORDS[i]; let open = false;
     view().innerHTML = `
       <div class="sess-top"><button class="icon-btn" id="sx" aria-label="Выйти">${ICONS.close}</button><div class="bar"><i style="width:${(k/items.length)*100}%"></i></div><span class="small muted num">${k+1}/${items.length}</span></div>
-      <div class="flip-wrap"><div class="flash" id="flash">
+      <div class="flip-wrap"><div class="flash" id="flash" tabindex="0" aria-label="Перевернуть карточку">
         <div class="face front">
           <div class="pos">${POS[w[2]]||w[2]} · ${esc(blockLabel(i))}</div>
           <div class="word">${esc(w[0])}</div>
           <button class="speak" id="spk" aria-label="Озвучить">${ICONS.sound}</button>
           <div class="tap">нажми, чтобы перевернуть</div>
         </div>
-        <div class="face back">
+        <div class="face back" inert aria-hidden="true">
           <div class="word md">${esc(w[0])}</div>
           <div class="ru">${esc(w[1])}</div>
           <p class="ex">${hl(w[3], w[0])}</p>
@@ -802,8 +866,10 @@ function startLearnBatch(items, onComplete){
       </div></div>
       <div class="grid2"><button class="btn secondary" id="known">Уже знаю</button><button class="btn" id="nextW">Дальше</button></div>
     `;
-    const reveal = () => { if(open) return; open = true; const back = $("#flash .face.back"); $("#flash").style.minHeight = Math.max(320, back.scrollHeight) + "px"; $("#flash").classList.add("flipped"); };
+    // Обе стороны занимают одну ячейку сетки: высота известна до переворота, без замеров во время анимации.
+    const reveal = () => { if(open) return; open = true; const flash=$("#flash"),front=flash.querySelector(".front"),back=flash.querySelector(".back"); front.inert=true;front.setAttribute("aria-hidden","true");back.inert=false;back.removeAttribute("aria-hidden");flash.classList.add("flipped"); };
     $("#flash").onclick = reveal;
+    $("#flash").onkeydown = e => {if(e.target===$("#flash")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();reveal();}};
     $("#spk").onclick = e => { e.stopPropagation(); speak(w[0]); };
     $("#spk2").onclick = e => { e.stopPropagation(); speak(w[3]); }; wireFlags();
     $("#sx").onclick = () => { endSession(); go(onComplete?"home":"learn"); };

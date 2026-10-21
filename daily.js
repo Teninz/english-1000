@@ -90,7 +90,7 @@ function dailySwap(idx){
 function dailyCardHtml(){
   const D = dailyEnsure(); const doneN = D.tasks.filter(t => t.done).length;
   const rows = D.tasks.map((t, i) => { const [title, desc, icon] = dailyTitle(t); const [p, tg] = dailyProgress(t); const voice = t.id === "mode" && DAILY_POOL[t.key].voice;
-    return `<div class="dtask ${t.done?"done":""}">
+    return `<div class="dtask ${t.done?"done":""}" data-dtask="${i}">
       <span class="dt-ic">${t.done ? ICONS.test : (ICONS[icon] || ICONS.test)}</span>
       <div class="grow" style="min-width:0"><b>${esc(title)}</b><div class="small muted">${esc(desc)}${voice?" · <span style='color:var(--warn)'>нужен микрофон</span>":""}</div>
         <div class="bar" style="height:5px;margin-top:6px"><i style="width:${tg?Math.round(p/tg*100):0}%"></i></div></div>
@@ -102,7 +102,15 @@ function dailyCardHtml(){
     <div class="dtasks">${rows}</div>
     ${doneN === D.tasks.length ? `<p class="small" style="margin-top:8px;color:var(--good)">Все задания выполнены — план на сегодня закрыт.</p>` : ""}</section>`;
 }
+// Память только для оформления: отмечаем переход в «готово», не меняя учебное состояние.
+const dailyVisualState = new Map();
 function wireDaily(){
+  const D=dailyEnsure();
+  document.querySelectorAll("[data-dtask]").forEach(row=>{
+    const t=D.tasks[+row.dataset.dtask],key=`${D.d}:${row.dataset.dtask}:${t.id}:${t.key||""}`;
+    if(t.done && dailyVisualState.get(key)===false)row.classList.add("just-done");
+    dailyVisualState.set(key,t.done);
+  });
   document.querySelectorAll("[data-dstart]").forEach(b => b.onclick = () => dailyStart(dailyEnsure().tasks[+b.dataset.dstart]));
   document.querySelectorAll("[data-dswap]").forEach(b => b.onclick = () => dailySwap(+b.dataset.dswap));
 }

@@ -5,3 +5,11 @@
 .score-row-tail,.score-request-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px}.score-remove{width:30px;height:30px;font-size:20px;color:var(--muted)}.score-request-actions{flex-wrap:wrap}
 .score-code{font-family:ui-monospace,Consolas,monospace;letter-spacing:.12em;font-size:18px;font-weight:700}.score-empty{text-align:center;padding:22px;color:var(--muted)}
 .score-sync{display:grid;gap:8px}.score-sync .btn{min-height:48px}.score-rule{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;padding:8px 0}.score-rule .n{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;color:var(--accent-deep);font-weight:700}
+/* Рейтинг подчинён занятию: компактный счётчик без свечения. */
+.score-entry .score-orb{width:44px;height:44px;border-radius:var(--radius-md);background:var(--accent-soft);color:var(--accent-deep);font-size:16px;box-shadow:none}
+.score-entry h2{font-size:16px!important;line-height:1.3;margin:4px 0!important}
+.score-entry .row{gap:var(--space-3)}
+.score-row{grid-template-columns:28px minmax(0,1fr) auto}
+.score-row>span,.score-rule>span{min-width:0;overflow-wrap:anywhere}
+.score-code{overflow-wrap:anywhere}
+@media(max-width:380px){.score-row{gap:8px;padding:10px 8px}.score-row-tail{gap:4px}.score-row:has(.score-request-actions){grid-template-columns:28px minmax(0,1fr)}.score-request-actions{grid-column:2;justify-content:flex-start}}

@@ -30,13 +30,15 @@ function motivationCardHtml(){
   const week=Array.from({length:7},(_,index)=>addDays(today(),index-6)),active=week.filter(day=>journeyState().completed[day]).length;
   const levels=motivationLevelRows();
   const message=fixed>=3000?"Oxford 3000 закреплён. Продолжай повторения, чтобы знания оставались активными.":`До следующей вехи — ${plural(next-fixed,"слово","слова","слов")}.`;
-  return `<section class="card motivation-card" id="motivationCard">
-    <div class="row between motivation-head"><div><div class="eyebrow">Путь Oxford 3000</div><h2>Знания, которые остаются</h2></div><strong>${shown} / 3000</strong></div>
+  return `<details class="card motivation-card" id="motivationCard">
+    <summary class="row between motivation-head"><span><span class="eyebrow">Путь Oxford 3000</span><b>Знания, которые остаются</b></span><strong>${shown} / 3000</strong></summary>
+    <div class="motivation-body">
     <div class="motivation-meter" aria-label="${step}% до следующей вехи"><i style="width:${step}%"></i></div>
     <div class="row between motivation-next"><span>${message}</span><b>${fixed>=3000?"готово":next}</b></div>
     <div class="motivation-levels">${levels.map(level=>`<div><span>${level.id}</span><i><b style="width:${level.pct}%"></b></i><strong>${level.pct}%</strong></div>`).join("")}</div>
     <div class="motivation-week"><span><b>${active}/4</b><small>учебных дня за неделю</small></span><div>${week.map(day=>`<i class="${journeyState().completed[day]?"on":""}" title="${day}"></i>`).join("")}</div></div>
-  </section>`;
+    </div>
+  </details>`;
 }
 
 function progressAccordionHtml(){
@@ -118,5 +120,5 @@ function journeyHeroHtml(id="hJourney"){
 function loadCardHtml(){
   const due=dueList().length,recalled=memoryCount(),week=Array.from({length:7},(_,k)=>S.days[addDays(today(),-k)]).reduce((n,r)=>n+Object.keys(r?.remembered||{}).length,0);
   const forgotten=LearningCore.forgottenKeys(S.w).map(key=>KEY_INDEX[key]).filter(i=>i!==undefined);
-  return `<section class="card"><div class="theme-stat-grid"><div class="theme-stat"><b>${due}</b><span>в очереди</span></div><div class="theme-stat"><b>${recalled}</b><span>вспомнил сам сегодня</span></div><div class="theme-stat"><b>${week}</b><span>за неделю</span></div></div>${forgotten.length?`<div class="eyebrow" style="margin-top:12px">Регулярно забываются</div><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${forgotten.map(i=>`<button class="chip warn" data-forgot="${i}">${esc(WORDS[i][0])} · ${W(i).bad}</button>`).join("")}</div>`:""}</section>`;
+  return `<section class="card home-load"><div class="theme-stat-grid"><div class="theme-stat"><b>${due}</b><span>в очереди</span></div><div class="theme-stat"><b>${recalled}</b><span>вспомнил сам сегодня</span></div><div class="theme-stat"><b>${week}</b><span>за неделю</span></div></div>${forgotten.length?`<div class="eyebrow" style="margin-top:12px">Регулярно забываются</div><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${forgotten.map(i=>`<button class="chip warn" data-forgot="${i}">${esc(WORDS[i][0])} · ${W(i).bad}</button>`).join("")}</div>`:""}</section>`;
 }
