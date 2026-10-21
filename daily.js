@@ -24,7 +24,8 @@ function dailyEnsure(){
   const tasks = [];
   if(un > 0) tasks.push({ id:"learn", target: Math.min(S.goal, un) });
   else tasks.push({ id:"lesson", target: 1 }); // весь словарь начат — тренировка по сложным
-  if(due > 0) tasks.push({ id:"review", target: Math.min(due, 15) });
+  // норма повторений одна на весь экран: её же показывают кнопка «Повторить» и занятие дня
+  if(due > 0) tasks.push({ id:"review", target: Math.max(1, reviewQuota()) });
   else tasks.push({ id:"lesson", target:1 });
   if(startedList().length >= 10) tasks.push({ id:"mode", key: modeKey });
   S.daily = { d, tasks: tasks.map(t => Object.assign({ swapped:false, done:false }, t)), log:{ learn:0, review:0, heard:0, pronOk:0, roadAnswers:0, sessions:[] } };
@@ -61,14 +62,14 @@ function dailyRefresh(){
 function dailyTitle(t){
   if(t.id === "lesson") return ["Занятие на сегодня", "Короткое занятие для сохранения учебного ритма", "learn"];
   if(t.id === "learn") return ["Выучить новые слова", `${t.target} ${plural(t.target,"слово","слова","слов").replace(/^\d+ /,"")} из текущего блока`, "learn"];
-  if(t.id === "review") return ["Повторить слова", `${t.target} из очереди на сегодня`, "rev"];
+  if(t.id === "review") return ["Повторить слова", `${t.target} ${plural(t.target,"слово","слова","слов").replace(/^\d+ /,"")} — норма на сегодня`, "rev"];
   if(t.id === "hard") return ["Сложные слова", "Любая проверка по сложным на 80%", "flag"];
   const m = DAILY_POOL[t.key]; return [m.title, m.desc, m.icon];
 }
 function dailyStart(t){
   if(t.id === "lesson"){journeyStart();return;}
   if(t.id === "learn"){ go("learn"); return; }
-  if(t.id === "review"){ dueList().length ? startReview() : go("home"); return; }
+  if(t.id === "review"){ (reviewRemaining() || dueList().length) ? startReview() : go("home"); return; }
   if(t.id === "hard"){ testScope = "hard"; go("test"); return; }
   const m = DAILY_POOL[t.key];
   if(m.heard || m.roadAnswers){ hfMode = m.heard ? "listen" : "ru"; go("road"); return; }

@@ -66,6 +66,11 @@ function journeyPlan(){
   }
   return j.plan;
 }
+// Дневная норма повторений — одно число для кнопки «Повторить», задания дня и занятия.
+// Считается один раз в сутки внутри journeyPlan() (LearningCore.dailyLoad) и до завтра не меняется.
+const reviewQuota = () => journeyPlan().review.length;
+const reviewRemainingKeys = () => {const p=journeyPlan();return p.review.filter(word=>!p.reviewed[word]);};
+const reviewRemaining = () => reviewRemainingKeys().length;
 function journeyRecord(i,ok){
   if(!journeyRunning)return;
   const p=journeyPlan(),word=wk(i);
@@ -113,5 +118,5 @@ function journeyHeroHtml(id="hJourney"){
 function loadCardHtml(){
   const due=dueList().length,recalled=memoryCount(),week=Array.from({length:7},(_,k)=>S.days[addDays(today(),-k)]).reduce((n,r)=>n+Object.keys(r?.remembered||{}).length,0);
   const forgotten=LearningCore.forgottenKeys(S.w).map(key=>KEY_INDEX[key]).filter(i=>i!==undefined);
-  return `<section class="card"><div class="theme-stat-grid"><div class="theme-stat"><b>${due}</b><span>к повторению</span></div><div class="theme-stat"><b>${recalled}</b><span>вспомнил сам сегодня</span></div><div class="theme-stat"><b>${week}</b><span>за неделю</span></div></div>${forgotten.length?`<div class="eyebrow" style="margin-top:12px">Регулярно забываются</div><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${forgotten.map(i=>`<button class="chip warn" data-forgot="${i}">${esc(WORDS[i][0])} · ${W(i).bad}</button>`).join("")}</div>`:""}</section>`;
+  return `<section class="card"><div class="theme-stat-grid"><div class="theme-stat"><b>${due}</b><span>в очереди</span></div><div class="theme-stat"><b>${recalled}</b><span>вспомнил сам сегодня</span></div><div class="theme-stat"><b>${week}</b><span>за неделю</span></div></div>${forgotten.length?`<div class="eyebrow" style="margin-top:12px">Регулярно забываются</div><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${forgotten.map(i=>`<button class="chip warn" data-forgot="${i}">${esc(WORDS[i][0])} · ${W(i).bad}</button>`).join("")}</div>`:""}</section>`;
 }

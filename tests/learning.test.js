@@ -234,3 +234,28 @@ test('APK использует монотонные часы Android и подт
   assert.ok(native.includes('window.nativeExamClock'));
   assert.ok(native.includes('thematicRequestExamExit("thematic")'));
 });
+
+test('дневная норма повторений одна для кнопки, задания дня и занятия',()=>{
+  const run=app();
+  run(read('daily.js'));
+  // 86 просроченных слов: dailyLoad даёт 12 повторений и ноль новых
+  run(`S=LearningCore.empty();S.goal=10;const day=today();
+    for(let i=0;i<86;i++)S.w[wk(i)]={box:2,due:addDays(day,-3),ok:3,bad:0};
+    S.journey={completed:{},rewards:{}};S.daily=null;`);
+  const due=run('dueList().length'), quota=run('reviewQuota()');
+  assert.equal(due,86);
+  assert.equal(quota,12,'норма на сегодня из LearningCore.dailyLoad');
+  assert.equal(run('reviewRemaining()'),quota,'в начале дня остаток равен норме');
+  assert.equal(run('journeyPlan().review.length'),quota,'занятие берёт ту же норму');
+  assert.equal(run('dailyEnsure().tasks.find(t=>t.id==="review").target'),quota,'задание дня берёт ту же норму');
+  assert.ok(run('journeyHeroHtml()').includes(`повторить ${quota}`),'подпись занятия показывает норму');
+  // очередь целиком показывается отдельно и помечена как очередь, а не как задача на сегодня
+  const load=run('loadCardHtml()');
+  assert.ok(load.includes(`<b>${due}</b><span>в очереди</span>`),'очередь подписана «в очереди»');
+  assert.equal(load.includes('к повторению'),false);
+  // после выполнения нормы остаток обнуляется, кнопка предлагает свободную практику
+  run('const p=journeyPlan();p.review.forEach(word=>p.reviewed[word]=1);');
+  assert.equal(run('reviewRemaining()'),0);
+  assert.ok(read('index.html').includes('Повторить ещё'));
+  assert.ok(read('index.html').includes('reviewRemainingKeys()'),'сессия повторения идёт по словам плана');
+});

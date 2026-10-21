@@ -645,7 +645,7 @@ function renderHome(){
     ${loadCardHtml()}
     <div class="grid2">
       <button class="btn secondary block" id="hLearn" ${unstartedList().length?"":"disabled"}>Учить новые</button>
-      <button class="btn secondary block" id="hReview">Повторить${due.length?` · ${due.length}`:""}</button>
+      <button class="btn secondary block" id="hReview">${reviewRemaining()?`Повторить · ${reviewRemaining()}`:due.length?"Повторить ещё":"Повторить"}</button>
     </div>
     ${dailyCardHtml()}
     ${competitionHomeCardHtml()}
@@ -657,7 +657,7 @@ function renderHome(){
   { const f = $(".ring .fill"); if(f){ const to = f.getAttribute("stroke-dashoffset"); f.style.transition = "none"; f.setAttribute("stroke-dashoffset", C); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.transition = ""; f.setAttribute("stroke-dashoffset", to); })); } }
   $("#achCard").onclick = achSheet; wireDaily(); wireCompetitionHomeCard(); wireThematicHomeCard();
   $("#hLearn").onclick = () => go("learn");
-  $("#hReview").onclick = () => due.length ? startReview() : toast("Пока нечего повторять");
+  $("#hReview").onclick = () => (reviewRemaining() || due.length) ? startReview() : toast("Пока нечего повторять");
   $("#hJourney").onclick = journeyStart;
   document.querySelectorAll("[data-forgot]").forEach(b => b.onclick = () => wordSheet(+b.dataset.forgot));
 }
@@ -683,7 +683,14 @@ function practiceHtml(i, compact){
   const ex = (p.examples||[]).map(([en,ru])=>`<li>${hl(en, WORDS[i][0])}<br><span class="muted">${esc(ru)}</span></li>`).join("");
   return `${col?`<div class="practice"><div class="eyebrow">Сочетания</div><ul>${col}</ul></div>`:""}${ex?`<div class="practice"><div class="eyebrow">Ещё примеры</div><ul>${ex}</ul></div>`:""}`;
 }
-function startReview(){ const due = dueList(); startSession({title:"Повторение", items: sample(due, 15).map(i=>({i, kind: kindForBox(W(i).box, i)})), mode:"review"}); }
+// Повторение идёт по дневной норме из плана занятия: те же слова, что покажет «Занятие на сегодня».
+// Когда норма выполнена, кнопка открывает свободную практику по остатку очереди — она не влияет на план.
+function startReview(){
+  const planned = reviewRemainingKeys().map(key => KEY_INDEX[key]).filter(i => i !== undefined && W(i));
+  const items = planned.length ? planned : sample(dueList().filter(i => W(i)), 15);
+  if(!items.length){ toast("Пока нечего повторять"); return; }
+  startSession({title: planned.length ? "Повторение" : "Свободная практика", items: items.map(i=>({i, kind: kindForBox(W(i).box, i)})), mode:"review"});
+}
 
 /* ---------- Учить ---------- */
 let learnBlock = null;
