@@ -1,0 +1,78 @@
+<!doctype html><meta charset="utf-8"><title>Сцены-задники ShadowFox Eng</title>
+<style>
+*{box-sizing:border-box;margin:0}
+body{font:15px/1.5 system-ui,sans-serif;background:#0d0f13;color:#f1ece3;padding:20px}
+h1{font-size:20px}
+h2{font-size:16px;margin:26px 0 10px;display:flex;align-items:baseline;gap:10px}
+h2 small{font-weight:400;font-size:12px;color:#a3a8b3}
+p.note{color:#a3a8b3;font-size:13px;max-width:70ch;margin-top:6px}
+.row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:1000px){.row{grid-template-columns:repeat(2,1fr)}}
+figure{margin:0}
+figcaption{font-size:12px;color:#a3a8b3;padding:6px 2px}
+.stage{position:relative;width:100%;aspect-ratio:375/812;overflow:hidden;border-radius:14px;border:1px solid #383e4a}
+.stage.light{border-color:#d9cfc1}
+.stage i{position:absolute;top:0;left:-6%;width:112%;height:100%;background-repeat:no-repeat;background-size:cover;will-change:transform}
+.stage .sky{animation:drift-sky 90s ease-in-out infinite}
+.stage .mid{animation:drift-mid 62s ease-in-out infinite}
+.stage .near{animation:drift-near 41s ease-in-out infinite}
+@keyframes drift-sky{0%,100%{transform:translate3d(-1.5%,0,0)}50%{transform:translate3d(1.5%,0,0)}}
+@keyframes drift-mid{0%,100%{transform:translate3d(2.5%,0,0)}50%{transform:translate3d(-2.5%,0,0)}}
+@keyframes drift-near{0%,100%{transform:translate3d(-3.5%,.4%,0)}50%{transform:translate3d(3.5%,-.4%,0)}}
+.blur i{filter:blur(2.2px)}
+.ui{position:absolute;inset:auto 12px 12px;padding:12px;border-radius:12px;background:rgba(31,35,43,.72);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08)}
+.light .ui{background:rgba(255,253,249,.76);border-color:rgba(0,0,0,.08);color:#2b2621}
+.ui b{display:block;font-size:14px}
+.ui span{font-size:11px;opacity:.7}
+@media (prefers-reduced-motion: reduce){.stage i{animation:none}}
+</style>
+<h1>Сцены-задники ShadowFox Eng</h1>
+<p class="note">Каждая сцена — три растровых слоя (дальний план, средний, передний) в дневном и ночном варианте.
+Слои едут с разной скоростью: небо ±1.5 % за 90 с, средний план ±2.5 % за 62 с, передний ±3.5 % за 41 с.
+Кадры показаны в пропорции телефона 375×812 — ровно так, как их обрезает приложение.
+<b>focus</b> сдвигает видимую часть мастера по горизонтали, когда главный объект сцены стоит не по центру.</p>
+<section>
+  <h2>Осенний лес <small>focus: center</small></h2>
+  <div class="row">
+    <figure><div class="stage blur"><i class="sky" style="background-image:image-set(url(forest/night-sky-768.webp) 1x,url(forest/night-sky-1152.webp) 2x);background-position:center bottom"></i><i class="mid" style="background-image:image-set(url(forest/night-mid-768.webp) 1x,url(forest/night-mid-1152.webp) 2x);background-position:center bottom"></i><i class="near" style="background-image:image-set(url(forest/night-near-768.webp) 1x,url(forest/night-near-1152.webp) 2x);background-position:center bottom"></i><div class="ui"><b>Занятие на сегодня</b><span>повторить 12 → новых 6 · ~9 мин</span></div></div><figcaption>Ночь · как в приложении</figcaption></figure>
+    <figure><div class="stage blur light"><i class="sky" style="background-image:image-set(url(forest/day-sky-768.webp) 1x,url(forest/day-sky-1152.webp) 2x);background-position:center bottom"></i><i class="mid" style="background-image:image-set(url(forest/day-mid-768.webp) 1x,url(forest/day-mid-1152.webp) 2x);background-position:center bottom"></i><i class="near" style="background-image:image-set(url(forest/day-near-768.webp) 1x,url(forest/day-near-1152.webp) 2x);background-position:center bottom"></i><div class="ui"><b>Занятие на сегодня</b><span>повторить 12 → новых 6 · ~9 мин</span></div></div><figcaption>День · как в приложении</figcaption></figure>
+    <figure><div class="stage"><i class="sky" style="background-image:image-set(url(forest/night-sky-768.webp) 1x,url(forest/night-sky-1152.webp) 2x);background-position:center bottom"></i><i class="mid" style="background-image:image-set(url(forest/night-mid-768.webp) 1x,url(forest/night-mid-1152.webp) 2x);background-position:center bottom"></i><i class="near" style="background-image:image-set(url(forest/night-near-768.webp) 1x,url(forest/night-near-1152.webp) 2x);background-position:center bottom"></i></div><figcaption>Ночь · без размытия</figcaption></figure>
+    <figure><div class="stage light"><i class="sky" style="background-image:image-set(url(forest/day-sky-768.webp) 1x,url(forest/day-sky-1152.webp) 2x);background-position:center bottom"></i><i class="mid" style="background-image:image-set(url(forest/day-mid-768.webp) 1x,url(forest/day-mid-1152.webp) 2x);background-position:center bottom"></i><i class="near" style="background-image:image-set(url(forest/day-near-768.webp) 1x,url(forest/day-near-1152.webp) 2x);background-position:center bottom"></i></div><figcaption>День · без размытия</figcaption></figure>
+  </div>
+</section>
+<section>
+  <h2>Осенний город <small>focus: center</small></h2>
+  <div class="row">
+    <figure><div class="stage blur"><i class="sky" style="background-image:image-set(url(town/night-sky-768.webp) 1x,url(town/night-sky-1152.webp) 2x);background-position:center bottom"></i><i class="mid" style="background-image:image-set(url(town/night-mid-768.webp) 1x,url(town/night-mid-1152.webp) 2x);background-position:center bottom"></i><i class="near" style="background-image:image-set(url(town/night-near-768.webp) 1x,url(town/night-near-1152.webp) 2x);background-position:center bottom"></i><div class="ui"><b>Занятие на сегодня</b><span>повторить 12 → новых 6 · ~9 мин</span></div></div><figcaption>Ночь · как в приложении</figcaption></figure>
+    <figure><div class="stage blur light"><i class="sky" style="background-image:image-set(url(town/day-sky-768.webp) 1x,url(town/day-sky-1152.webp) 2x);background-position:center bottom"></i><i class="mid" style="background-image:image-set(url(town/day-mid-768.webp) 1x,url(town/day-mid-1152.webp) 2x);background-position:center bottom"></i><i class="near" style="background-image:image-set(url(town/day-near-768.webp) 1x,url(town/day-near-1152.webp) 2x);background-position:center bottom"></i><div class="ui"><b>Занятие на сегодня</b><span>повторить 12 → новых 6 · ~9 мин</span></div></div><figcaption>День · как в приложении</figcaption></figure>
+    <figure><div class="stage"><i class="sky" style="background-image:image-set(url(town/night-sky-768.webp) 1x,url(town/night-sky-1152.webp) 2x);background-position:center bottom"></i><i class="mid" style="background-image:image-set(url(town/night-mid-768.webp) 1x,url(town/night-mid-1152.webp) 2x);background-position:center bottom"></i><i class="near" style="background-image:image-set(url(town/night-near-768.webp) 1x,url(town/night-near-1152.webp) 2x);background-position:center bottom"></i></div><figcaption>Ночь · без размытия</figcaption></figure>
+    <figure><div class="stage light"><i class="sky" style="background-image:image-set(url(town/day-sky-768.webp) 1x,url(town/day-sky-1152.webp) 2x);background-position:center bottom"></i><i class="mid" style="background-image:image-set(url(town/day-mid-768.webp) 1x,url(town/day-mid-1152.webp) 2x);background-position:center bottom"></i><i class="near" style="background-image:image-set(url(town/day-near-768.webp) 1x,url(town/day-near-1152.webp) 2x);background-position:center bottom"></i></div><figcaption>День · без размытия</figcaption></figure>
+  </div>
+</section>
+<section>
+  <h2>Деревенский домик <small>focus: 40%</small></h2>
+  <div class="row">
+    <figure><div class="stage blur"><i class="sky" style="background-image:image-set(url(village/night-sky-768.webp) 1x,url(village/night-sky-1152.webp) 2x);background-position:40% bottom"></i><i class="mid" style="background-image:image-set(url(village/night-mid-768.webp) 1x,url(village/night-mid-1152.webp) 2x);background-position:40% bottom"></i><i class="near" style="background-image:image-set(url(village/night-near-768.webp) 1x,url(village/night-near-1152.webp) 2x);background-position:40% bottom"></i><div class="ui"><b>Занятие на сегодня</b><span>повторить 12 → новых 6 · ~9 мин</span></div></div><figcaption>Ночь · как в приложении</figcaption></figure>
+    <figure><div class="stage blur light"><i class="sky" style="background-image:image-set(url(village/day-sky-768.webp) 1x,url(village/day-sky-1152.webp) 2x);background-position:40% bottom"></i><i class="mid" style="background-image:image-set(url(village/day-mid-768.webp) 1x,url(village/day-mid-1152.webp) 2x);background-position:40% bottom"></i><i class="near" style="background-image:image-set(url(village/day-near-768.webp) 1x,url(village/day-near-1152.webp) 2x);background-position:40% bottom"></i><div class="ui"><b>Занятие на сегодня</b><span>повторить 12 → новых 6 · ~9 мин</span></div></div><figcaption>День · как в приложении</figcaption></figure>
+    <figure><div class="stage"><i class="sky" style="background-image:image-set(url(village/night-sky-768.webp) 1x,url(village/night-sky-1152.webp) 2x);background-position:40% bottom"></i><i class="mid" style="background-image:image-set(url(village/night-mid-768.webp) 1x,url(village/night-mid-1152.webp) 2x);background-position:40% bottom"></i><i class="near" style="background-image:image-set(url(village/night-near-768.webp) 1x,url(village/night-near-1152.webp) 2x);background-position:40% bottom"></i></div><figcaption>Ночь · без размытия</figcaption></figure>
+    <figure><div class="stage light"><i class="sky" style="background-image:image-set(url(village/day-sky-768.webp) 1x,url(village/day-sky-1152.webp) 2x);background-position:40% bottom"></i><i class="mid" style="background-image:image-set(url(village/day-mid-768.webp) 1x,url(village/day-mid-1152.webp) 2x);background-position:40% bottom"></i><i class="near" style="background-image:image-set(url(village/day-near-768.webp) 1x,url(village/day-near-1152.webp) 2x);background-position:40% bottom"></i></div><figcaption>День · без размытия</figcaption></figure>
+  </div>
+</section>
+<section>
+  <h2>Море и хижина <small>focus: 80%</small></h2>
+  <div class="row">
+    <figure><div class="stage blur"><i class="sky" style="background-image:image-set(url(sea/night-sky-768.webp) 1x,url(sea/night-sky-1152.webp) 2x);background-position:80% bottom"></i><i class="mid" style="background-image:image-set(url(sea/night-mid-768.webp) 1x,url(sea/night-mid-1152.webp) 2x);background-position:80% bottom"></i><i class="near" style="background-image:image-set(url(sea/night-near-768.webp) 1x,url(sea/night-near-1152.webp) 2x);background-position:80% bottom"></i><div class="ui"><b>Занятие на сегодня</b><span>повторить 12 → новых 6 · ~9 мин</span></div></div><figcaption>Ночь · как в приложении</figcaption></figure>
+    <figure><div class="stage blur light"><i class="sky" style="background-image:image-set(url(sea/day-sky-768.webp) 1x,url(sea/day-sky-1152.webp) 2x);background-position:80% bottom"></i><i class="mid" style="background-image:image-set(url(sea/day-mid-768.webp) 1x,url(sea/day-mid-1152.webp) 2x);background-position:80% bottom"></i><i class="near" style="background-image:image-set(url(sea/day-near-768.webp) 1x,url(sea/day-near-1152.webp) 2x);background-position:80% bottom"></i><div class="ui"><b>Занятие на сегодня</b><span>повторить 12 → новых 6 · ~9 мин</span></div></div><figcaption>День · как в приложении</figcaption></figure>
+    <figure><div class="stage"><i class="sky" style="background-image:image-set(url(sea/night-sky-768.webp) 1x,url(sea/night-sky-1152.webp) 2x);background-position:80% bottom"></i><i class="mid" style="background-image:image-set(url(sea/night-mid-768.webp) 1x,url(sea/night-mid-1152.webp) 2x);background-position:80% bottom"></i><i class="near" style="background-image:image-set(url(sea/night-near-768.webp) 1x,url(sea/night-near-1152.webp) 2x);background-position:80% bottom"></i></div><figcaption>Ночь · без размытия</figcaption></figure>
+    <figure><div class="stage light"><i class="sky" style="background-image:image-set(url(sea/day-sky-768.webp) 1x,url(sea/day-sky-1152.webp) 2x);background-position:80% bottom"></i><i class="mid" style="background-image:image-set(url(sea/day-mid-768.webp) 1x,url(sea/day-mid-1152.webp) 2x);background-position:80% bottom"></i><i class="near" style="background-image:image-set(url(sea/day-near-768.webp) 1x,url(sea/day-near-1152.webp) 2x);background-position:80% bottom"></i></div><figcaption>День · без размытия</figcaption></figure>
+  </div>
+</section>
+<section>
+  <h2>Горный хребет <small>focus: 28%</small></h2>
+  <div class="row">
+    <figure><div class="stage blur"><i class="sky" style="background-image:image-set(url(mountain/night-sky-768.webp) 1x,url(mountain/night-sky-1152.webp) 2x);background-position:28% bottom"></i><i class="mid" style="background-image:image-set(url(mountain/night-mid-768.webp) 1x,url(mountain/night-mid-1152.webp) 2x);background-position:28% bottom"></i><i class="near" style="background-image:image-set(url(mountain/night-near-768.webp) 1x,url(mountain/night-near-1152.webp) 2x);background-position:28% bottom"></i><div class="ui"><b>Занятие на сегодня</b><span>повторить 12 → новых 6 · ~9 мин</span></div></div><figcaption>Ночь · как в приложении</figcaption></figure>
+    <figure><div class="stage blur light"><i class="sky" style="background-image:image-set(url(mountain/day-sky-768.webp) 1x,url(mountain/day-sky-1152.webp) 2x);background-position:28% bottom"></i><i class="mid" style="background-image:image-set(url(mountain/day-mid-768.webp) 1x,url(mountain/day-mid-1152.webp) 2x);background-position:28% bottom"></i><i class="near" style="background-image:image-set(url(mountain/day-near-768.webp) 1x,url(mountain/day-near-1152.webp) 2x);background-position:28% bottom"></i><div class="ui"><b>Занятие на сегодня</b><span>повторить 12 → новых 6 · ~9 мин</span></div></div><figcaption>День · как в приложении</figcaption></figure>
+    <figure><div class="stage"><i class="sky" style="background-image:image-set(url(mountain/night-sky-768.webp) 1x,url(mountain/night-sky-1152.webp) 2x);background-position:28% bottom"></i><i class="mid" style="background-image:image-set(url(mountain/night-mid-768.webp) 1x,url(mountain/night-mid-1152.webp) 2x);background-position:28% bottom"></i><i class="near" style="background-image:image-set(url(mountain/night-near-768.webp) 1x,url(mountain/night-near-1152.webp) 2x);background-position:28% bottom"></i></div><figcaption>Ночь · без размытия</figcaption></figure>
+    <figure><div class="stage light"><i class="sky" style="background-image:image-set(url(mountain/day-sky-768.webp) 1x,url(mountain/day-sky-1152.webp) 2x);background-position:28% bottom"></i><i class="mid" style="background-image:image-set(url(mountain/day-mid-768.webp) 1x,url(mountain/day-mid-1152.webp) 2x);background-position:28% bottom"></i><i class="near" style="background-image:image-set(url(mountain/day-near-768.webp) 1x,url(mountain/day-near-1152.webp) 2x);background-position:28% bottom"></i></div><figcaption>День · без размытия</figcaption></figure>
+  </div>
+</section>

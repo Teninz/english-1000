@@ -296,7 +296,15 @@ textarea.io{width:100%;min-height:90px;border-radius:12px;border:1px solid var(-
 
 /* ---------- сцена-фон и «стеклянные» блоки ---------- */
 #scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;display:none}
-#scene svg{width:100%;height:100%;display:block;filter:blur(2.2px)}
+.scene-var{position:absolute;inset:0}
+/* слой шире экрана: параллакс уводит его вбок до 3.5 %, запас не даёт показаться краю */
+#scene i{position:absolute;top:0;left:-6%;width:112%;height:100%;background-repeat:no-repeat;background-size:cover;background-position:var(--focus,center) bottom;filter:blur(2.2px);will-change:transform}
+#scene .sky{animation:drift-sky 90s ease-in-out infinite}
+#scene .mid{animation:drift-mid 62s ease-in-out infinite}
+#scene .near{animation:drift-near 41s ease-in-out infinite}
+@keyframes drift-sky{0%,100%{transform:translate3d(-1.5%,0,0)}50%{transform:translate3d(1.5%,0,0)}}
+@keyframes drift-mid{0%,100%{transform:translate3d(2.5%,0,0)}50%{transform:translate3d(-2.5%,0,0)}}
+@keyframes drift-near{0%,100%{transform:translate3d(-3.5%,.4%,0)}50%{transform:translate3d(3.5%,-.4%,0)}}
 #scene::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(var(--ground-rgb),.3) 0%,rgba(var(--ground-rgb),.05) 45%,rgba(var(--ground-rgb),.32) 100%)}
 body.scenic #scene{display:block}
 .app{position:relative;z-index:1}
@@ -305,12 +313,10 @@ body.scenic .card.hero{background:radial-gradient(120% 90% at 100% 0%,rgba(var(-
 body.scenic .tile,body.scenic .seg,body.scenic .res-item{background:rgba(var(--surface-rgb),.7)}
 body.scenic .tile.on{background:var(--accent-soft)}
 :root[data-theme="light"] body.scenic .card,:root[data-theme="light"] body.scenic .mode,:root[data-theme="light"] body.scenic .opt{border-color:rgba(255,255,255,.6)}
-/* живые детали сцен */
-.leaf{transform-box:fill-box;transform-origin:center;animation:fall var(--t,12s) linear var(--d,0s) infinite}
-@keyframes fall{0%{transform:translate(0,-30px) rotate(0)}25%{transform:translate(22px,190px) rotate(120deg)}50%{transform:translate(-14px,400px) rotate(220deg)}75%{transform:translate(18px,610px) rotate(300deg)}100%{transform:translate(-10px,840px) rotate(420deg)}}
-.win,.star{animation:twinkle 3.4s ease-in-out var(--d,0s) infinite alternate}
-.win[opacity=".35"]{animation:none}
-@keyframes twinkle{from{opacity:.55}to{opacity:1}}
+/* живые детали сцен: листва падает поверх слоёв */
+#scene .leaves{position:absolute;inset:0;overflow:hidden}
+#scene .leaves b{position:absolute;top:-6vh;background-size:contain;background-repeat:no-repeat;opacity:.7;animation:leaf-fall var(--t,16s) linear var(--d,0s) infinite}
+@keyframes leaf-fall{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(22px,28vh) rotate(120deg)}50%{transform:translate(-14px,56vh) rotate(220deg)}75%{transform:translate(18px,84vh) rotate(300deg)}100%{transform:translate(-10px,112vh) rotate(420deg)}}
 .smoke circle{transform-box:fill-box;transform-origin:center;animation:puff 5s ease-out var(--d,0s) infinite}
 @keyframes puff{0%{transform:translate(0,0) scale(.6);opacity:.5}100%{transform:translate(14px,-70px) scale(2.2);opacity:0}}
 .wave{animation:wave 9s linear infinite}.wave.w2{animation-duration:13s;animation-direction:reverse}
@@ -358,10 +364,6 @@ body.scenic .tile.on{background:var(--accent-soft)}
 /* день и ночь: тема переключает поведение сцены */
 :root[data-theme="light"] #scene .night{display:none}
 :root:not([data-theme="light"]) #scene .day{display:none}
-:root[data-theme="light"] #scene .win{fill:var(--water);opacity:.5;animation:none}
-:root[data-theme="light"] #scene .lamp circle{display:none}
-:root[data-theme="light"] #scene .firelight{opacity:.35}
-:root[data-theme="light"] #scene .glint{stroke:var(--moon);opacity:.8}
 :root[data-theme="light"] #scene::after{background:linear-gradient(180deg,rgba(var(--ground-rgb),.15) 0%,rgba(var(--ground-rgb),.02) 45%,rgba(var(--ground-rgb),.25) 100%)}
 .sun{transform-box:fill-box;transform-origin:center;animation:sunPulse 6s ease-in-out infinite alternate}
 @keyframes sunPulse{from{transform:scale(1)}to{transform:scale(1.04)}}
@@ -374,7 +376,7 @@ body.still #scene *{animation:none!important}
 /* без стекла: непрозрачные блоки, без размытия — для слабых телефонов */
 body.noglass.scenic :is(.card,.mode,.opt,.lvl,.flash .face,.q,.hf,.tabs,.type-in,.search,.sheet,select.sel){background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}
 body.noglass.scenic .card.hero{background:radial-gradient(120% 90% at 100% 0%,var(--accent-soft) 0%,var(--surface) 55%)}
-body.noglass #scene svg{filter:none}
+body.noglass #scene i{filter:none}
 /* ---------- отклик блоков ---------- */
 .mode,.opt,.tile,.lvl-h,.wrow,.btn,.speak,.mic,.tab,.icon-btn,.seg button,[role="button"]{transition:transform var(--motion-fast) var(--ease),opacity var(--motion-fast) var(--ease)}
 .mode:active,.opt:active:not([disabled]),.tile:active,.lvl-h:active,.wrow:active,.speak:active,.tab:active svg{transform:scale(.97)}
@@ -439,12 +441,11 @@ a.btn{text-decoration:none}
 .ach-pop .ach-ic{font-size:30px}
 .ach-pop small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-deep);font-weight:700}
 .ach-pop b{font-size:16px}
-.scene-pick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.scene-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .scene-btn{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:var(--muted);text-align:center;line-height:1.15}
 .scene-thumb{width:100%;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--surface-2);border:2px solid transparent;display:block}
-.scene-thumb svg{width:100%;height:100%;display:block}
+.scene-thumb{background-size:cover;background-position:center bottom;background-repeat:no-repeat}
 .scene-btn.on .scene-thumb{border-color:var(--accent)} .scene-btn.on{color:var(--ink);font-weight:600}
-.scene-thumb *{animation:none!important}
 /* Единый отклик и переносы, в том числе в узком Android WebView. */
 button,a,summary,[role="button"]{touch-action:manipulation}
 button,summary,[role="button"]{-webkit-tap-highlight-color:transparent}
@@ -1342,8 +1343,8 @@ function settingsSheet(){
     ${(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())?"":'<p class="small muted" style="margin-top:-6px">Напоминания работают только в установленном приложении.</p>'}
     <div class="set-row"><span>Озвучивать слово автоматически</span><button class="toggle ${S.set.auto?"on":""}" id="tAuto" aria-label="Автоозвучка"></button></div>
     <div class="set-row" style="flex-direction:column;align-items:stretch;gap:10px"><div class="row between"><span>Фон</span><span class="small muted">осенние сцены</span></div>
-      <div class="scene-pick" id="scenePick">${Object.entries(SCENES).map(([k,v])=>`<button class="scene-btn ${(S.set.scene||"town")===k?"on":""}" data-s="${k}"><span class="scene-thumb">${SCENE_SVG[k]?SCENE_SVG[k]():""}</span><span>${v.title}</span></button>`).join("")}</div>
-      <div class="row between"><span>Живые детали (листья, дым, волны)</span><button class="toggle ${S.set.motion!==false?"on":""}" id="tMotion" aria-label="Анимация фона"></button></div>
+      <div class="scene-pick" id="scenePick">${Object.entries(SCENES).map(([k,v])=>`<button class="scene-btn ${sceneKey()===k?"on":""}" data-s="${k}"><span class="scene-thumb" style="${sceneThumbStyle(k,S.set.theme==="light"?"day":"night")}"></span><span>${v.title}</span></button>`).join("")}</div>
+      <div class="row between"><span>Живые детали (падающая листва, движение планов)</span><button class="toggle ${S.set.motion!==false?"on":""}" id="tMotion" aria-label="Анимация фона"></button></div>
       <div class="row between"><span>Стеклянные блоки (размытие фона)<br><span class="small muted">Выключи, если анимации подтормаживают</span></span><button class="toggle ${S.set.glass!==false?"on":""}" id="tGlass" aria-label="Стекло"></button></div>
     </div>
     <div class="set-row"><span>Виджет на рабочем столе</span><div class="seg" style="width:200px" id="widgetSeg">${[["dark","Тёмный"],["light","Светлый"]].map(([k,l])=>`<button class="${(S.set.widgetTheme||"dark")===k?"on":""}" data-w="${k}">${l}</button>`).join("")}</div></div>
@@ -1375,10 +1376,12 @@ function settingsSheet(){
   $("#resetHard").onclick = () => confirmSheet("Снять все пометки «сложное»?", `Сейчас помечено ${plural(hardList().length,"слово","слова","слов")}.`, "Снять", () => { S.hard = {}; save(); settingsSheet(); toast("Пометки сняты"); });
   $("#reset").onclick = () => confirmSheet("Удалить весь прогресс?", "Это нельзя отменить. Учебный прогресс и все баллы станут равны нулю. Профиль друзей, ключи и скачанные голоса останутся.", "Удалить", () => { const keep = {tts:S.set.tts, ttsKeys:S.set.ttsKeys},score=ScoreCore.resetAll(S.score,today()); try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+".before-import");}catch(e){toast("Не удалось сбросить данные");return;} load(); Object.assign(S.set, keep); S.score=score; save(); go("home"); }, true);
 }
+// ключ сцены с запасом на старые копии настроек: SVG-сцены заменены растровыми
+function sceneKey(){ return SCENES[S.set.scene] ? S.set.scene : "forest"; }
 function applyScene(){
-  const k = S.set.scene || "town"; const layer = $("#scene");
-  layer.innerHTML = SCENE_SVG[k] ? SCENE_SVG[k]() : "";
-  document.body.classList.toggle("scenic", !!SCENE_SVG[k]);
+  const k = sceneKey(); const layer = $("#scene");
+  layer.innerHTML = sceneHtml(k);
+  document.body.classList.toggle("scenic", k !== "none");
   document.body.classList.toggle("still", S.set.motion===false);
   document.body.classList.toggle("noglass", S.set.glass===false);
   if(typeof checkAch==="function" && S.stats) checkAch("scene", {scene:k});
@@ -1424,7 +1427,7 @@ comebackCheck();
 // демо-режим для скриншотов магазина: ?demo=1&screen=… — данные не сохраняются
 const qsDemo = new URLSearchParams(location.search);
 if(qsDemo.get("zoom")) document.documentElement.style.zoom = qsDemo.get("zoom");
-if(qsDemo.get("demo")){ save = () => {}; document.head.appendChild(Object.assign(document.createElement("style"),{textContent:"*{transition:none!important;animation:none!important}"})); S.set.scene = qsDemo.get("scene") || "town"; S.set.theme = qsDemo.get("theme") || "dark"; S.set.motion = false;
+if(qsDemo.get("demo")){ save = () => {}; document.head.appendChild(Object.assign(document.createElement("style"),{textContent:"*{transition:none!important;animation:none!important}"})); S.set.scene = qsDemo.get("scene") || "forest"; S.set.theme = qsDemo.get("theme") || "dark"; S.set.motion = false;
   const d = dayRec(); d.n = 6; d.q = 18; d.ok = 16; S.streak.n = 4; S.streak.last = today();
   [3,5,2,7,9,4,6,8,5,7,10,6,9,8].forEach((v,k) => { S.days[addDays(today(),k-13)] = {n:v,q:v*2,ok:v*2-1,bad:1}; }); S.days[today()] = d;
   allIdx().filter(i=>WORD_BLOCK[i]<3).forEach((i,k) => { S.w[wk(i)] = {box:(k*5)%7,due:today(),ok:2,bad:0}; });

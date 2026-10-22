@@ -8,8 +8,16 @@ const dirs = ["icons", "art", "lib"];
 for (const f of files) fs.copyFileSync(path.join(root, f), path.join(dist, f));
 for (const d of dirs) fs.cpSync(path.join(root, d), path.join(dist, d), {
   recursive: true,
-  // Исходники живых фонов не входят в приложение.
-  filter: src => !["Visual", "Фон"].includes(path.basename(src)) && !/^Фон.*\.png$/u.test(path.basename(src)),
+  // Исходники в приложение не входят: ни кадры живых фонов, ни мастера сцен, ни превью ассетов.
+  // Из art/scenes едут только WebP-уровни, собранные tools/build-scene-mips.py.
+  filter: src => {
+    const name = path.basename(src), rel = path.relative(root, src).split(path.sep).join("/");
+    if (["Visual", "Фон"].includes(name) || /^Фон.*\.png$/u.test(name)) return false;
+    // в art/scenes из файлов едут только уровни вида <вариант>-<слой>-<ширина>.webp,
+    // мастера лежат там же без суффикса ширины и в приложение не нужны
+    if (rel.startsWith("art/scenes/") && !fs.statSync(src).isDirectory() && !/-\d+\.webp$/u.test(name)) return false;
+    return !["art/ui/preview.html", "art/ui/README.md"].includes(rel);
+  },
 });
 
 // внутри APK service worker не нужен: файлы и так локальные
