@@ -6,7 +6,10 @@ const path = require("path"), fs = require("fs");
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const BASE = process.env.BASE || "http://localhost:8766/index.html";
 const OUT = path.join(__dirname, "..", "store", "screens-9x16");
-const SCREENS = { home: {}, motivation: {}, thematic: {}, card: { wait: 900 }, quiz: {}, gap: {}, road: {}, words: {} };
+// Сцена у каждого кадра своя: в карточке магазина видно все пять задников, а не один
+const SCREENS = { home: { scene: "forest" }, motivation: { scene: "town" }, thematic: { scene: "village" },
+  card: { wait: 900, scene: "forest" }, quiz: { scene: "sea" }, gap: { scene: "mountain" },
+  road: { scene: "sea" }, words: { scene: "village" } };
 (async () => {
   const names = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(SCREENS);
   fs.mkdirSync(OUT, { recursive: true });
@@ -14,7 +17,7 @@ const SCREENS = { home: {}, motivation: {}, thematic: {}, card: { wait: 900 }, q
   const page = await browser.newPage();
   await page.setViewport({ width: 360, height: 640, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
   for (const name of names) {
-    const url = `${BASE}?demo=1&screen=${name}&scene=town&theme=dark`;
+    const url = `${BASE}?demo=1&screen=${name}&scene=${SCREENS[name]?.scene || "forest"}&theme=dark`;
     await page.goto(url, { waitUntil: "networkidle0" });
     await new Promise(r => setTimeout(r, SCREENS[name]?.wait || 600));
     const file = path.join(OUT, `${name}.png`);
