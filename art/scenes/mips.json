@@ -1,262 +1,4 @@
 {
-  "forest": {
-    "night-sky": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 2.5,
-        "file": "night-sky-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 4.5,
-        "file": "night-sky-1152.webp"
-      }
-    ],
-    "night-mid": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 80.6,
-        "file": "night-mid-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 152.1,
-        "file": "night-mid-1152.webp"
-      }
-    ],
-    "night-near": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 10.0,
-        "file": "night-near-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 19.9,
-        "file": "night-near-1152.webp"
-      }
-    ],
-    "day-sky": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 3.4,
-        "file": "day-sky-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 6.0,
-        "file": "day-sky-1152.webp"
-      }
-    ],
-    "day-mid": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 101.6,
-        "file": "day-mid-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 190.2,
-        "file": "day-mid-1152.webp"
-      }
-    ],
-    "day-near": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 23.7,
-        "file": "day-near-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 44.7,
-        "file": "day-near-1152.webp"
-      }
-    ]
-  },
-  "mountain": {
-    "night-sky": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 4.9,
-        "file": "night-sky-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 8.6,
-        "file": "night-sky-1152.webp"
-      }
-    ],
-    "night-mid": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 7.9,
-        "file": "night-mid-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 14.0,
-        "file": "night-mid-1152.webp"
-      }
-    ],
-    "night-near": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 8.9,
-        "file": "night-near-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 16.3,
-        "file": "night-near-1152.webp"
-      }
-    ],
-    "day-sky": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 8.3,
-        "file": "day-sky-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 14.5,
-        "file": "day-sky-1152.webp"
-      }
-    ],
-    "day-mid": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 18.9,
-        "file": "day-mid-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 33.6,
-        "file": "day-mid-1152.webp"
-      }
-    ],
-    "day-near": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 12.5,
-        "file": "day-near-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 23.5,
-        "file": "day-near-1152.webp"
-      }
-    ]
-  },
-  "sea": {
-    "night-sky": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 9.6,
-        "file": "night-sky-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 18.2,
-        "file": "night-sky-1152.webp"
-      }
-    ],
-    "night-mid": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 10.2,
-        "file": "night-mid-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 16.7,
-        "file": "night-mid-1152.webp"
-      }
-    ],
-    "night-near": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 5.6,
-        "file": "night-near-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 10.8,
-        "file": "night-near-1152.webp"
-      }
-    ],
-    "day-sky": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 15.6,
-        "file": "day-sky-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 30.0,
-        "file": "day-sky-1152.webp"
-      }
-    ],
-    "day-mid": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 16.3,
-        "file": "day-mid-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 27.9,
-        "file": "day-mid-1152.webp"
-      }
-    ],
-    "day-near": [
-      {
-        "w": 768,
-        "h": 480,
-        "kb": 9.1,
-        "file": "day-near-768.webp"
-      },
-      {
-        "w": 1152,
-        "h": 720,
-        "kb": 17.4,
-        "file": "day-near-1152.webp"
-      }
-    ]
-  },
   "town": {
     "night-sky": [
       {
@@ -298,6 +40,34 @@
         "h": 720,
         "kb": 29.2,
         "file": "night-near-1152.webp"
+      }
+    ],
+    "night-glowa": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 37.0,
+        "file": "night-glowa-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 63.0,
+        "file": "night-glowa-1152.webp"
+      }
+    ],
+    "night-glowb": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 39.3,
+        "file": "night-glowb-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 66.7,
+        "file": "night-glowb-1152.webp"
       }
     ],
     "day-sky": [
@@ -386,6 +156,34 @@
         "file": "night-near-1152.webp"
       }
     ],
+    "night-glowa": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 8.2,
+        "file": "night-glowa-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 13.1,
+        "file": "night-glowa-1152.webp"
+      }
+    ],
+    "night-glowb": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 8.7,
+        "file": "night-glowb-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 13.9,
+        "file": "night-glowb-1152.webp"
+      }
+    ],
     "day-sky": [
       {
         "w": 768,
@@ -425,6 +223,120 @@
         "w": 1152,
         "h": 720,
         "kb": 41.4,
+        "file": "day-near-1152.webp"
+      }
+    ]
+  },
+  "sea": {
+    "night-sky": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 9.6,
+        "file": "night-sky-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 18.2,
+        "file": "night-sky-1152.webp"
+      }
+    ],
+    "night-mid": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 10.2,
+        "file": "night-mid-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 16.7,
+        "file": "night-mid-1152.webp"
+      }
+    ],
+    "night-near": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 5.6,
+        "file": "night-near-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 10.8,
+        "file": "night-near-1152.webp"
+      }
+    ],
+    "night-glowa": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 4.6,
+        "file": "night-glowa-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 7.6,
+        "file": "night-glowa-1152.webp"
+      }
+    ],
+    "night-glowb": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 4.5,
+        "file": "night-glowb-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 7.7,
+        "file": "night-glowb-1152.webp"
+      }
+    ],
+    "day-sky": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 15.6,
+        "file": "day-sky-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 30.0,
+        "file": "day-sky-1152.webp"
+      }
+    ],
+    "day-mid": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 16.3,
+        "file": "day-mid-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 27.9,
+        "file": "day-mid-1152.webp"
+      }
+    ],
+    "day-near": [
+      {
+        "w": 768,
+        "h": 480,
+        "kb": 9.1,
+        "file": "day-near-768.webp"
+      },
+      {
+        "w": 1152,
+        "h": 720,
+        "kb": 17.4,
         "file": "day-near-1152.webp"
       }
     ]

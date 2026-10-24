@@ -29,7 +29,10 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 SCENES = ROOT / "art" / "scenes"
-LAYERS = ["sky", "mid", "near"]
+LAYERS = ["sky", "mid", "near", "glowa", "glowb"]
+# слои мерцающего света есть не у всех сцен: tools/build-scene-glow.py делает их там,
+# где в кадре достаточно тёплых окон и фонарей
+OPTIONAL = ("glowa", "glowb")
 VARIANTS = ["night", "day"]
 WIDTHS = [768, 1152]
 MASTER = (2048, 1280)
@@ -74,7 +77,8 @@ def main():
             for layer in LAYERS:
                 master = find_master(folder, f"{variant}-{layer}")
                 if master is None:
-                    print(f"{name}: пропущен {variant}-{layer} — мастера нет")
+                    if layer not in OPTIONAL:
+                        print(f"{name}: пропущен {variant}-{layer} — мастера нет")
                     continue
                 scene[f"{variant}-{layer}"] = build_layer(master, args.quality)
                 total = sum(x["kb"] for x in scene[f"{variant}-{layer}"])

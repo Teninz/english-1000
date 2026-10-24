@@ -296,7 +296,7 @@ textarea.io{width:100%;min-height:90px;border-radius:12px;border:1px solid var(-
 
 /* ---------- сцена-фон и «стеклянные» блоки ---------- */
 #scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;display:none}
-.scene-var{position:absolute;inset:0}
+.scene-var{position:absolute;inset:0;isolation:isolate}
 /* слой шире экрана: параллакс уводит его вбок до 3.5 %, запас не даёт показаться краю */
 #scene i{position:absolute;top:0;left:-6%;width:112%;height:100%;background-repeat:no-repeat;background-size:cover;background-position:var(--focus,center) bottom;filter:blur(2.2px);will-change:transform}
 #scene .sky{animation:drift-sky 90s ease-in-out infinite}
@@ -305,6 +305,18 @@ textarea.io{width:100%;min-height:90px;border-radius:12px;border:1px solid var(-
 @keyframes drift-sky{0%,100%{transform:translate3d(-1.5%,0,0)}50%{transform:translate3d(1.5%,0,0)}}
 @keyframes drift-mid{0%,100%{transform:translate3d(2.5%,0,0)}50%{transform:translate3d(-2.5%,0,0)}}
 @keyframes drift-near{0%,100%{transform:translate3d(-3.5%,.4%,0)}50%{transform:translate3d(3.5%,-.4%,0)}}
+/* свет окон и фонарей: едет вместе со средним планом, но дышит в своём темпе */
+#scene .glow{opacity:.35;mix-blend-mode:screen}
+#scene .glowa{animation:drift-mid 62s ease-in-out infinite,glow-a 7.5s ease-in-out infinite alternate}
+#scene .glowb{animation:drift-mid 62s ease-in-out infinite,glow-b 11s ease-in-out infinite alternate}
+@keyframes glow-a{from{opacity:.14}to{opacity:.55}}
+@keyframes glow-b{from{opacity:.5}to{opacity:.12}}
+/* дымка у горизонта: единственная живая деталь для сцен без огней */
+#scene .mist{position:absolute;left:-20%;right:-20%;top:30%;height:62%;
+  /* вертикальный радиус меньше половины блока: иначе дымка упирается в его край видимой полосой */
+  background:radial-gradient(58% 34% at 30% 48%,rgba(255,255,255,.15),transparent 72%),radial-gradient(46% 28% at 76% 60%,rgba(255,255,255,.11),transparent 72%);
+  animation:mist-drift 74s ease-in-out infinite alternate}
+@keyframes mist-drift{from{transform:translate3d(-5%,0,0) scaleX(1)}to{transform:translate3d(5%,1%,0) scaleX(1.12)}}
 #scene::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(var(--ground-rgb),.3) 0%,rgba(var(--ground-rgb),.05) 45%,rgba(var(--ground-rgb),.32) 100%)}
 body.scenic #scene{display:block}
 .app{position:relative;z-index:1}
@@ -315,7 +327,7 @@ body.scenic .tile.on{background:var(--accent-soft)}
 :root[data-theme="light"] body.scenic .card,:root[data-theme="light"] body.scenic .mode,:root[data-theme="light"] body.scenic .opt{border-color:rgba(255,255,255,.6)}
 /* живые детали сцен: листва падает поверх слоёв */
 #scene .leaves{position:absolute;inset:0;overflow:hidden}
-#scene .leaves b{position:absolute;top:-6vh;background-size:contain;background-repeat:no-repeat;opacity:.7;animation:leaf-fall var(--t,16s) linear var(--d,0s) infinite}
+#scene .leaves b{position:absolute;top:-6vh;background-size:contain;background-repeat:no-repeat;opacity:.55;animation:leaf-fall var(--t,16s) linear var(--d,0s) infinite}
 @keyframes leaf-fall{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(22px,28vh) rotate(120deg)}50%{transform:translate(-14px,56vh) rotate(220deg)}75%{transform:translate(18px,84vh) rotate(300deg)}100%{transform:translate(-10px,112vh) rotate(420deg)}}
 .smoke circle{transform-box:fill-box;transform-origin:center;animation:puff 5s ease-out var(--d,0s) infinite}
 @keyframes puff{0%{transform:translate(0,0) scale(.6);opacity:.5}100%{transform:translate(14px,-70px) scale(2.2);opacity:0}}
