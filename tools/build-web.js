@@ -5,6 +5,10 @@ fs.rmSync(dist, { recursive: true, force: true }); fs.mkdirSync(dist, { recursiv
 
 const files = ["index.html", "learning-core.js", "score-core.js", "word-forms.js", "progress-storage.js", "journey.js", "motivation.css", "thematic.css", "thematic.js", "competition.css", "competition-config.js", "competition.js", "words-a.js", "words-b.js", "ex-ru.js", "thematic-data.js", "word-levels.js", "oxford-a1.js", "oxford-a2.js", "oxford-b1.js", "oxford-b2.js", "words-extra.js", "program.js", "scenes.js", "tts.js", "ach.js", "daily.js", "about.js", "native.js", "manifest.json", "privacy.html"];
 const dirs = ["icons", "art", "lib"];
+// Среда выполнения Piper (wasm ORT и словарь произношения) — 33 МБ, и нужна она только тем,
+// кто включит встроенные голоса. В установщик не едет: приложение скачивает её по кнопке
+// в настройках голосов с сайта проекта. Загрузчик lib/piper.js остаётся, он лёгкий.
+const skipLib = ["lib/ort", "lib/piper_phonemize.data", "lib/piper_phonemize.wasm"];
 for (const f of files) fs.copyFileSync(path.join(root, f), path.join(dist, f));
 for (const d of dirs) fs.cpSync(path.join(root, d), path.join(dist, d), {
   recursive: true,
@@ -16,6 +20,7 @@ for (const d of dirs) fs.cpSync(path.join(root, d), path.join(dist, d), {
     // в art/scenes из файлов едут только уровни вида <вариант>-<слой>-<ширина>.webp,
     // мастера лежат там же без суффикса ширины и в приложение не нужны
     if (rel.startsWith("art/scenes/") && !fs.statSync(src).isDirectory() && !/-\d+\.webp$/u.test(name)) return false;
+    if (skipLib.some(p => rel === p || rel.startsWith(p + "/"))) return false;
     return !["art/ui/preview.html", "art/ui/README.md"].includes(rel);
   },
 });

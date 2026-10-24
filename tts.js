@@ -61,8 +61,66 @@ const TTS = {
   },
   /* ---- Piper: офлайн, модель в браузере ---- */
   async piper(){ if(!this.piperLib) this.piperLib = await import("./lib/piper.js"); return this.piperLib; },
-  wasmPaths(){ const base = new URL("./lib/", location.href).href; return { onnxWasm: base + "ort/", piperData: base + "piper_phonemize.data", piperWasm: base + "piper_phonemize.wasm" }; },
-  async piperList(){ const lib = await this.piper(); this.piperStored = await lib.stored().catch(()=>[]); return this.piperStored; },
+  /* ---- движок Piper: wasm среды выполнения и словарь произношения ----
+     В вебе они лежат рядом, в lib/. В установщик приложения эти 33 МБ не едут: тот, кто
+     пользуется системными голосами, не должен их скачивать. Приложение берёт их один раз
+     с сайта проекта в Cache Storage и дальше работает офлайн, как и раньше. */
+  RUNTIME_FILES: [["ort/ort-wasm-simd-threaded.mjs", 24, "text/javascript"], ["ort/ort-wasm-simd-threaded.wasm", 13635, "application/wasm"],
+                  ["piper_phonemize.data", 17654, "application/octet-stream"], ["piper_phonemize.wasm", 620, "application/wasm"]],
+  RUNTIME_REMOTE: "https://teninz.github.io/english-1000/lib/",
+  RUNTIME_CACHE: "shadowfox-piper-runtime-v1",
+  runtimeUrls: null, runtimeBusy: null, runtimeHas: null,
+  // в APK папки lib/ нет, в вебе она лежит рядом со страницей
+  runtimeBundled(){ return !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); },
+  runtimeMb(){ return Math.round(this.RUNTIME_FILES.reduce((n, f) => n + f[1], 0) / 1024); },
+  async runtimeCache(){ return "caches" in window ? caches.open(this.RUNTIME_CACHE).catch(() => null) : null; },
+  async runtimeReady(){
+    if(this.runtimeBundled()) return (this.runtimeHas = true);
+    const c = await this.runtimeCache();
+    let has = !!c;
+    if(c) for(const [name] of this.RUNTIME_FILES) if(!await c.match(this.RUNTIME_REMOTE + name)){ has = false; break; }
+    return (this.runtimeHas = has);
+  },
+  async runtimeDownload(onProgress){
+    const c = await this.runtimeCache(); if(!c) throw new Error("хранилище недоступно");
+    const total = this.RUNTIME_FILES.reduce((n, f) => n + f[1], 0) * 1024; let base = 0;
+    for(const [name, kb] of this.RUNTIME_FILES){
+      const url = this.RUNTIME_REMOTE + name;
+      if(!await c.match(url)){
+        const r = await fetch(url, {cache:"no-store"});
+        if(!r.ok) throw new Error(name.split("/").pop() + " — " + r.status);
+        // читаем потоком: на 14-мегабайтном файле процент должен расти, а не прыгать с нуля в сто
+        const parts = []; const reader = r.body.getReader(); let got = 0;
+        for(;;){ const {value, done} = await reader.read(); if(done) break;
+          parts.push(value); got += value.length; onProgress && onProgress(Math.min(1, (base + got) / total)); }
+        await c.put(url, new Response(new Blob(parts)));
+      }
+      base += kb * 1024; onProgress && onProgress(Math.min(1, base / total));
+    }
+    this.runtimeUrls = null; this.runtimeHas = true;
+  },
+  async runtimeRemove(){
+    if("caches" in window) await caches.delete(this.RUNTIME_CACHE);
+    if(this.runtimeUrls) Object.values(this.runtimeUrls).flatMap(v => typeof v === "string" ? [v] : Object.values(v)).forEach(u => URL.revokeObjectURL(u));
+    this.runtimeUrls = null; this.sessions = {}; this.runtimeHas = false;
+  },
+  async wasmPaths(){
+    if(this.runtimeBundled()){ const base = new URL("./lib/", location.href).href; return { onnxWasm: base + "ort/", piperData: base + "piper_phonemize.data", piperWasm: base + "piper_phonemize.wasm" }; }
+    if(!this.runtimeUrls){
+      const c = await this.runtimeCache(); const url = {};
+      for(const [name, , type] of this.RUNTIME_FILES){
+        const r = c && await c.match(this.RUNTIME_REMOTE + name);
+        if(!r) throw new Error("движок не скачан");
+        // тип важен: по нему браузер решает, можно ли импортировать модуль и стримить wasm
+        url[name] = URL.createObjectURL(new Blob([await r.arrayBuffer()], {type}));
+      }
+      // ORT принимает wasmPaths и строкой-префиксом, и парой ссылок — здесь нужна пара
+      this.runtimeUrls = { onnxWasm: { wasm: url["ort/ort-wasm-simd-threaded.wasm"], mjs: url["ort/ort-wasm-simd-threaded.mjs"] },
+                           piperData: url["piper_phonemize.data"], piperWasm: url["piper_phonemize.wasm"] };
+    }
+    return this.runtimeUrls;
+  },
+  async piperList(){ const lib = await this.piper(); this.piperStored = await lib.stored().catch(()=>[]); await this.runtimeReady(); return this.piperStored; },
   async piperDownload(id, onProgress){
     const lib = await this.piper(); this.piperBusy[id] = 0;
     await lib.download(id, p => { this.piperBusy[id] = p.total ? p.loaded / p.total : 0; onProgress && onProgress(this.piperBusy[id]); });
@@ -73,7 +131,8 @@ const TTS = {
     const hit = await this.cached("piper", id, text); if(hit) return hit;
     const lib = await this.piper();
     // библиотека держит сессию-синглтон и на второй вызов вернула бы старую модель — сбрасываем перед созданием новой
-    if(!this.sessions[id]){ lib.TtsSession._instance = null; this.sessions[id] = lib.TtsSession.create({ voiceId: id, wasmPaths: this.wasmPaths() }).catch(e => { delete this.sessions[id]; throw e; }); }
+    const paths = await this.wasmPaths();
+    if(!this.sessions[id]){ lib.TtsSession._instance = null; this.sessions[id] = lib.TtsSession.create({ voiceId: id, wasmPaths: paths }).catch(e => { delete this.sessions[id]; throw e; }); }
     const s = await this.sessions[id]; const blob = await s.predict(text);
     this.store("piper", id, text, blob); return blob;
   },
@@ -112,7 +171,7 @@ const TTS = {
 // Категории источников голосов: что нужно (ключ / скачивание) и где работает (офлайн / интернет)
 const ENGINES = {
   system: { title:"Из системы телефона", tags:[["free","без ключа"],["off","офлайн"]], desc:"Голоса, установленные в Android или iPhone. Бесплатно; новые ставятся в настройках телефона." },
-  piper:  { title:"Встроенные нейросетевые", tags:[["free","без ключа"],["dl","скачать 63 МБ"],["off","офлайн"]], desc:"Голоса Piper внутри приложения. Один раз скачал — работает в самолёте." },
+  piper:  { title:"Встроенные нейросетевые", tags:[["free","без ключа"],["dl",`скачать ${TTS.runtimeMb()} + 63 МБ`],["off","офлайн"]], desc:"Голоса Piper внутри приложения. Один раз скачал — работает в самолёте." },
   google: { title:"Google Cloud", tags:[["key","нужен ключ"],["net","интернет"],["card","карта"]], desc:"Лучшие голоса Neural2 и Wavenet. Бесплатно 1 млн символов в месяц, но для ключа нужен аккаунт Google Cloud с привязанной картой." },
   eleven: { title:"ElevenLabs", tags:[["key","нужен ключ"],["net","интернет"]], desc:"Самые естественные голоса. Бесплатно 10 тыс. символов в месяц, без карты — только регистрация с капчей." },
 };
@@ -138,6 +197,18 @@ function voiceRow(lang, cur){
   return `<div class="row"><select class="sel grow" id="v_${lang}" style="padding:9px 12px">${opts}</select>${testBtn(lang)}</div>`;
 }
 const testBtn = l => `<button class="speak vtest" data-l="${l}" style="width:40px;height:40px;flex:none" aria-label="Прослушать">${ICONS.sound.replace("<svg","<svg width=20 height=20")}</button>`;
+// Движок (wasm и словарь произношения) в вебе лежит рядом со страницей, а в приложении
+// скачивается отдельно: 33 МБ не нужны тем, кто слушает системные голоса.
+function runtimeRow(){
+  if(TTS.runtimeBundled()) return "";
+  const busy = TTS.runtimeBusy, has = TTS.runtimeHas;
+  const right = busy !== null && busy !== undefined ? `<span class="small muted num">${Math.round(busy*100)}%</span>`
+    : has ? `<button class="btn ghost small" data-delrt style="color:var(--bad)">Удалить</button>`
+    : `<button class="btn ghost small" data-dlrt>Скачать</button>`;
+  return `<div class="prow" style="margin-bottom:8px">
+    <span class="pname" style="cursor:default"><i class="dot ${has?"s3":""}"></i><span class="grow">Движок озвучки · ${TTS.runtimeMb()} МБ</span></span>${right}
+  </div>${has ? "" : `<p class="small muted" style="margin:-4px 0 8px">Без него голоса Piper не зазвучат. Скачивается один раз, лучше по Wi-Fi.</p>`}`;
+}
 function piperRows(l, cfg){
   const stored = TTS.piperStored || [];
   const rows = PIPER_VOICES[l].map(([id,name]) => { const has = stored.includes(id), busy = TTS.piperBusy[id];
@@ -145,7 +216,7 @@ function piperRows(l, cfg){
       <button class="pname" data-pick="${id}" ${has?"":"disabled"}><i class="dot ${has?"s3":""}"></i><span class="grow">${esc(name)}</span></button>
       ${busy!==undefined ? `<span class="small muted num">${Math.round(busy*100)}%</span>` : has ? `<button class="btn ghost small" data-del="${id}" style="color:var(--bad)">Удалить</button>` : `<button class="btn ghost small" data-dl="${id}">Скачать</button>`}
     </div>`; }).join("");
-  return `<div class="plist">${rows}</div>
+  return `${runtimeRow()}<div class="plist">${rows}</div>
     <div class="row between" style="margin-top:8px"><span class="small muted">${stored.length ? "Отмеченный голос играет без интернета" : "Скачай хотя бы один голос (лучше по Wi-Fi)"}</span>${cfg.voice?testBtn(l):""}</div>`;
 }
 function onlineRows(l, cfg){
@@ -171,6 +242,14 @@ function wireVoicesPanel(rerender){
       catch(e){ toast("Не скачалось: " + (e.message||"проверь интернет")); delete TTS.piperBusy[id]; }
       rerender(); });
     blk.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => { await TTS.piperRemove(b.dataset.del); if(cfg.voice===b.dataset.del) cfg.voice = null; save(); rerender(); });
+    const dlrt = blk.querySelector("[data-dlrt]");
+    if(dlrt) dlrt.onclick = async () => { dlrt.textContent = "0%"; dlrt.disabled = true; TTS.runtimeBusy = 0;
+      try { await TTS.runtimeDownload(p => { TTS.runtimeBusy = p; const el = blk.querySelector("[data-dlrt]"); if(el) el.textContent = Math.round(p*100)+"%"; });
+        toast("Движок озвучки готов"); }
+      catch(e){ toast("Не скачалось: " + (e.message||"проверь интернет")); }
+      TTS.runtimeBusy = null; await TTS.runtimeReady(); rerender(); };
+    const delrt = blk.querySelector("[data-delrt]");
+    if(delrt) delrt.onclick = async () => { await TTS.runtimeRemove(); toast("Движок удалён"); rerender(); };
     blk.querySelectorAll("[data-guide]").forEach(b => b.onclick = () => guideSheet(b.dataset.guide, rerender));
     blk.querySelectorAll("[data-fetch]").forEach(b => b.onclick = async () => { b.textContent = "…"; try { const keys = TTS.keys();
         if(b.dataset.fetch==="google"){ keys.googleList = keys.googleList || {}; keys.googleList[l] = await TTS.googleVoices(l==="en"?"en":"ru"); } else keys.elevenList = await TTS.elevenVoices();
